@@ -16,3 +16,4 @@ render.yaml.bak
 .railway
 
 server.pid
+__pycache__/
