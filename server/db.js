@@ -2,8 +2,10 @@ const path = require('node:path');
 const fs = require('node:fs');
 
 /**
- * Skema database mengikuti SKPL_FoodRescueAI_Regenerasi.docx (PDM Tabel 6.2–6.4).
- * Nama tabel/kolom/enum inti = nama SKPL; sisanya ekstensi (dokumentasikan di README).
+ * Skema database mengikuti SKPL_EcoMatch_v2.0 (PDM Tabel 6.1–6.5) — refactoring
+ * FoodRescueAI -> EcoMatch. Nama tabel/kolom/enum inti = nama SKPL; sisanya
+ * ekstensi (dokumentasikan di README). Skema final PostgreSQL (deploy baru):
+ * db/schema_ecomatch.sql.
  *
  * Dialek:
  *  - PostgreSQL (SKPL: DBMS PostgreSQL + ekstensi PostGIS) — aktif bila DATABASE_URL/PG_DATABASE_URL di-set.
@@ -121,6 +123,94 @@ const SCHEMA_STATEMENTS = [
     digunakan_pada TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`,
+  // --- EcoMatch (tabel baru sesuai ERD_EcoMatch.png / SKPL PDM 6.5) ---
+  `CREATE TABLE IF NOT EXISTS profil_mbg (
+    id_user INTEGER PRIMARY KEY REFERENCES user(id_user),
+    nama_sppg TEXT NOT NULL,
+    alamat TEXT,
+    lat REAL,
+    lng REAL,
+    kapasitas_porsi_harian INTEGER,
+    penanggung_jawab TEXT,
+    kontak TEXT,
+    npwp TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE TABLE IF NOT EXISTS tps_pengolah (
+    id_user INTEGER PRIMARY KEY REFERENCES user(id_user),
+    nama_tps TEXT NOT NULL,
+    jenis_tps TEXT NOT NULL DEFAULT 'tps_3r'
+      CHECK (jenis_tps IN ('tps_3r','tps_komposter','tps_maggot','tps_eco_enzyme','bank_sampah','lainnya')),
+    jenis_pengolahan TEXT NOT NULL DEFAULT 'komposter'
+      CHECK (jenis_pengolahan IN ('komposter','maggot_bsf','eco_enzyme','bank_sampah','lainnya')),
+    kapasitas_kg_hari REAL NOT NULL DEFAULT 0 CHECK (kapasitas_kg_hari >= 0),
+    jenis_diterima TEXT NOT NULL DEFAULT '["lainnya"]',
+    radius_layanan_km REAL NOT NULL DEFAULT 15,
+    izin_operasional TEXT,
+    aktif INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE TABLE IF NOT EXISTS sampah_makanan (
+    id_sampah INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_donor INTEGER NOT NULL REFERENCES user(id_user),
+    nama_sampah TEXT,
+    jenis_makanan TEXT NOT NULL DEFAULT 'campuran'
+      CHECK (jenis_makanan IN ('nasi','sayur','lauk','buah','campuran','lainnya')),
+    berat_kg REAL NOT NULL CHECK (berat_kg > 0),
+    waktu_produksi TEXT NOT NULL,
+    foto_url TEXT,
+    status TEXT NOT NULL DEFAULT 'tersedia'
+      CHECK (status IN ('tersedia','dialokasikan','dijemput','terkirim','terverifikasi','dibatalkan')),
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE TABLE IF NOT EXISTS klasifikasi_sampah (
+    id_klasifikasi INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_sampah INTEGER NOT NULL REFERENCES sampah_makanan(id_sampah),
+    kategori TEXT NOT NULL
+      CHECK (kategori IN ('sisa_nasi','sayur','lauk','kulit_buah','campuran','lainnya')),
+    tingkat_pembusukan TEXT NOT NULL DEFAULT 'segar'
+      CHECK (tingkat_pembusukan IN ('segar','sedang','busuk')),
+    skor_keyakinan REAL NOT NULL DEFAULT 0,
+    metode TEXT NOT NULL DEFAULT 'rule_based'
+      CHECK (metode IN ('rule_based','ai_vision','manual_admin','hybrid')),
+    alasan TEXT,
+    diverifikasi_oleh INTEGER REFERENCES user(id_user),
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE TABLE IF NOT EXISTS pengolahan_log (
+    id_pengolahan INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_alokasi INTEGER NOT NULL REFERENCES alokasi(id_alokasi),
+    input_kg REAL NOT NULL CHECK (input_kg >= 0),
+    output_kg REAL CHECK (output_kg >= 0),
+    output_jenis TEXT
+      CHECK (output_jenis IS NULL OR output_jenis IN ('kompos','pupuk_cair','pakan_ternak','eco_enzyme','lainnya')),
+    foto_bukti TEXT,
+    tanggal TEXT NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE TABLE IF NOT EXISTS motivasi_donor_mbg (
+    id_motivasi INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_user INTEGER NOT NULL REFERENCES user(id_user),
+    jenis_insentif TEXT NOT NULL
+      CHECK (jenis_insentif IN ('sertifikat','poin','laporan_kepatuhan','laporan_csr','badge')),
+    nilai REAL,
+    sertifikat_url TEXT,
+    periode TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE TABLE IF NOT EXISTS konfigurasi_regulasi (
+    id_konfigurasi INTEGER PRIMARY KEY AUTOINCREMENT,
+    kode_daerah TEXT NOT NULL DEFAULT 'KOTA_MADIUN',
+    nama_regulasi TEXT NOT NULL,
+    jenis_regulasi TEXT NOT NULL DEFAULT 'lainnya'
+      CHECK (jenis_regulasi IN ('perda','pergub','surat_edaran','lainnya')),
+    aturan TEXT NOT NULL DEFAULT '{}',
+    aktif INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_sampah_status ON sampah_makanan(status)`,
+  `CREATE INDEX IF NOT EXISTS idx_sampah_donor ON sampah_makanan(id_donor)`,
+  `CREATE INDEX IF NOT EXISTS idx_klasifikasi_sampah ON klasifikasi_sampah(id_sampah)`,
+  `CREATE INDEX IF NOT EXISTS idx_tps_aktif ON tps_pengolah(aktif)`,
 ];
 
 const PK_BY_TABLE = {
@@ -133,6 +223,13 @@ const PK_BY_TABLE = {
   log_audit: 'id_log',
   outbox_pesan: 'id_pesan',
   reset_sandi: 'id_reset',
+  profil_mbg: 'id_user',
+  tps_pengolah: 'id_user',
+  sampah_makanan: 'id_sampah',
+  klasifikasi_sampah: 'id_klasifikasi',
+  pengolahan_log: 'id_pengolahan',
+  motivasi_donor_mbg: 'id_motivasi',
+  konfigurasi_regulasi: 'id_konfigurasi',
 };
 
 // Trigger immutability log_audit (NFR-08) — dua dialek.

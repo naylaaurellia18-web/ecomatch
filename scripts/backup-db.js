@@ -21,6 +21,13 @@ const TABLES = [
   'notifikasi',
   'outbox_pesan',
   'log_audit',
+  'profil_mbg',
+  'tps_pengolah',
+  'sampah_makanan',
+  'klasifikasi_sampah',
+  'pengolahan_log',
+  'motivasi_donor_mbg',
+  'konfigurasi_regulasi',
 ];
 
 function stamp() {
@@ -65,7 +72,7 @@ async function dumpCloud() {
 function dumpToSql(dump) {
   const esc = (v) =>
     v == null ? 'NULL' : typeof v === 'number' ? String(v) : `'${String(v).replace(/'/g, "''")}'`;
-  const lines = ['-- Food Rescue AI backup ' + new Date().toISOString()];
+  const lines = ['-- EcoMatch backup ' + new Date().toISOString()];
   for (const [table, rows] of Object.entries(dump)) {
     if (!rows.length) continue;
     const cols = Object.keys(rows[0]);
