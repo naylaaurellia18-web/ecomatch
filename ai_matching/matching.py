@@ -1,7 +1,6 @@
-"""Mesin AI Matching Food Rescue AI — port dari server/lib/matching.js (SKPL: modul AI Matching Python).
-
-Bobot/batas diambil dari server/config/matching.json supaya identik dengan aturan backend.
-"""
+"""Mesin AI Routing (kontrak lama surplus/kebutuhan) — dipertahankan untuk endpoint
+/v1/matching selama masa transisi; mesin utama EcoMatch ada di routing.py.
+Bobot/batas diambil dari server/config/matching.json supaya identik dengan aturan backend."""
 from __future__ import annotations
 
 import json

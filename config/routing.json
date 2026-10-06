@@ -1,0 +1,51 @@
+{
+  "_keterangan": "Konfigurasi mesin AI Routing EcoMatch (FR-04/FR-13). Bobot final: jenis_cocok 0,35; kapasitas 0,25; jarak 0,25; urgensi 0,15 (Dokumen Arsitektur §5, laporan bagian 2.3). Kode mengambil nilai dari file ini, bukan hard-coded. Dipakai ai_matching/routing.py, ai_matching/klasifikasi.py, dan server/lib/routing.js (Fase 4).",
+  "versi": "1.0",
+  "bobot": {
+    "jenis_cocok": 0.35,
+    "kapasitas": 0.25,
+    "jarak": 0.25,
+    "urgensi": 0.15
+  },
+  "radius_layanan_km": 15,
+  "jarak_skor_penuh_km": 1,
+  "batas_skor": 0.3,
+  "skor_jenis_cocok": {
+    "cocok": 1.0,
+    "sebagian": 0.5
+  },
+  "skor_kapasitas": [
+    { "min_rasio": 1.0, "skor": 1.0 },
+    { "min_rasio": 0.5, "skor": 0.6 },
+    { "min_rasio": 0.000001, "skor": 0.3 }
+  ],
+  "skor_urgensi": {
+    "busuk": 1.0,
+    "sedang": 0.6,
+    "segar": 0.3
+  },
+  "pembusukan": {
+    "_keterangan": "umur (jam sejak waktu_produksi): <= segar_maks_jam -> segar; <= sedang_maks_jam -> sedang; selebihnya -> busuk",
+    "segar_maks_jam": 12,
+    "sedang_maks_jam": 24
+  },
+  "klasifikasi": {
+    "_keterangan": "Klasifikasi rule-based (FR-06): kata kunci -> kategori. keyakinan = n/(n+1); di bawah ambang -> perlu_verifikasi admin (FR-07).",
+    "ambang_keyakinan": 0.6,
+    "kategori": {
+      "sisa_nasi": ["nasi", "nasi putih", "nasi uduk", "lontong", "ketupat"],
+      "sayur": ["sayur", "bayam", "kangkung", "cah", "tumis", "sayur bening", "capcay"],
+      "lauk": ["lauk", "ayam", "ikan", "daging", "rendang", "sambal", "telur", "semur", "opor"],
+      "kulit_buah": ["kulit buah", "buah", "pepaya", "apel", "jeruk", "semangka", "pisang", "mangga"],
+      "campuran": ["campur", "nasi kotak", "prasmanan", "rantang", "komposisi"],
+      "lainnya": []
+    }
+  },
+  "sla": {
+    "routing_detik": 3
+  },
+  "target": {
+    "alokasi_persen": 85,
+    "klasifikasi_akurasi_persen": 85
+  }
+}
