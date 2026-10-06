@@ -5,66 +5,81 @@ const { generateOtp } = require('../lib/auth');
 const { audit, notify } = require('../lib/audit');
 const { saveImage } = require('../lib/storage');
 const { authenticate, requireRole, requireActive } = require('../middleware');
+const { safeEqual, imageUploadFilter, assertImageBuffer } = require('../lib/validate');
+const { hit, clientIp } = require('../lib/ratelimit');
 
 const router = express.Router();
+
+const OTP_LIMIT = { limit: 5, windowMs: 15 * 60000 };
 
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 1024 * 1024 },
-  fileFilter: (_req, file, cb) => (/^image\//.test(file.mimetype) ? cb(null, true) : cb(new Error('Hanya gambar'))),
+  fileFilter: imageUploadFilter,
 });
 
 router.use(authenticate, requireActive);
 
 async function getMatch(id) {
   return db.get(
-    `SELECT m.*, l.donor_id, l.name AS listing_name, l.food_type, n.recipient_id, n.title AS need_title
-     FROM matches m
-     JOIN food_listings l ON l.id = m.listing_id
-     JOIN food_needs n ON n.id = m.need_id
-     WHERE m.id = ?`,
+    `SELECT m.*, l.id_donor, l.nama_makanan, l.jenis_makanan, n.judul AS judul_kebutuhan
+     FROM alokasi m
+     JOIN surplus_makanan l ON l.id_makanan = m.id_makanan
+     JOIN kebutuhan_pangan n ON n.id_kebutuhan = m.id_kebutuhan
+     WHERE m.id_alokasi = ?`,
     [id]
   );
 }
 
 function assertCourier(req, match) {
-  if (req.user.role !== 'admin' && match.courier_id !== req.user.id) {
+  if (req.user.role !== 'admin' && match.id_kurir !== req.user.id) {
     const err = new Error('Hanya kurir yang ditugaskan');
     err.status = 403;
     throw err;
   }
 }
 
-router.post('/:id/pickup', upload.single('photo'), requireRole('courier', 'admin'), async (req, res, next) => {
+router.post('/:id/pickup', upload.single('foto_jemput'), requireRole('kurir', 'admin'), async (req, res, next) => {
   try {
     const match = await getMatch(req.params.id);
     if (!match) return res.status(404).json({ error: 'Pencocokan tidak ditemukan' });
     assertCourier(req, match);
-    if (!['proposed', 'accepted'].includes(match.status)) {
+    if (!['diajukan', 'diterima'].includes(match.status)) {
       return res.status(400).json({ error: `Status ${match.status} tidak bisa dijemput` });
     }
+    // FR-07: foto kondisi makanan SEBELUM pengantaran
     if (!req.file) return res.status(400).json({ error: 'Foto kondisi makanan wajib diunggah' });
+    assertImageBuffer(req.file.buffer);
 
     const photoUri = await saveImage(req.file);
 
     await db.run(
-      `UPDATE matches SET status = 'picked_up', photo_path = ?, updated_at = datetime('now') WHERE id = ?`,
-      [photoUri, match.id]
+      `UPDATE alokasi SET status = 'dijemput', foto_jemput = ?, updated_at = datetime('now') WHERE id_alokasi = ?`,
+      [photoUri, match.id_alokasi]
     );
-    await db.run(`UPDATE food_listings SET status = 'picked_up' WHERE id = ?`, [match.listing_id]);
+    await db.run(`UPDATE surplus_makanan SET status = 'dijemput' WHERE id_makanan = ?`, [match.id_makanan]);
 
     const code = generateOtp();
     const expiresAt = new Date(Date.now() + 30 * 60000).toISOString();
-    await db.run(`INSERT INTO otp_codes (match_id, code, expires_at) VALUES (?, ?, ?)`, [match.id, code, expiresAt]);
+    await db.run(`INSERT INTO kode_otp (id_alokasi, kode, kedaluwarsa_pada) VALUES (?, ?, ?)`, [
+      match.id_alokasi,
+      code,
+      expiresAt,
+    ]);
 
     await notify(
-      match.recipient_id,
+      match.id_penerima,
       'Kurir Menuju Lokasi Anda',
-      `Kurir telah menjemput "${match.listing_name}". OTP konfirmasi: ${code} (berlaku 30 menit).`,
-      match.id
+      `Kurir telah menjemput "${match.nama_makanan}". OTP konfirmasi: ${code} (berlaku 30 menit).`,
+      match.id_alokasi
     );
-    await notify(match.donor_id, 'Surplus Dijemput Kurir', `"${match.listing_name}" sedang dalam perjalanan.`, match.id);
-    await audit(req.user.id, 'PICKUP', 'matches', match.id, { photo: 'base64' });
+    await notify(
+      match.id_donor,
+      'Surplus Dijemput Kurir',
+      `"${match.nama_makanan}" sedang dalam perjalanan.`,
+      match.id_alokasi
+    );
+    await audit(req.user.id, 'PICKUP', 'alokasi', match.id_alokasi, { foto: 'base64' });
 
     res.json({ message: 'Penjemputan tercatat, OTP dikirim ke penerima', otp_hint: 'OTP tampil di notifikasi penerima (demo)' });
   } catch (e) {
@@ -72,60 +87,88 @@ router.post('/:id/pickup', upload.single('photo'), requireRole('courier', 'admin
   }
 });
 
-router.post('/:id/deliver', requireRole('courier', 'admin'), async (req, res, next) => {
+router.post('/:id/deliver', upload.single('foto_antar'), requireRole('kurir', 'admin'), async (req, res, next) => {
   try {
     const match = await getMatch(req.params.id);
     if (!match) return res.status(404).json({ error: 'Pencocokan tidak ditemukan' });
     assertCourier(req, match);
-    if (match.status !== 'picked_up') {
-      return res.status(400).json({ error: 'Pencocokan harus berstatus picked_up' });
+    if (match.status !== 'dijemput') {
+      return res.status(400).json({ error: 'Pencocokan harus berstatus dijemput' });
     }
-    await db.run(`UPDATE matches SET status = 'delivered', updated_at = datetime('now') WHERE id = ?`, [match.id]);
-    await db.run(`UPDATE food_listings SET status = 'delivered' WHERE id = ?`, [match.listing_id]);
-    await audit(req.user.id, 'DELIVER', 'matches', match.id);
+    // FR-07: foto kondisi makanan SESUDAH pengantaran
+    if (!req.file) return res.status(400).json({ error: 'Foto bukti pengantaran wajib diunggah' });
+    assertImageBuffer(req.file.buffer);
+    const photoUri = await saveImage(req.file);
+
+    await db.run(
+      `UPDATE alokasi SET status = 'terkirim', foto_antar = ?, updated_at = datetime('now') WHERE id_alokasi = ?`,
+      [photoUri, match.id_alokasi]
+    );
+    await db.run(`UPDATE surplus_makanan SET status = 'terkirim' WHERE id_makanan = ?`, [match.id_makanan]);
+    await audit(req.user.id, 'DELIVER', 'alokasi', match.id_alokasi, { foto: 'base64' });
     res.json({ message: 'Status diperbarui: sampai di lokasi, menunggu konfirmasi OTP penerima' });
   } catch (e) {
     next(e);
   }
 });
 
-router.post('/:id/verify-otp', requireRole('recipient', 'admin'), async (req, res, next) => {
+router.post('/:id/verify-otp', requireRole('penerima', 'admin'), async (req, res, next) => {
   try {
     const match = await getMatch(req.params.id);
     if (!match) return res.status(404).json({ error: 'Pencocokan tidak ditemukan' });
-    if (req.user.role !== 'admin' && match.recipient_id !== req.user.id) {
+    if (req.user.role !== 'admin' && match.id_penerima !== req.user.id) {
       return res.status(403).json({ error: 'Hanya penerima yang bisa konfirmasi' });
     }
-    if (!['picked_up', 'delivered'].includes(match.status)) {
+    if (!['dijemput', 'terkirim'].includes(match.status)) {
       return res.status(400).json({ error: 'Pencocokan belum siap dikonfirmasi' });
     }
 
     const { otp } = req.body || {};
     if (!otp) return res.status(400).json({ error: 'OTP wajib diisi' });
 
+    const otpKey = `otp:${clientIp(req)}:${match.id_alokasi}:${req.user.id}`;
+    if (!hit(otpKey, OTP_LIMIT)) {
+      return res.status(429).json({ error: 'Terlalu banyak percobaan OTP. Coba lagi dalam 15 menit.' });
+    }
+
     const row = await db.get(
-      `SELECT * FROM otp_codes
-       WHERE match_id = ? AND used_at IS NULL
+      `SELECT * FROM kode_otp
+       WHERE id_alokasi = ? AND digunakan_pada IS NULL
        ORDER BY created_at DESC LIMIT 1`,
-      [match.id]
+      [match.id_alokasi]
     );
     if (!row) return res.status(400).json({ error: 'OTP tidak ditemukan' });
-    if (new Date(row.expires_at).getTime() < Date.now()) {
+    if (new Date(row.kedaluwarsa_pada).getTime() < Date.now()) {
       return res.status(400).json({ error: 'OTP kedaluwarsa' });
     }
-    if (row.code !== String(otp).trim()) {
-      await audit(req.user.id, 'OTP_FAIL', 'matches', match.id);
+    if (!safeEqual(row.kode, String(otp).trim())) {
+      await audit(req.user.id, 'OTP_FAIL', 'alokasi', match.id_alokasi);
       return res.status(400).json({ error: 'OTP salah' });
     }
 
-    await db.run(`UPDATE otp_codes SET used_at = datetime('now') WHERE id = ?`, [row.id]);
-    await db.run(`UPDATE matches SET status = 'verified', updated_at = datetime('now') WHERE id = ?`, [match.id]);
-    await db.run(`UPDATE food_listings SET status = 'verified' WHERE id = ?`, [match.listing_id]);
-    await db.run(`UPDATE food_needs SET status = 'fulfilled', updated_at = datetime('now') WHERE id = ?`, [match.need_id]);
+    await db.run(`UPDATE kode_otp SET digunakan_pada = datetime('now') WHERE id_kode_otp = ?`, [row.id_kode_otp]);
+    await db.run(
+      `UPDATE alokasi SET status = 'terverifikasi', updated_at = datetime('now') WHERE id_alokasi = ?`,
+      [match.id_alokasi]
+    );
+    await db.run(`UPDATE surplus_makanan SET status = 'terverifikasi' WHERE id_makanan = ?`, [match.id_makanan]);
+    await db.run(`UPDATE kebutuhan_pangan SET status = 'dipenuhi', updated_at = datetime('now') WHERE id_kebutuhan = ?`, [
+      match.id_kebutuhan,
+    ]);
 
-    await notify(match.courier_id, 'Serah Terima Terverifikasi', `Pencocokan #${match.id} selesai via OTP.`, match.id);
-    await notify(match.donor_id, 'Redistribusi Selesai', `"${match.listing_name}" telah diterima penerima.`, match.id);
-    await audit(req.user.id, 'VERIFY_OTP', 'matches', match.id, { need_id: match.need_id });
+    await notify(
+      match.id_kurir,
+      'Serah Terima Terverifikasi',
+      `Pencocokan #${match.id_alokasi} selesai via OTP.`,
+      match.id_alokasi
+    );
+    await notify(
+      match.id_donor,
+      'Redistribusi Selesai',
+      `"${match.nama_makanan}" telah diterima penerima.`,
+      match.id_alokasi
+    );
+    await audit(req.user.id, 'VERIFY_OTP', 'alokasi', match.id_alokasi, { id_kebutuhan: match.id_kebutuhan });
 
     res.json({ message: 'Serah terima terverifikasi. Terima kasih!' });
   } catch (e) {
@@ -133,18 +176,18 @@ router.post('/:id/verify-otp', requireRole('recipient', 'admin'), async (req, re
   }
 });
 
-router.get('/:id/otp-status', requireRole('recipient', 'admin'), async (req, res, next) => {
+router.get('/:id/otp-status', requireRole('penerima', 'admin'), async (req, res, next) => {
   try {
     const match = await getMatch(req.params.id);
     if (!match) return res.status(404).json({ error: 'Pencocokan tidak ditemukan' });
-    if (req.user.role !== 'admin' && match.recipient_id !== req.user.id) {
+    if (req.user.role !== 'admin' && match.id_penerima !== req.user.id) {
       return res.status(403).json({ error: 'Bukan penerima pencocokan ini' });
     }
     const row = await db.get(
-      `SELECT code, expires_at, used_at FROM otp_codes WHERE match_id = ? ORDER BY created_at DESC LIMIT 1`,
-      [match.id]
+      `SELECT kode, kedaluwarsa_pada, digunakan_pada FROM kode_otp WHERE id_alokasi = ? ORDER BY created_at DESC LIMIT 1`,
+      [match.id_alokasi]
     );
-    res.json(row || { code: null });
+    res.json(row || { kode: null });
   } catch (e) {
     next(e);
   }

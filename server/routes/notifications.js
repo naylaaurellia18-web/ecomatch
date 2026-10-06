@@ -9,7 +9,7 @@ router.use(authenticate);
 router.get('/', async (req, res, next) => {
   try {
     const rows = await db.all(
-      `SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
+      `SELECT * FROM notifikasi WHERE id_user = ? ORDER BY created_at DESC LIMIT 50`,
       [req.user.id]
     );
     res.json(rows);
@@ -20,7 +20,7 @@ router.get('/', async (req, res, next) => {
 
 router.post('/:id/read', async (req, res, next) => {
   try {
-    await db.run(`UPDATE notifications SET read_at = datetime('now') WHERE id = ? AND user_id = ?`, [
+    await db.run(`UPDATE notifikasi SET dibaca_pada = datetime('now') WHERE id_notifikasi = ? AND id_user = ?`, [
       req.params.id,
       req.user.id,
     ]);
@@ -32,7 +32,7 @@ router.post('/:id/read', async (req, res, next) => {
 
 router.post('/read-all', async (req, res, next) => {
   try {
-    await db.run(`UPDATE notifications SET read_at = datetime('now') WHERE user_id = ? AND read_at IS NULL`, [
+    await db.run(`UPDATE notifikasi SET dibaca_pada = datetime('now') WHERE id_user = ? AND dibaca_pada IS NULL`, [
       req.user.id,
     ]);
     res.json({ message: 'Berhasil' });

@@ -10,101 +10,127 @@ async function runMatching(actorId) {
   const startedAt = process.hrtime.bigint();
 
   const listings = await db.all(
-    `SELECT l.*, u.name AS donor_name, u.lat AS donor_lat, u.lng AS donor_lng
-     FROM food_listings l JOIN users u ON u.id = l.donor_id
-     WHERE l.status = 'available' AND l.expiry_at > datetime('now')`
+    `SELECT l.*, u.nama AS nama_donor, u.lat AS lat_donor, u.lng AS lng_donor
+     FROM surplus_makanan l JOIN user u ON u.id_user = l.id_donor
+     WHERE l.status = 'tersedia' AND l.expiry_time > datetime('now')`
   );
 
   const needs = await db.all(
-    `SELECT n.*, u.name AS recipient_name, u.lat AS recipient_lat, u.lng AS recipient_lng
-     FROM food_needs n JOIN users u ON u.id = n.recipient_id
-     WHERE n.status = 'open'`
+    `SELECT n.*, u.nama AS nama_penerima, u.lat AS lat_penerima, u.lng AS lng_penerima
+     FROM kebutuhan_pangan n JOIN user u ON u.id_user = n.id_penerima
+     WHERE n.status = 'terbuka'`
   );
 
   const couriers = await db.all(
-    `SELECT u.* FROM users u
-     WHERE u.role = 'courier' AND u.status = 'active'
-       AND u.id NOT IN (
-         SELECT courier_id FROM matches
-         WHERE status IN ('proposed','accepted','picked_up')
+    `SELECT u.* FROM user u
+     WHERE u.role = 'kurir' AND u.status = 'aktif'
+       AND u.id_user NOT IN (
+         SELECT id_kurir FROM alokasi
+         WHERE status IN ('diajukan','diterima','dijemput')
        )`
   );
 
-  const matchedRows = await db.all(`SELECT listing_id, need_id FROM matches WHERE status NOT IN ('cancelled')`);
-  const alreadyMatched = new Set(matchedRows.map((r) => r.listing_id));
-  const openNeeds = new Set(matchedRows.map((r) => r.need_id));
+  const matchedRows = await db.all(`SELECT id_makanan, id_kebutuhan FROM alokasi WHERE status != 'dibatalkan'`);
+  const alreadyMatched = new Set(matchedRows.map((r) => r.id_makanan));
+  const openNeeds = new Set(matchedRows.map((r) => r.id_kebutuhan));
 
-  const filteredListings = listings.filter((l) => !alreadyMatched.has(l.id));
-  const filteredNeeds = needs.filter((n) => !openNeeds.has(n.id));
+  const filteredListings = listings.filter((l) => !alreadyMatched.has(l.id_makanan));
+  const filteredNeeds = needs.filter((n) => !openNeeds.has(n.id_kebutuhan));
 
-  const selected = computeMatches({ listings: filteredListings, needs: filteredNeeds, couriers });
+  const selected = await computeMatches({ listings: filteredListings, needs: filteredNeeds, couriers });
 
   const created = [];
   for (const m of selected) {
     const ins = await db.run(
-      `INSERT INTO matches
-        (listing_id, need_id, courier_id, score, score_expiry, score_distance, score_urgency, score_capacity,
-         distance_km, route_json, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'proposed')`,
+      `INSERT INTO alokasi
+        (id_makanan, id_kebutuhan, id_penerima, id_kurir, skor_matching, skor_masa_simpan, skor_jarak,
+         skor_urgensi, skor_kapasitas, jarak_km, rute_json, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'diajukan')`,
       [
-        m.listing_id,
-        m.need_id,
-        m.courier_id,
-        m.score,
-        m.score_expiry,
-        m.score_distance,
-        m.score_urgency,
-        m.score_capacity,
-        m.distance_km,
-        m.route_json,
+        m.id_makanan,
+        m.id_kebutuhan,
+        m.id_penerima,
+        m.id_kurir,
+        m.skor_matching,
+        m.skor_masa_simpan,
+        m.skor_jarak,
+        m.skor_urgensi,
+        m.skor_kapasitas,
+        m.jarak_km,
+        m.rute_json,
       ]
     );
-    const matchId = ins.lastInsertRowid;
+    const alokasiId = ins.lastInsertRowid;
 
-    await db.run(`UPDATE food_listings SET status = 'matched' WHERE id = ?`, [m.listing_id]);
+    await db.run(`UPDATE surplus_makanan SET status = 'dialokasikan' WHERE id_makanan = ?`, [m.id_makanan]);
 
-    const listing = await db.get('SELECT * FROM food_listings WHERE id = ?', [m.listing_id]);
-    const need = await db.get('SELECT * FROM food_needs WHERE id = ?', [m.need_id]);
+    const listing = await db.get('SELECT * FROM surplus_makanan WHERE id_makanan = ?', [m.id_makanan]);
+    const need = await db.get('SELECT * FROM kebutuhan_pangan WHERE id_kebutuhan = ?', [m.id_kebutuhan]);
 
     await notify(
-      m.courier_id,
+      m.id_kurir,
       'Tugas Baru: Penjemputan Surplus',
-      `Surplus "${listing.name}" (${listing.portions} porsi) untuk "${need.title}". Skor pencocokan ${(m.score * 100).toFixed(0)}%, jarak ${m.distance_km} km.`,
-      matchId
+      `Surplus "${listing.nama_makanan}" (${listing.jumlah_porsi} porsi) untuk "${need.judul}". Skor pencocokan ${(m.skor_matching * 100).toFixed(0)}%, jarak ${m.jarak_km} km.`,
+      alokasiId
     );
     await notify(
-      listing.donor_id,
+      listing.id_donor,
       'Surplus Anda Sudah Dipasangkan',
-      `"${listing.name}" dialokasikan untuk ${need.title}. Skor pencocokan ${(m.score * 100).toFixed(0)}%.`,
-      matchId
+      `"${listing.nama_makanan}" dialokasikan untuk ${need.judul}. Skor pencocokan ${(m.skor_matching * 100).toFixed(0)}%.`,
+      alokasiId
     );
     await notify(
-      need.recipient_id,
+      need.id_penerima,
       'Bantuan Dialokasikan',
-      `Kebutuhan "${need.title}" dipenuhi dari donor. Menunggu pengantaran kurir.`,
-      matchId
+      `Kebutuhan "${need.judul}" dipenuhi dari donor. Menunggu pengantaran kurir.`,
+      alokasiId
     );
 
-    await audit(actorId, 'AUTO_MATCH', 'matches', matchId, {
-      score: m.score,
-      distance_km: m.distance_km,
-      listing_id: m.listing_id,
-      need_id: m.need_id,
-      courier_id: m.courier_id,
+    await audit(actorId, 'AUTO_MATCH', 'alokasi', alokasiId, {
+      skor_matching: m.skor_matching,
+      jarak_km: m.jarak_km,
+      id_makanan: m.id_makanan,
+      id_kebutuhan: m.id_kebutuhan,
+      id_kurir: m.id_kurir,
     });
-    created.push(matchId);
+    created.push(alokasiId);
+  }
+
+  // TC-05: AI Matching tidak menemukan kandidat → notifikasi donor + log audit
+  // (status surplus tetap 'tersedia' — tidak ada transisi ke 'gagal')
+  if (created.length === 0 && filteredListings.length > 0) {
+    const donorIds = [...new Set(filteredListings.map((l) => l.id_donor))];
+    for (const donorId of donorIds) {
+      const count = filteredListings.filter((l) => l.id_donor === donorId).length;
+      await notify(
+        donorId,
+        'Belum Ada Kandidat Penerima',
+        `${count} surplus Anda belum bisa dialokasikan (tidak ada penerima/kurir yang cocok dalam radius). Sistem akan mencoba lagi pada pencocokan berikutnya.`
+      );
+    }
+    await audit(actorId, 'MATCH_NOT_FOUND', 'sistem', null, {
+      kandidat_makanan: filteredListings.length,
+      kandidat_kebutuhan: filteredNeeds.length,
+      kandidat_kurir: couriers.length,
+      donor_diberitahu: donorIds.length,
+    });
   }
 
   const durationMs = Number(process.hrtime.bigint() - startedAt) / 1e6;
-  await audit(actorId, 'RUN_MATCHING', 'system', null, {
-    candidates_listings: filteredListings.length,
-    candidates_needs: filteredNeeds.length,
-    candidates_couriers: couriers.length,
-    created: created.length,
-    duration_ms: Number(durationMs.toFixed(2)),
+  await audit(actorId, 'RUN_MATCHING', 'sistem', null, {
+    kandidat_makanan: filteredListings.length,
+    kandidat_kebutuhan: filteredNeeds.length,
+    kandidat_kurir: couriers.length,
+    dibuat: created.length,
+    durasi_ms: Number(durationMs.toFixed(2)),
+    tanpa_kandidat: created.length === 0,
   });
 
-  return { created: created.length, duration_ms: Number(durationMs.toFixed(2)), match_ids: created };
+  return {
+    dibuat: created.length,
+    durasi_ms: Number(durationMs.toFixed(2)),
+    id_alokasi: created,
+  };
 }
 
 router.use(authenticate);
@@ -112,69 +138,69 @@ router.use(authenticate);
 router.post('/run', requireRole('admin'), requireActive, async (req, res, next) => {
   try {
     const result = await runMatching(req.user.id);
-    res.json({ message: `Pencocokan selesai: ${result.created} pencocokan dibuat`, ...result });
+    res.json({ message: `Pencocokan selesai: ${result.dibuat} pencocokan dibuat`, ...result });
   } catch (e) {
     next(e);
   }
 });
 
-router.get('/', requireRole('admin', 'courier', 'donor', 'recipient'), async (req, res, next) => {
+router.get('/', requireRole('admin', 'kurir', 'donor', 'penerima'), async (req, res, next) => {
   try {
     let rows;
     if (req.user.role === 'admin') {
       rows = await db.all(
         `SELECT m.*,
-           l.name AS listing_name, l.food_type, l.portions, l.expiry_at,
-           dn.name AS donor_name, rn.name AS recipient_name, c.name AS courier_name,
-           n.title AS need_title, n.urgency
-         FROM matches m
-         JOIN food_listings l ON l.id = m.listing_id
-         JOIN food_needs n ON n.id = m.need_id
-         JOIN users dn ON dn.id = l.donor_id
-         JOIN users rn ON rn.id = n.recipient_id
-         JOIN users c ON c.id = m.courier_id
-         ORDER BY m.created_at DESC`
+           l.nama_makanan, l.jenis_makanan, l.jumlah_porsi, l.expiry_time,
+           dn.nama AS nama_donor, rn.nama AS nama_penerima, c.nama AS nama_kurir,
+           n.judul AS judul_kebutuhan, n.urgensi
+         FROM alokasi m
+         JOIN surplus_makanan l ON l.id_makanan = m.id_makanan
+         JOIN kebutuhan_pangan n ON n.id_kebutuhan = m.id_kebutuhan
+         JOIN user dn ON dn.id_user = l.id_donor
+         JOIN user rn ON rn.id_user = m.id_penerima
+         JOIN user c ON c.id_user = m.id_kurir
+         ORDER BY m.waktu_alokasi DESC`
       );
-    } else if (req.user.role === 'courier') {
+    } else if (req.user.role === 'kurir') {
       rows = await db.all(
-        `SELECT m.*, l.name AS listing_name, l.food_type, l.portions, l.expiry_at, l.photo_path AS listing_photo,
-           dn.name AS donor_name, dn.phone AS donor_phone, dn.address AS donor_address, dn.lat AS donor_lat, dn.lng AS donor_lng,
-           rn.name AS recipient_name, rn.phone AS recipient_phone, rn.address AS recipient_address,
-           rn.lat AS recipient_lat, rn.lng AS recipient_lng,
-           n.title AS need_title, n.urgency
-         FROM matches m
-         JOIN food_listings l ON l.id = m.listing_id
-         JOIN food_needs n ON n.id = m.need_id
-         JOIN users dn ON dn.id = l.donor_id
-         JOIN users rn ON rn.id = n.recipient_id
-         WHERE m.courier_id = ?
-         ORDER BY m.created_at DESC`,
+        `SELECT m.*, l.nama_makanan, l.jenis_makanan, l.jumlah_porsi, l.expiry_time, l.foto_kondisi,
+           dn.nama AS nama_donor, dn.telepon AS telepon_donor, dn.alamat AS alamat_donor, dn.lat AS lat_donor, dn.lng AS lng_donor,
+           rn.nama AS nama_penerima, rn.telepon AS telepon_penerima, rn.alamat AS alamat_penerima,
+           rn.lat AS lat_penerima, rn.lng AS lng_penerima,
+           n.judul AS judul_kebutuhan, n.urgensi
+         FROM alokasi m
+         JOIN surplus_makanan l ON l.id_makanan = m.id_makanan
+         JOIN kebutuhan_pangan n ON n.id_kebutuhan = m.id_kebutuhan
+         JOIN user dn ON dn.id_user = l.id_donor
+         JOIN user rn ON rn.id_user = m.id_penerima
+         WHERE m.id_kurir = ?
+         ORDER BY m.waktu_alokasi DESC`,
         [req.user.id]
       );
     } else if (req.user.role === 'donor') {
       rows = await db.all(
-        `SELECT m.*, l.name AS listing_name, l.food_type, l.portions, n.title AS need_title,
-           rn.name AS recipient_name, c.name AS courier_name, n.urgency
-         FROM matches m
-         JOIN food_listings l ON l.id = m.listing_id
-         JOIN food_needs n ON n.id = m.need_id
-         JOIN users rn ON rn.id = n.recipient_id
-         JOIN users c ON c.id = m.courier_id
-         WHERE l.donor_id = ?
-         ORDER BY m.created_at DESC`,
+        `SELECT m.*, l.nama_makanan, l.jenis_makanan, l.jumlah_porsi, n.judul AS judul_kebutuhan,
+           rn.nama AS nama_penerima, c.nama AS nama_kurir, n.urgensi
+         FROM alokasi m
+         JOIN surplus_makanan l ON l.id_makanan = m.id_makanan
+         JOIN kebutuhan_pangan n ON n.id_kebutuhan = m.id_kebutuhan
+         JOIN user rn ON rn.id_user = m.id_penerima
+         JOIN user c ON c.id_user = m.id_kurir
+         WHERE l.id_donor = ?
+         ORDER BY m.waktu_alokasi DESC`,
         [req.user.id]
       );
     } else {
       rows = await db.all(
-        `SELECT m.*, l.name AS listing_name, l.food_type, l.portions, n.title AS need_title,
-           dn.name AS donor_name, c.name AS courier_name, n.urgency
-         FROM matches m
-         JOIN food_listings l ON l.id = m.listing_id
-         JOIN food_needs n ON n.id = m.need_id
-         JOIN users dn ON dn.id = l.donor_id
-         JOIN users c ON c.id = m.courier_id
-         WHERE n.recipient_id = ?
-         ORDER BY m.created_at DESC`,
+        `SELECT m.*, l.nama_makanan, l.jenis_makanan, l.jumlah_porsi, n.judul AS judul_kebutuhan,
+           dn.nama AS nama_donor, c.nama AS nama_kurir, n.urgensi
+         FROM alokasi m
+         JOIN surplus_makanan l ON l.id_makanan = m.id_makanan
+         JOIN kebutuhan_pangan n ON n.id_kebutuhan = m.id_kebutuhan
+         JOIN user dn ON dn.id_user = l.id_donor
+         JOIN user c ON c.id_user = m.id_kurir
+         WHERE m.id_penerima = ?
+         ORDER BY m.waktu_alokasi DESC`,
         [req.user.id]
       );
     }
@@ -182,8 +208,8 @@ router.get('/', requireRole('admin', 'courier', 'donor', 'recipient'), async (re
     res.json(
       rows.map((r) => ({
         ...r,
-        route: r.route_json ? JSON.parse(r.route_json) : null,
-        score_percent: Number((r.score * 100).toFixed(1)),
+        rute: r.rute_json ? JSON.parse(r.rute_json) : null,
+        skor_persen: Number((r.skor_matching * 100).toFixed(1)),
       }))
     );
   } catch (e) {
@@ -194,24 +220,24 @@ router.get('/', requireRole('admin', 'courier', 'donor', 'recipient'), async (re
 router.get('/:id', async (req, res, next) => {
   try {
     const m = await db.get(
-      `SELECT m.*, l.name AS listing_name, l.food_type, l.portions, l.expiry_at, l.donor_id,
-         n.title AS need_title, n.recipient_id, n.urgency
-       FROM matches m
-       JOIN food_listings l ON l.id = m.listing_id
-       JOIN food_needs n ON n.id = m.need_id
-       WHERE m.id = ?`,
+      `SELECT m.*, l.nama_makanan, l.jenis_makanan, l.jumlah_porsi, l.expiry_time, l.id_donor,
+         n.judul AS judul_kebutuhan, n.urgensi
+       FROM alokasi m
+       JOIN surplus_makanan l ON l.id_makanan = m.id_makanan
+       JOIN kebutuhan_pangan n ON n.id_kebutuhan = m.id_kebutuhan
+       WHERE m.id_alokasi = ?`,
       [req.params.id]
     );
     if (!m) return res.status(404).json({ error: 'Pencocokan tidak ditemukan' });
 
     const isParticipant =
       req.user.role === 'admin' ||
-      m.courier_id === req.user.id ||
-      m.donor_id === req.user.id ||
-      m.recipient_id === req.user.id;
+      m.id_kurir === req.user.id ||
+      m.id_donor === req.user.id ||
+      m.id_penerima === req.user.id;
     if (!isParticipant) return res.status(403).json({ error: 'Bukan peserta pencocokan ini' });
 
-    res.json({ ...m, route: m.route_json ? JSON.parse(m.route_json) : null });
+    res.json({ ...m, rute: m.rute_json ? JSON.parse(m.rute_json) : null });
   } catch (e) {
     next(e);
   }

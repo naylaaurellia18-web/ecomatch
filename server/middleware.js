@@ -22,7 +22,7 @@ function requireRole(...roles) {
 }
 
 function requireActive(req, res, next) {
-  if (req.user.status !== 'active') {
+  if (req.user.status !== 'aktif') {
     return res.status(403).json({ error: 'Akun belum diverifikasi admin' });
   }
   next();

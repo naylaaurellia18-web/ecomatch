@@ -12,15 +12,15 @@ const path = require('node:path');
 
 const OUT_DIR = path.join(__dirname, '..', 'backups');
 const TABLES = [
-  'users',
-  'food_listings',
-  'food_needs',
-  'matches',
-  'otp_codes',
-  'password_resets',
-  'notifications',
-  'message_outbox',
-  'audit_logs',
+  'user',
+  'surplus_makanan',
+  'kebutuhan_pangan',
+  'alokasi',
+  'kode_otp',
+  'reset_sandi',
+  'notifikasi',
+  'outbox_pesan',
+  'log_audit',
 ];
 
 function stamp() {

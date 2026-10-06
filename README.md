@@ -48,6 +48,21 @@ Sebelum dipakai masyarakat (bukan cuma demo TA):
 | Panduan deploy aman | `DEPLOY.md` — `JWT_SECRET` kuat, `ADMIN_*`, SMTP untuk lupa sandi |
 | Kapasitas free tier | bagian di bawah — kapan perlu upgrade |
 
+## Hardening Produksi (P3)
+
+| P3 | Status di kode |
+|----|----------------|
+| Content-Security-Policy | `server/app.js` — `default-src 'self'`, tanpa `unsafe-inline` untuk script; ekstrak inline theme → `public/theme.js` |
+| HSTS | header otomatis bila request HTTPS (`x-forwarded-proto`) |
+| CORS allowlist | env `ALLOWED_ORIGINS` (pisah koma); tanpa env → same-origin only |
+| Rate limit OTP | 5 percobaan / 15 menit per IP+match+penerima → **429** |
+| Rate limit register | 10 registrasi / jam per IP |
+| Perbandingan kode timing-safe | OTP & kode reset via `crypto.timingSafeEqual` (`server/lib/validate.js`) |
+| Validasi input | format email, batas panjang field, whitelist status/urgensi need, bound porsi |
+| Upload gambar magic-bytes | tolak file yang bukan PNG/JPEG/GIF/WebP sungguhan (bukan cuma MIME) |
+| Error 500 tidak bocor detail | pesan internal hanya di log server; klien dapat pesan generik |
+| Limit ukuran field | nama/deskripsi/alamat/dicatat maksimal agar aman dari abuse |
+
 **Env wajib di Vercel/Railway (`NODE_ENV=production` otomatis):**
 
 | Key | Nilai |

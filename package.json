@@ -9,10 +9,13 @@
   },
   "scripts": {
     "start": "node server/index.js",
-    "dev": "node --watch server/index.js",
+    "start:local": "node --env-file-if-exists=.env server/index.js",
+    "dev": "node --env-file-if-exists=.env --watch server/index.js",
     "seed": "node server/seed.js",
+    "seed:local": "node --env-file-if-exists=.env server/seed.js",
     "seed:accounts": "node server/seed.js --force --accounts",
     "clean": "node server/seed.js --clean",
+    "start:ai": "python -m uvicorn main:app --host 127.0.0.1 --port 8001 --app-dir ai_matching",
     "test:e2e": "node e2e-test.js"
   },
   "dependencies": {
@@ -21,6 +24,7 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.0",
-    "nodemailer": "^10.0.10"
+    "nodemailer": "^10.0.10",
+    "pg": "^8.23.1"
   }
 }

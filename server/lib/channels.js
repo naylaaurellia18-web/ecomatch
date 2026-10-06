@@ -1,10 +1,12 @@
 const db = require('../db');
 const { sendWhatsApp, sendEmail } = require('./messenger');
 
+const OUTBOX_STATUS = { queued: 'antre', sent: 'terkirim', simulated: 'simulasi', failed: 'gagal' };
+
 async function record(row) {
   try {
     await db.run(
-      `INSERT INTO message_outbox (channel, user_id, to_address, subject, body, status, error, provider_ref)
+      `INSERT INTO outbox_pesan (kanal, id_user, tujuan, subjek, isi, status, error, referensi_penerus)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         row.channel,
@@ -12,7 +14,7 @@ async function record(row) {
         row.to ?? null,
         row.subject ?? null,
         row.body,
-        row.status,
+        OUTBOX_STATUS[row.status] || row.status,
         row.error ?? null,
         row.providerRef ?? null,
       ]
@@ -31,18 +33,18 @@ function channelStatus() {
 
 async function fanout({ userId, title, message }) {
   if (!userId) return;
-  const user = await db.get('SELECT id, name, email, phone FROM users WHERE id = ?', [userId]);
+  const user = await db.get('SELECT id_user, nama, email, telepon FROM user WHERE id_user = ?', [userId]);
   if (!user) return;
 
   const body = `${title}\n${message}`;
 
-  if (user.phone) {
-    const wa = await sendWhatsApp(user.phone, body);
+  if (user.telepon) {
+    const wa = await sendWhatsApp(user.telepon, body);
     if (wa.skipped) return;
     await record({
       channel: 'whatsapp',
-      userId: user.id,
-      to: wa.to || user.phone,
+      userId: user.id_user,
+      to: wa.to || user.telepon,
       subject: title,
       body: message,
       status: wa.ok ? (wa.simulated ? 'simulated' : 'sent') : 'failed',
@@ -57,7 +59,7 @@ async function fanout({ userId, title, message }) {
     if (mail.skipped) return;
     await record({
       channel: 'email',
-      userId: user.id,
+      userId: user.id_user,
       to: mail.to || mailTo,
       subject: title,
       body: message,

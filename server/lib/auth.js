@@ -36,7 +36,7 @@ function verifyPassword(plain, hash) {
 
 function signToken(user) {
   return jwt.sign(
-    { id: user.id, role: user.role, name: user.name, status: user.status },
+    { id: user.id_user, role: user.role, nama: user.nama, status: user.status },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES }
   );

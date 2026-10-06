@@ -1,0 +1,19 @@
+﻿services:
+  postgis:
+    image: postgis/postgis:16-3.4
+    container_name: food-rescue-postgis
+    environment:
+      POSTGRES_DB: food_rescue
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: foodrescue
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d food_rescue"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+volumes:
+  pgdata:

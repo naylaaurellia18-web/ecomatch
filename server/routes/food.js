@@ -4,51 +4,63 @@ const db = require('../db');
 const { audit } = require('../lib/audit');
 const { saveImage } = require('../lib/storage');
 const { authenticate, requireRole, requireActive } = require('../middleware');
+const { clampStr, imageUploadFilter, assertImageBuffer } = require('../lib/validate');
 
 const router = express.Router();
 
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    if (/^image\//.test(file.mimetype)) cb(null, true);
-    else cb(new Error('Hanya file gambar yang diizinkan'));
-  },
+  fileFilter: imageUploadFilter,
 });
 
 router.use(authenticate, requireRole('donor', 'admin'), requireActive);
 
-router.post('/', upload.single('photo'), async (req, res, next) => {
+router.post('/', upload.single('foto_kondisi'), async (req, res, next) => {
   try {
-    const { name, description, portions, expiry_at, lat, lng, food_type } = req.body || {};
-    if (!name || !portions || !expiry_at) {
+    const { nama_makanan, deskripsi, jumlah_porsi, expiry_time, lat, lng, jenis_makanan } = req.body || {};
+    if (!nama_makanan || !jumlah_porsi || !expiry_time) {
       return res.status(400).json({ error: 'Nama, porsi, dan masa berlaku wajib diisi' });
     }
-    if (Number(portions) <= 0) return res.status(400).json({ error: 'Jumlah porsi harus lebih dari 0' });
-    if (new Date(expiry_at).getTime() <= Date.now()) {
+    const portionCount = Math.floor(Number(jumlah_porsi));
+    if (!Number.isFinite(portionCount) || portionCount <= 0 || portionCount > 100000) {
+      return res.status(400).json({ error: 'Jumlah porsi harus lebih dari 0' });
+    }
+    if (Number.isNaN(new Date(expiry_time).getTime()) || new Date(expiry_time).getTime() <= Date.now()) {
       return res.status(400).json({ error: 'Masa berlaku harus di masa depan' });
     }
-    const ftype = food_type === 'dry' ? 'dry' : food_type === 'wet' ? 'wet' : 'wet';
+    const cleanName = clampStr(nama_makanan, 200);
+    if (!cleanName) return res.status(400).json({ error: 'Nama wajib diisi' });
+    const ftype = jenis_makanan === 'kering' ? 'kering' : jenis_makanan === 'basah' ? 'basah' : 'basah';
+    // FR-02: foto kondisi wajib diunggah (SKPL: kolom foto_kondisi NOT NULL)
+    if (!req.file) {
+      return res.status(400).json({ error: 'Foto kondisi makanan wajib diunggah' });
+    }
+    assertImageBuffer(req.file.buffer);
 
-    const donor = await db.get('SELECT lat, lng FROM users WHERE id = ?', [req.user.id]);
+    const donor = await db.get('SELECT lat, lng FROM user WHERE id_user = ?', [req.user.id]);
     const result = await db.run(
-      `INSERT INTO food_listings (donor_id, name, description, food_type, portions, expiry_at, photo_path, lat, lng)
+      `INSERT INTO surplus_makanan (id_donor, nama_makanan, deskripsi, jenis_makanan, jumlah_porsi, expiry_time, foto_kondisi, lat, lng)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         req.user.id,
-        name.trim(),
-        description || null,
+        cleanName,
+        clampStr(deskripsi, 2000),
         ftype,
-        Number(portions),
-        expiry_at,
+        portionCount,
+        expiry_time,
         await saveImage(req.file),
         lat != null && lat !== '' && !Number.isNaN(Number(lat)) ? Number(lat) : donor?.lat ?? null,
         lng != null && lng !== '' && !Number.isNaN(Number(lng)) ? Number(lng) : donor?.lng ?? null,
       ]
     );
 
-    await audit(req.user.id, 'CREATE_LISTING', 'food_listings', result.lastInsertRowid, { name, portions, food_type: ftype });
-    res.status(201).json({ id: result.lastInsertRowid, message: 'Surplus makanan dicatat' });
+    await audit(req.user.id, 'CREATE_LISTING', 'surplus_makanan', result.lastInsertRowid, {
+      nama_makanan: cleanName,
+      jumlah_porsi: portionCount,
+      jenis_makanan: ftype,
+    });
+    res.status(201).json({ id_makanan: result.lastInsertRowid, message: 'Surplus makanan dicatat' });
   } catch (e) {
     next(e);
   }
@@ -58,8 +70,8 @@ router.get('/', async (req, res, next) => {
   try {
     const rows =
       req.user.role === 'admin'
-        ? await db.all('SELECT * FROM food_listings ORDER BY created_at DESC')
-        : await db.all('SELECT * FROM food_listings WHERE donor_id = ? ORDER BY created_at DESC', [req.user.id]);
+        ? await db.all('SELECT * FROM surplus_makanan ORDER BY created_at DESC')
+        : await db.all('SELECT * FROM surplus_makanan WHERE id_donor = ? ORDER BY created_at DESC', [req.user.id]);
     res.json(rows);
   } catch (e) {
     next(e);
@@ -68,21 +80,25 @@ router.get('/', async (req, res, next) => {
 
 router.patch('/:id/cancel', async (req, res, next) => {
   try {
-    const listing = await db.get('SELECT * FROM food_listings WHERE id = ?', [req.params.id]);
+    const listing = await db.get('SELECT * FROM surplus_makanan WHERE id_makanan = ?', [req.params.id]);
     if (!listing) return res.status(404).json({ error: 'Data surplus tidak ditemukan' });
-    if (req.user.role !== 'admin' && listing.donor_id !== req.user.id) {
+    if (req.user.role !== 'admin' && listing.id_donor !== req.user.id) {
       return res.status(403).json({ error: 'Bukan milik Anda' });
     }
-    if (!['available', 'matched'].includes(listing.status)) {
+    if (!['tersedia', 'dialokasikan'].includes(listing.status)) {
       return res.status(400).json({ error: `Tidak bisa membatalkan status ${listing.status}` });
     }
-    await db.run(`UPDATE food_listings SET status = 'cancelled' WHERE id = ?`, [listing.id]);
+    await db.run(`UPDATE surplus_makanan SET status = 'dibatalkan' WHERE id_makanan = ?`, [listing.id_makanan]);
     const m = await db.get(
-      `SELECT * FROM matches WHERE listing_id = ? AND status NOT IN ('cancelled','verified','delivered')`,
-      [listing.id]
+      `SELECT * FROM alokasi WHERE id_makanan = ? AND status NOT IN ('dibatalkan','terverifikasi','terkirim')`,
+      [listing.id_makanan]
     );
-    if (m) await db.run(`UPDATE matches SET status = 'cancelled', updated_at = datetime('now') WHERE id = ?`, [m.id]);
-    await audit(req.user.id, 'CANCEL_LISTING', 'food_listings', listing.id);
+    if (m) {
+      await db.run(`UPDATE alokasi SET status = 'dibatalkan', updated_at = datetime('now') WHERE id_alokasi = ?`, [
+        m.id_alokasi,
+      ]);
+    }
+    await audit(req.user.id, 'CANCEL_LISTING', 'surplus_makanan', listing.id_makanan);
     res.json({ message: 'Surplus dibatalkan' });
   } catch (e) {
     next(e);

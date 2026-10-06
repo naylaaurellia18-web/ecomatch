@@ -1,9 +1,10 @@
-const CACHE = 'frai-v2';
+const CACHE = 'frai-v4';
 const PRECACHE = [
   '/',
   '/index.html',
   '/styles.css',
   '/app.js',
+  '/theme.js',
   '/manifest.webmanifest',
   '/icons/icon-192.png',
   '/icons/icon-512.png',

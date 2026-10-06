@@ -16,7 +16,28 @@ const adminRoutes = require('./routes/admin');
 
 const app = express();
 app.set('trust proxy', 1);
-app.use((_req, res, next) => {
+
+const CSP = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  "script-src 'self' https://unpkg.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' data: blob: https://res.cloudinary.com https://*.tile.openstreetmap.org",
+  "connect-src 'self'",
+  "manifest-src 'self'",
+  "worker-src 'self'",
+].join('; ');
+
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((s) => s.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
+app.use((req, res, next) => {
   res.set({
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
@@ -24,9 +45,27 @@ app.use((_req, res, next) => {
     'Permissions-Policy': 'geolocation=(self), camera=(), microphone=()',
     'Cross-Origin-Opener-Policy': 'same-origin',
     'Cross-Origin-Resource-Policy': 'same-origin',
+    'Content-Security-Policy': CSP,
+    'X-Permitted-Cross-Domain-Policies': 'none',
   });
-  if (_req.path.startsWith('/api/')) {
+  if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+    res.set('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
+  }
+  if (req.path.startsWith('/api/')) {
     res.set('Cache-Control', 'no-store');
+    const origin = req.headers.origin;
+    if (origin && allowedOrigins.includes(origin.replace(/\/$/, ''))) {
+      res.set({
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
+        'Vary': 'Origin',
+      });
+    }
+    if (req.method === 'OPTIONS') {
+      return res.status(204).end();
+    }
   }
   next();
 });
@@ -37,18 +76,18 @@ function boot() {
   if (!bootPromise) {
     bootPromise = (async () => {
       await db.init();
-      const userCount = (await db.get('SELECT COUNT(*) AS c FROM users'))?.c ?? 0;
+      const userCount = (await db.get('SELECT COUNT(*) AS c FROM user'))?.c ?? 0;
       if (userCount === 0) {
         await seed();
         console.log('Database kosong — seed dijalankan otomatis.');
       }
       await db.run(
-        `UPDATE password_resets SET used_at = datetime('now')
-         WHERE used_at IS NULL AND expires_at < datetime('now')`
+        `UPDATE reset_sandi SET digunakan_pada = datetime('now')
+         WHERE digunakan_pada IS NULL AND kedaluwarsa_pada < datetime('now')`
       );
       await db.run(
-        `UPDATE food_listings SET status = 'expired'
-         WHERE status = 'available' AND expiry_at < datetime('now')`
+        `UPDATE surplus_makanan SET status = 'gagal'
+         WHERE status = 'tersedia' AND expiry_time < datetime('now')`
       );
       console.log(`Foto storage: ${storageMode()}`);
     })().catch((e) => {
@@ -77,9 +116,23 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/geo', geoRoutes);
 app.use('/api/admin', adminRoutes);
 
-app.get('/api/health', (_req, res) =>
-  res.json({ status: 'ok', service: 'Food Rescue AI', db: process.env.TURSO_DATABASE_URL ? 'turso' : 'local' })
-);
+app.get('/api/health', async (_req, res) => {
+  let dbInfo = { dialek: 'unknown' };
+  try {
+    dbInfo = await db.engineInfo();
+  } catch {
+    /* DB belum siap */
+  }
+  const { engineStatus } = require('./lib/matching');
+  res.json({
+    status: 'ok',
+    service: 'Food Rescue AI',
+    db: dbInfo,
+    ai_matching: engineStatus(),
+    routing: { provider: process.env.ROUTE_PROVIDER || 'osrm', fallback: 'haversine' },
+    skpl: 'SKPL_FoodRescueAI_Regenerasi',
+  });
+});
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.get(/^\/(?!api|uploads).*/, (_req, res) => {
@@ -88,16 +141,27 @@ app.get(/^\/(?!api|uploads).*/, (_req, res) => {
 });
 
 app.use((err, req, res, _next) => {
+  let status = err.status || 500;
+  let message = err.message || 'Terjadi kesalahan server';
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    status = 413;
+    message = 'File terlalu besar (maksimal 1 MB)';
+  } else if (err.code === 'LIMIT_UNEXPECTED_FILE' || err.code === 'LIMIT_FILE_COUNT') {
+    status = 400;
+    message = 'File tidak diizinkan';
+  } else if (status >= 500) {
+    message = 'Terjadi kesalahan server';
+  }
   const payload = {
     ts: new Date().toISOString(),
-    level: 'error',
+    level: status >= 500 ? 'error' : 'warn',
     method: req.method,
     path: req.originalUrl,
-    status: err.status || 500,
-    message: err.message || 'Terjadi kesalahan server',
+    status,
+    message: err.message || message,
   };
   console.error(JSON.stringify(payload));
-  res.status(err.status || 500).json({ error: err.message || 'Terjadi kesalahan server' });
+  res.status(status).json({ error: message });
 });
 
 module.exports = { app, boot };

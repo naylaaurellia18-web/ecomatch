@@ -1,31 +1,22 @@
 const db = require('./db');
-const { hashPassword, isProduction, generateSecret } = require('./lib/auth');
+const { hashPassword, isProduction } = require('./lib/auth');
 const { audit } = require('./lib/audit');
-
-const AUDIT_TRIGGERS = `
-  CREATE TRIGGER IF NOT EXISTS audit_logs_no_update
-  BEFORE UPDATE ON audit_logs
-  BEGIN
-    SELECT RAISE(ABORT, 'audit_logs is immutable');
-  END;
-  CREATE TRIGGER IF NOT EXISTS audit_logs_no_delete
-  BEFORE DELETE ON audit_logs
-  BEGIN
-    SELECT RAISE(ABORT, 'audit_logs is immutable');
-  END;
-`;
 
 const REAL_PHONE = '083847721511';
 
+// Placeholder 1x1 PNG (data URI) untuk foto_kondisi seed
+const FOTO_PLACEHOLDER =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAXpeqz8AAAAASUVORK5CYII=';
+
 // Hanya untuk lokal / demo — TIDAK pernah dibuat di produksi
 const DEMO_USERS = [
-  ['Hotel Merdeka Madiun', 'donor@foodrescue.id', 'donor123', 'donor', 'active', REAL_PHONE, 'Kota Madiun', -7.6245, 111.525, 'Hotel Merdeka Madiun', null],
-  ['Rumah Makan Padang Madiun', 'donor2@foodrescue.id', 'donor123', 'donor', 'active', REAL_PHONE, 'Kartoharjo', -7.6014, 111.4844, 'RM Padang Madiun', null],
-  ['Panti Asuhan Yatim Madiun', 'penerima@foodrescue.id', 'penerima123', 'recipient', 'active', REAL_PHONE, 'Taman', -7.6503, 111.5172, 'Panti Asuhan Yatim Madiun', null],
-  ['Dapur Umum Caruban', 'penerima2@foodrescue.id', 'penerima123', 'recipient', 'active', REAL_PHONE, 'Caruban', -7.5494, 111.6403, 'Dapur Umum Caruban', null],
-  ['Kurir Budi', 'kurir@foodrescue.id', 'kurir123', 'courier', 'active', REAL_PHONE, 'Balerejo', -7.5483, 111.5597, null, 60],
-  ['Kurir Siti', 'kurir2@foodrescue.id', 'kurir123', 'courier', 'active', REAL_PHONE, 'Mejayan', -7.5519, 111.4536, null, 40],
-  ['Menunggu Verifikasi', 'pending@foodrescue.id', 'pending123', 'donor', 'pending', REAL_PHONE, 'Kota Madiun', null, null, 'Cafe Uji Coba Madiun', null],
+  ['Hotel Merdeka Madiun', 'donor@foodrescue.id', 'donor123', 'donor', 'aktif', REAL_PHONE, 'Kota Madiun', -7.6245, 111.525, 'Hotel Merdeka Madiun', null],
+  ['Rumah Makan Padang Madiun', 'donor2@foodrescue.id', 'donor123', 'donor', 'aktif', REAL_PHONE, 'Kartoharjo', -7.6014, 111.4844, 'RM Padang Madiun', null],
+  ['Panti Asuhan Yatim Madiun', 'penerima@foodrescue.id', 'penerima123', 'penerima', 'aktif', REAL_PHONE, 'Taman', -7.6503, 111.5172, 'Panti Asuhan Yatim Madiun', null],
+  ['Dapur Umum Caruban', 'penerima2@foodrescue.id', 'penerima123', 'penerima', 'aktif', REAL_PHONE, 'Caruban', -7.5494, 111.6403, 'Dapur Umum Caruban', null],
+  ['Kurir Budi', 'kurir@foodrescue.id', 'kurir123', 'kurir', 'aktif', REAL_PHONE, 'Balerejo', -7.5483, 111.5597, null, 60],
+  ['Kurir Siti', 'kurir2@foodrescue.id', 'kurir123', 'kurir', 'aktif', REAL_PHONE, 'Mejayan', -7.5519, 111.4536, null, 40],
+  ['Menunggu Verifikasi', 'pending@foodrescue.id', 'pending123', 'donor', 'menunggu', REAL_PHONE, 'Kota Madiun', null, null, 'Cafe Uji Coba Madiun', null],
 ];
 
 function productionAdmin() {
@@ -46,27 +37,28 @@ function productionAdmin() {
 
 async function wipeTransactional({ keepUsers = false } = {}) {
   await db.exec(`
-    DROP TRIGGER IF EXISTS audit_logs_no_update;
-    DROP TRIGGER IF NOT EXISTS audit_logs_no_delete;
-    DELETE FROM otp_codes;
-    DELETE FROM password_resets;
-    DELETE FROM notifications;
-    DELETE FROM message_outbox;
-    DELETE FROM audit_logs;
-    DELETE FROM matches;
-    DELETE FROM food_listings;
-    DELETE FROM food_needs;
-    ${keepUsers ? '' : 'DELETE FROM users;'}
-    ${AUDIT_TRIGGERS}
+    ${db.auditTriggerDrop()}
+    DELETE FROM kode_otp;
+    DELETE FROM reset_sandi;
+    DELETE FROM notifikasi;
+    DELETE FROM outbox_pesan;
+    DELETE FROM log_audit;
+    DELETE FROM alokasi;
+    DELETE FROM surplus_makanan;
+    DELETE FROM kebutuhan_pangan;
+    ${keepUsers ? '' : 'DELETE FROM "user";'}
+    ${db.auditTriggerDDL()}
   `);
-  try {
-    await db.exec(
-      keepUsers
-        ? `DELETE FROM sqlite_sequence WHERE name IN ('food_listings','food_needs','matches','otp_codes','notifications','message_outbox','audit_logs')`
-        : `DELETE FROM sqlite_sequence WHERE name IN ('users','food_listings','food_needs','matches','otp_codes','notifications','message_outbox','audit_logs')`
-    );
-  } catch {
-    /* cloud tanpa sqlite_sequence */
+  if (!db.isPg()) {
+    try {
+      await db.exec(
+        keepUsers
+          ? `DELETE FROM sqlite_sequence WHERE name IN ('surplus_makanan','kebutuhan_pangan','alokasi','kode_otp','notifikasi','outbox_pesan','log_audit','reset_sandi')`
+          : `DELETE FROM sqlite_sequence WHERE name IN ('user','surplus_makanan','kebutuhan_pangan','alokasi','kode_otp','notifikasi','outbox_pesan','log_audit','reset_sandi')`
+      );
+    } catch {
+      /* cloud tanpa sqlite_sequence */
+    }
   }
 }
 
@@ -85,12 +77,12 @@ async function seed({ force = false, full = false, clean = false, accounts = fal
 
   if (clean) {
     await wipeTransactional({ keepUsers: true });
-    const users = (await db.get('SELECT COUNT(*) AS c FROM users'))?.c ?? 0;
-    console.log(`Bersih: listing/kebutuhan/match/notifikasi/audit dihapus. Akun login tersisa: ${users}.`);
+    const users = (await db.get('SELECT COUNT(*) AS c FROM user'))?.c ?? 0;
+    console.log(`Bersih: listing/kebutuhan/alokasi/notifikasi/audit dihapus. Akun login tersisa: ${users}.`);
     return { ok: true, cleaned: true, users };
   }
 
-  const existing = (await db.get('SELECT COUNT(*) AS c FROM users'))?.c ?? 0;
+  const existing = (await db.get('SELECT COUNT(*) AS c FROM user'))?.c ?? 0;
   const wantAccountsOnly = accounts || (!full && force);
   const prod = isProduction();
 
@@ -112,14 +104,14 @@ async function seed({ force = false, full = false, clean = false, accounts = fal
   if (prod) {
     const admin = productionAdmin();
     await db.run(
-      `INSERT INTO users (name, email, password_hash, role, status, phone, address, lat, lng, org_name, capacity)
+      `INSERT INTO user (nama, email, password, role, status, telepon, alamat, lat, lng, nama_lembaga, kapasitas)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         admin.name,
         admin.email,
         hashPassword(admin.password),
         'admin',
-        'active',
+        'aktif',
         null,
         null,
         null,
@@ -132,14 +124,14 @@ async function seed({ force = false, full = false, clean = false, accounts = fal
     console.log('Akun demo TIDAK dibuat di produksi.');
   } else {
     await db.run(
-      `INSERT INTO users (name, email, password_hash, role, status, phone, address, lat, lng, org_name, capacity)
+      `INSERT INTO user (nama, email, password, role, status, telepon, alamat, lat, lng, nama_lembaga, kapasitas)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         'Admin Sistem',
         'admin@foodrescue.id',
         hashPassword('admin123'),
         'admin',
-        'active',
+        'aktif',
         REAL_PHONE,
         'Kota Madiun',
         -7.6245,
@@ -155,7 +147,7 @@ async function seed({ force = false, full = false, clean = false, accounts = fal
   if (seedAccounts) {
     for (const u of DEMO_USERS) {
       await db.run(
-        `INSERT INTO users (name, email, password_hash, role, status, phone, address, lat, lng, org_name, capacity)
+        `INSERT INTO user (nama, email, password, role, status, telepon, alamat, lat, lng, nama_lembaga, kapasitas)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [u[0], u[1], hashPassword(u[2]), u[3], u[4], u[5], u[6], u[7], u[8], u[9], u[10]]
       );
@@ -165,36 +157,36 @@ async function seed({ force = false, full = false, clean = false, accounts = fal
   if (full && allowDemo) {
     const inHours = (h) => new Date(Date.now() + h * 3600000).toISOString();
     const listings = [
-      [2, 'Buffet Sarapan Sisa', 'Nasi, lauk pauk — masih layak konsumsi', 'wet', 40, inHours(3), -7.6245, 111.525, 'available'],
-      [2, 'Roti & Pastry', 'Roti sobek, croissant', 'dry', 25, inHours(8), -7.6245, 111.525, 'available'],
-      [3, 'Nasi Box Acara', 'Sisa katering — 30 box', 'wet', 30, inHours(5), -7.6014, 111.4844, 'available'],
-      [3, 'Sayur & Buah Segar', 'Sayur mayur dan buah potong', 'wet', 20, inHours(12), -7.6014, 111.4844, 'available'],
-      [2, 'Biskuit & Keripik Cadangan', 'Kemasan foil utuh, simpan kering', 'dry', 50, inHours(48), -7.6245, 111.525, 'available'],
+      [2, 'Buffet Sarapan Sisa', 'Nasi, lauk pauk — masih layak konsumsi', 'basah', 40, inHours(3), -7.6245, 111.525, 'tersedia'],
+      [2, 'Roti & Pastry', 'Roti sobek, croissant', 'kering', 25, inHours(8), -7.6245, 111.525, 'tersedia'],
+      [3, 'Nasi Box Acara', 'Sisa katering — 30 box', 'basah', 30, inHours(5), -7.6014, 111.4844, 'tersedia'],
+      [3, 'Sayur & Buah Segar', 'Sayur mayur dan buah potong', 'basah', 20, inHours(12), -7.6014, 111.4844, 'tersedia'],
+      [2, 'Biskuit & Keripik Cadangan', 'Kemasan foil utuh, simpan kering', 'kering', 50, inHours(48), -7.6245, 111.525, 'tersedia'],
     ];
     for (const l of listings) {
       await db.run(
-        `INSERT INTO food_listings (donor_id, name, description, food_type, portions, expiry_at, lat, lng, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        l
+        `INSERT INTO surplus_makanan (id_donor, nama_makanan, deskripsi, jenis_makanan, jumlah_porsi, expiry_time, lat, lng, status, foto_kondisi)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [...l, FOTO_PLACEHOLDER]
       );
     }
 
     const needs = [
-      [4, 'Santapan Malam Anak Yatim', 35, 'critical', 'Taman — 35 anak'],
-      [4, 'Camilan Sore', 15, 'low', 'Tambahan camilan sore'],
-      [5, 'Makan Siang Warga', 45, 'high', 'Caruban — 45 porsi/hari'],
-      [5, 'Distribusi Mingguan', 20, 'medium', 'Cadangan stok mingguan'],
+      [4, 'Santapan Malam Anak Yatim', 35, 'kritis', 'Taman — 35 anak'],
+      [4, 'Camilan Sore', 15, 'rendah', 'Tambahan camilan sore'],
+      [5, 'Makan Siang Warga', 45, 'tinggi', 'Caruban — 45 porsi/hari'],
+      [5, 'Distribusi Mingguan', 20, 'sedang', 'Cadangan stok mingguan'],
     ];
     for (const n of needs) {
       await db.run(
-        `INSERT INTO food_needs (recipient_id, title, portions_needed, urgency, note, status)
-         VALUES (?, ?, ?, ?, ?, 'open')`,
+        `INSERT INTO kebutuhan_pangan (id_penerima, judul, porsi_dibutuhkan, urgensi, catatan, status)
+         VALUES (?, ?, ?, ?, ?, 'terbuka')`,
         n
       );
     }
   }
 
-  await audit(null, 'SEED_DATABASE', 'system', null, {
+  await audit(null, 'SEED_DATABASE', 'sistem', null, {
     mode: prod ? 'production-admin' : full ? 'full-demo' : wantAccountsOnly ? 'accounts-only' : 'fresh-admin-only',
   });
 
@@ -203,7 +195,7 @@ async function seed({ force = false, full = false, clean = false, accounts = fal
   } else if (full) {
     console.log('Seed demo lengkap selesai (akun + listing + kebutuhan).');
   } else if (wantAccountsOnly) {
-    console.log('Seed akun login saja — listing/match kosong (siap diisi dari nol).');
+    console.log('Seed akun login saja — listing/alokasi kosong (siap diisi dari nol).');
     console.log('  donor@foodrescue.id / donor123');
     console.log('  penerima@foodrescue.id / penerima123');
     console.log('  kurir@foodrescue.id / kurir123');

@@ -82,10 +82,10 @@ const creds = {
   // OTP status for recipient on delivered matches
   const recTok = await login(...creds.recipient);
   const matches = await req('/api/matches', { token: recTok });
-  const ready = (matches.data || []).filter((m) => ['picked_up', 'delivered'].includes(m.status));
+  const ready = (matches.data || []).filter((m) => ['dijemput', 'terkirim'].includes(m.status));
   for (const m of ready) {
-    const r = await req(`/api/deliveries/${m.id}/otp-status`, { token: recTok });
-    report.push(`${r.ok ? 'OK ' : 'FAIL'} [recipient] OTP #${m.id} -> ${r.status} ${r.data.error || ''}`);
+    const r = await req(`/api/deliveries/${m.id_alokasi}/otp-status`, { token: recTok });
+    report.push(`${r.ok ? 'OK ' : 'FAIL'} [recipient] OTP #${m.id_alokasi} -> ${r.status} ${r.data.error || ''}`);
     if (!r.ok) fails++;
   }
 

@@ -90,18 +90,18 @@ function bindLocationSelects(root = document) {
 }
 
 function flowStepsHtml(status) {
-  const order = ['proposed', 'picked_up', 'delivered', 'verified'];
+  const order = ['diajukan', 'dijemput', 'terkirim', 'terverifikasi'];
   const labels = {
-    proposed: 'Ditugaskan',
-    accepted: 'Ditugaskan',
-    picked_up: 'Dijemput',
-    delivered: 'Sampai',
-    verified: 'Selesai',
-    cancelled: 'Dibatalkan',
+    diajukan: 'Ditugaskan',
+    diterima: 'Ditugaskan',
+    dijemput: 'Dijemput',
+    terkirim: 'Sampai',
+    terverifikasi: 'Selesai',
+    dibatalkan: 'Dibatalkan',
   };
-  const key = status === 'accepted' ? 'proposed' : status;
+  const key = status === 'diterima' ? 'diajukan' : status;
   const idx = order.indexOf(key);
-  if (status === 'cancelled') {
+  if (status === 'dibatalkan') {
     return `<div class="flow-steps"><span class="flow-step cancelled">Dibatalkan</span></div>`;
   }
   return `
@@ -238,18 +238,20 @@ function fmtDate(s) {
 
 function statusTag(s) {
   const map = {
-    available: ['tag-green', 'Tersedia'], matched: ['tag-blue', 'Sudah Dipasangkan'],
-    picked_up: ['tag-yellow', 'Dijemput'], delivered: ['tag-yellow', 'Sampai'],
-    verified: ['tag-green', 'Terverifikasi'], cancelled: ['tag-gray', 'Dibatalkan'],
-    expired: ['tag-gray', 'Kedaluwarsa'], proposed: ['tag-blue', 'Usulan'],
-    accepted: ['tag-blue', 'Diterima'], open: ['tag-green', 'Terbuka'],
-    fulfilled: ['tag-green', 'Terpenuhi'], pending: ['tag-yellow', 'Menunggu'],
-    active: ['tag-green', 'Aktif'], rejected: ['tag-red', 'Ditolak'],
-    critical: ['tag-red', 'Kritis'], high: ['tag-yellow', 'Tinggi'],
-    medium: ['tag-blue', 'Sedang'], low: ['tag-gray', 'Rendah'],
-    wet: ['tag-blue', 'Makanan Basah'], dry: ['tag-yellow', 'Makanan Kering'],
-    donor: ['tag-blue', 'Donor'], recipient: ['tag-green', 'Penerima'],
-    courier: ['tag-yellow', 'Kurir'], admin: ['tag-gray', 'Admin'],
+    tersedia: ['tag-green', 'Tersedia'], dialokasikan: ['tag-blue', 'Dialokasikan'],
+    dijemput: ['tag-yellow', 'Dijemput'], terkirim: ['tag-yellow', 'Terkirim'],
+    terverifikasi: ['tag-green', 'Terverifikasi'], dibatalkan: ['tag-gray', 'Dibatalkan'],
+    gagal: ['tag-red', 'Gagal'], diajukan: ['tag-blue', 'Diajukan'],
+    diterima: ['tag-blue', 'Diterima'], terbuka: ['tag-green', 'Terbuka'],
+    dipenuhi: ['tag-green', 'Dipenuhi'], kedaluwarsa: ['tag-gray', 'Kedaluwarsa'],
+    menunggu: ['tag-yellow', 'Menunggu'], aktif: ['tag-green', 'Aktif'],
+    ditolak: ['tag-red', 'Ditolak'], antre: ['tag-yellow', 'Antre'],
+    simulasi: ['tag-blue', 'Simulasi'],
+    kritis: ['tag-red', 'Kritis'], tinggi: ['tag-yellow', 'Tinggi'],
+    sedang: ['tag-blue', 'Sedang'], rendah: ['tag-gray', 'Rendah'],
+    basah: ['tag-blue', 'Makanan Basah'], kering: ['tag-yellow', 'Makanan Kering'],
+    donor: ['tag-blue', 'Donor'], penerima: ['tag-green', 'Penerima'],
+    kurir: ['tag-yellow', 'Kurir'], admin: ['tag-gray', 'Admin'],
   };
   const [cls, label] = map[s] || ['tag-gray', s];
   return `<span class="tag ${cls}">${label}</span>`;
@@ -257,15 +259,15 @@ function statusTag(s) {
 
 const ROLE_LABEL = {
   donor: 'Donor',
-  recipient: 'Penerima',
-  courier: 'Kurir',
+  penerima: 'Penerima',
+  kurir: 'Kurir',
   admin: 'Admin',
 };
 
-const FOOD_TYPE_LABEL = { wet: 'Makanan Basah', dry: 'Makanan Kering' };
+const FOOD_TYPE_LABEL = { basah: 'Makanan Basah', kering: 'Makanan Kering' };
 
 const SOP = {
-  wet: {
+  basah: {
     title: 'SOP Makanan Basah',
     warn: 'Makanan basah mudah basi & tumbuh bakteri — utamakan rantai dingin dan waktu singkat.',
     sections: [
@@ -307,7 +309,7 @@ const SOP = {
       },
     ],
   },
-  dry: {
+  kering: {
     title: 'SOP Makanan Kering',
     warn: 'Makanan kering lebih tahan lama, tapi tetap jaga kelembapan & kemasan utuh.',
     sections: [
@@ -350,7 +352,7 @@ const SOP = {
 };
 
 function foodTypeTag(t) {
-  if (t !== 'wet' && t !== 'dry') return '—';
+  if (t !== 'basah' && t !== 'kering') return '—';
   return statusTag(t);
 }
 
@@ -368,7 +370,7 @@ function sopHtml(type, { compact = false } = {}) {
   }
   return `
   <details class="sop-details">
-    <summary>${icon('shield', 14)} Panduan SOP ${type === 'wet' ? 'Makanan Basah' : 'Makanan Kering'} — buka panduan</summary>
+    <summary>${icon('shield', 14)} Panduan SOP ${type === 'basah' ? 'Makanan Basah' : 'Makanan Kering'} — buka panduan</summary>
     <div class="sop sop-${type}" data-sop="${type}">
       <div class="sop-head">
         ${icon('shield', 16)}
@@ -376,7 +378,7 @@ function sopHtml(type, { compact = false } = {}) {
           <strong>${s.title}</strong>
           <div class="sop-warn">${esc(s.warn)}</div>
         </div>
-        <span class="sop-badge">${type === 'wet' ? icon('refresh', 14) + ' Rantai dingin' : icon('package', 14) + ' Jaga kering'}</span>
+        <span class="sop-badge">${type === 'basah' ? icon('refresh', 14) + ' Rantai dingin' : icon('package', 14) + ' Jaga kering'}</span>
       </div>
       <div class="sop-grid">
         ${s.sections.map((sec) => `
@@ -392,11 +394,11 @@ function sopHtml(type, { compact = false } = {}) {
 }
 
 function bindSopToggle(root = document) {
-  const sel = root.querySelector('[name="food_type"]');
+  const sel = root.querySelector('[name="jenis_makanan"]');
   const box = root.querySelector('#sopBox');
   if (!sel || !box) return;
   const paint = () => {
-    const t = sel.value === 'dry' ? 'dry' : 'wet';
+    const t = sel.value === 'kering' ? 'kering' : 'basah';
     box.innerHTML = sopHtml(t);
   };
   sel.addEventListener('change', paint);
@@ -434,13 +436,13 @@ const NAV = {
     ['gis', 'map', 'Peta GIS'],
     ['notif', 'bell', 'Notifikasi'],
   ],
-  recipient: [
+  penerima: [
     ['recipient', 'heart', 'Kebutuhan Pangan'],
     ['recipient-matches', 'key', 'Konfirmasi OTP'],
     ['gis', 'map', 'Peta GIS'],
     ['notif', 'bell', 'Notifikasi'],
   ],
-  courier: [
+  kurir: [
     ['courier', 'truck', 'Tugas Kurir'],
     ['gis', 'map', 'Peta GIS'],
     ['notif', 'bell', 'Notifikasi'],
@@ -523,18 +525,18 @@ function render() {
   authRoot.innerHTML = '';
   layout.hidden = false;
 
-  document.getElementById('userName').textContent = me.name;
+  document.getElementById('userName').textContent = me.nama;
   document.getElementById('userRole').textContent = ROLE_LABEL[me.role] || me.role;
   const avatar = document.getElementById('userAvatar');
   if (avatar) {
-    const initials = String(me.name || me.email || '?')
+    const initials = String(me.nama || me.email || '?')
       .split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
     avatar.textContent = initials;
   }
   const topUser = document.getElementById('topbarUser');
-  if (topUser) topUser.textContent = me.name || me.email || '';
+  if (topUser) topUser.textContent = me.nama || me.email || '';
   const statusEl = document.getElementById('userStatus');
-  if (statusEl) statusEl.textContent = me.status === 'active' ? 'Terverifikasi' : me.status;
+  if (statusEl) statusEl.textContent = me.status === 'aktif' ? 'Terverifikasi' : me.status;
 
   const tabs = NAV[me.role] || [];
   if (!currentTab || !tabs.find((t) => t[0] === currentTab)) currentTab = tabs[0][0];
@@ -654,7 +656,7 @@ async function renderGisMap() {
     api('/api/matches').catch(() => []),
   ]);
   const users = geo.users || [];
-  const activeMatches = matches.filter((m) => !['cancelled'].includes(m.status));
+  const activeMatches = matches.filter((m) => !['dibatalkan'].includes(m.status));
 
   return `
   ${pageHead('Peta GIS', 'Sebaran donor, penerima, kurir &amp; rute pengantaran')}
@@ -671,8 +673,8 @@ async function renderGisMap() {
     <div class="map-wrap"><div id="gisMap"></div></div>
     <div class="map-stats">
       <div class="stat"><div class="label">Donor</div><div class="value">${users.filter((u) => u.role === 'donor' && u.lat).length}</div></div>
-      <div class="stat"><div class="label">Penerima</div><div class="value">${users.filter((u) => u.role === 'recipient' && u.lat).length}</div></div>
-      <div class="stat"><div class="label">Kurir</div><div class="value">${users.filter((u) => u.role === 'courier' && u.lat).length}</div></div>
+      <div class="stat"><div class="label">Penerima</div><div class="value">${users.filter((u) => u.role === 'penerima' && u.lat).length}</div></div>
+      <div class="stat"><div class="label">Kurir</div><div class="value">${users.filter((u) => u.role === 'kurir' && u.lat).length}</div></div>
       <div class="stat accent"><div class="label">Rute aktif</div><div class="value">${activeMatches.length}</div></div>
     </div>
   </div>
@@ -722,21 +724,21 @@ async function loadMapData() {
 
   for (const u of users) {
     if (!inMadiun(u.lat, u.lng)) continue;
-    if (!['donor', 'recipient', 'courier'].includes(u.role)) continue;
-    const colors = { donor: '#2563eb', recipient: '#dc2626', courier: '#f59e0b' };
-    const roleLabel = { donor: 'Donor', recipient: 'Penerima', courier: 'Kurir' };
+    if (!['donor', 'penerima', 'kurir'].includes(u.role)) continue;
+    const colors = { donor: '#2563eb', penerima: '#dc2626', kurir: '#f59e0b' };
+    const roleLabel = { donor: 'Donor', penerima: 'Penerima', kurir: 'Kurir' };
     L.marker([u.lat, u.lng], { icon: icon(colors[u.role]) })
       .bindPopup(
-        `<b>${esc(u.name)}</b><br>${roleLabel[u.role]} · ${statusTag(u.status)}<br>` +
-          `<span class="muted">${esc(u.address || '')}</span>` +
-          (u.capacity ? `<br><span class="muted">Kapasitas: ${u.capacity} porsi</span>` : '')
+        `<b>${esc(u.nama)}</b><br>${roleLabel[u.role]} · ${statusTag(u.status)}<br>` +
+          `<span class="muted">${esc(u.alamat || '')}</span>` +
+          (u.kapasitas ? `<br><span class="muted">Kapasitas: ${u.kapasitas} porsi</span>` : '')
       )
       .addTo(gisLayer);
   }
 
   for (const l of listings) {
     if (!inMadiun(l.lat, l.lng)) continue;
-    if (!['available', 'matched'].includes(l.status)) continue;
+    if (!['tersedia', 'dialokasikan'].includes(l.status)) continue;
     L.circleMarker([l.lat, l.lng], {
       radius: 7,
       color: '#fff',
@@ -745,15 +747,15 @@ async function loadMapData() {
       fillOpacity: 0.95,
     })
       .bindPopup(
-        `<b>${esc(l.name)}</b><br>${l.portions} porsi · ${foodTypeTag(l.food_type)} · ${statusTag(l.status)}<br>` +
-          `<span class="muted">Berlaku s/d: ${fmtDate(l.expiry_at)}</span>`
+        `<b>${esc(l.nama_makanan)}</b><br>${l.jumlah_porsi} porsi · ${foodTypeTag(l.jenis_makanan)} · ${statusTag(l.status)}<br>` +
+          `<span class="muted">Berlaku s/d: ${fmtDate(l.expiry_time)}</span>`
       )
       .addTo(gisLayer);
   }
 
   for (const m of matches) {
-    if (!m.route || m.status === 'cancelled') continue;
-    const pts = (m.route.waypoints || [])
+    if (!m.rute || m.status === 'dibatalkan') continue;
+    const pts = (m.rute.titik || [])
       .filter((w) => inMadiun(w.lat, w.lng))
       .map((w) => [w.lat, w.lng]);
     if (pts.length < 2) continue;
@@ -769,9 +771,9 @@ async function loadMapData() {
       fillOpacity: 1,
     })
       .bindPopup(
-          `<b>Pencocokan #${m.id}</b><br>${esc(m.listing_name || '')} → ${esc(m.need_title || '')}<br>` +
-          `${m.distance_km} km · ${statusTag(m.status)}` +
-          (m.score_percent != null ? `<br>Skor: ${m.score_percent}%` : '')
+          `<b>Pencocokan #${m.id_alokasi}</b><br>${esc(m.nama_makanan || '')} → ${esc(m.judul_kebutuhan || '')}<br>` +
+          `${m.jarak_km} km · ${statusTag(m.status)}` +
+          (m.skor_persen != null ? `<br>Skor: ${m.skor_persen}%` : '')
       )
       .addTo(gisLayer);
   }
@@ -829,7 +831,7 @@ function renderAuth() {
         </form>
         <form id="formReg" hidden data-action="1" data-endpoint="/api/auth/register">
           <label>Nama / Nama Organisasi</label>
-          <input name="name" required placeholder="Masjid Jami' Kota Madiun" />
+          <input name="nama" required placeholder="Masjid Jami' Kota Madiun" />
           <label>Email</label>
           <input name="email" type="email" required autocomplete="email" placeholder="nama@contoh.id" />
           <label>Kata Sandi</label>
@@ -841,11 +843,11 @@ function renderAuth() {
               <span class="role-card-body"><b>Donor</b><small>Punya makanan berlebih (hotel/resto/ritel)</small></span>
             </label>
             <label class="role-card">
-              <input type="radio" name="role" value="recipient" />
+              <input type="radio" name="role" value="penerima" />
               <span class="role-card-body"><b>Penerima</b><small>Butuh bantuan porsi makanan</small></span>
             </label>
             <label class="role-card">
-              <input type="radio" name="role" value="courier" />
+              <input type="radio" name="role" value="kurir" />
               <span class="role-card-body"><b>Kurir</b><small>Ingin jadi relawan pengantar</small></span>
             </label>
           </div>
@@ -853,17 +855,17 @@ function renderAuth() {
             <summary>Informasi tambahan <span class="muted">(boleh dilewati)</span></summary>
             <div class="more-details-body">
               <label>Telepon</label>
-              <input name="phone" placeholder="08xxx" inputmode="tel" />
+              <input name="telepon" placeholder="08xxx" inputmode="tel" />
               <label>Alamat</label>
-              <input name="address" placeholder="Jl. …, Madiun" />
+              <input name="alamat" placeholder="Jl. …, Madiun" />
               ${locationSelectHtml({ label: 'Lokasi domisili', hint: 'Untuk peta & perhitungan rute — pilih kota atau GPS' })}
               <div id="courierField" hidden>
                 <label>Kapasitas Logistik (porsi)</label>
-                <input name="capacity" type="number" min="1" placeholder="50" />
+                <input name="kapasitas" type="number" min="1" placeholder="50" />
               </div>
               <div id="orgField">
                 <label>Nama Organisasi</label>
-                <input name="org_name" placeholder="Hotel / Panti / Komunitas" />
+                <input name="nama_lembaga" placeholder="Hotel / Panti / Komunitas" />
               </div>
             </div>
           </details>
@@ -881,7 +883,7 @@ function renderAuth() {
           <label>Email</label>
           <input name="email" type="email" required autocomplete="email" />
           <label>Kode reset (6 digit)</label>
-          <input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required placeholder="123456" autocomplete="one-time-code" />
+          <input name="kode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required placeholder="123456" autocomplete="one-time-code" />
           <label>Kata sandi baru</label>
           <input name="password" type="password" minlength="6" required autocomplete="new-password" placeholder="minimal 6 karakter" />
           <button class="btn btn-block" type="submit">Simpan sandi baru</button>
@@ -932,8 +934,8 @@ function bindAuth() {
       me = res.user;
       localStorage.setItem('frai_token', token);
       localStorage.setItem('frai_user', JSON.stringify(me));
-      if (me.status === 'pending') toast('Akun belum diverifikasi admin', 'error');
-      else toast(`Selamat datang, ${me.name}`);
+      if (me.status === 'menunggu') toast('Akun belum diverifikasi admin', 'error');
+      else toast(`Selamat datang, ${me.nama}`);
       currentTab = '';
       render();
     } catch (e) {
@@ -977,7 +979,7 @@ function bindAuth() {
     try {
       const res = await api('/api/auth/reset-password', {
         method: 'POST',
-        body: { email: fd.get('email'), code: fd.get('code'), password: fd.get('password') },
+        body: { email: fd.get('email'), kode: fd.get('kode'), password: fd.get('password') },
       });
       toast(res.message);
       const loginEmail = formLogin?.querySelector('input[name="email"]');
@@ -990,7 +992,7 @@ function bindAuth() {
 
   formReg.querySelectorAll('input[name="role"]').forEach((r) =>
     r.addEventListener('change', () => {
-      const isCourier = formReg.role.value === 'courier';
+      const isCourier = formReg.role.value === 'kurir';
       document.getElementById('courierField').hidden = !isCourier;
       document.getElementById('orgField').hidden = isCourier;
     })
@@ -1016,9 +1018,9 @@ function showRegSuccess(email) {
 
 async function renderAdminDashboard() {
   const s = await api('/api/admin/stats');
-  const runs = s.performance.last_matching_runs || [];
+  const runs = s.kinerja?.riwayat_pencocokan || [];
   const isEmpty =
-    s.listings.total === 0 && s.needs.total === 0 && s.matches.total === 0 && s.users.total <= 1;
+    s.surplus.total === 0 && s.kebutuhan.total === 0 && s.alokasi.total === 0 && s.users.total <= 1;
 
   return `
   ${pageHead(
@@ -1026,7 +1028,7 @@ async function renderAdminDashboard() {
     'Ringkasan operasional redistribusi surplus makanan',
     `<div class="row">
       <button class="btn" data-post="/api/matches/run">${icon('sparkles', 15)} Jalankan Pencocokan AI</button>
-      <button class="btn btn-outline" data-post="/api/admin/clean" data-confirm="Hapus semua data transaksi (listing, kebutuhan, pencocokan, notifikasi)? Akun login tetap ada.">Bersihkan Data</button>
+      <button class="btn btn-outline" data-post="/api/admin/clean" data-confirm="Hapus semua data transaksi (surplus, kebutuhan, alokasi, notifikasi)? Akun login tetap ada.">Bersihkan Data</button>
     </div>`
   )}
   ${isEmpty ? `
@@ -1043,14 +1045,15 @@ async function renderAdminDashboard() {
     </div>
   </div>` : ''}
   <div class="stat-grid">
-    <div class="stat"><div class="label">Total pengguna</div><div class="value">${s.users.total}</div><div class="hint">${s.users.pending} menunggu verifikasi</div></div>
-    <div class="stat"><div class="label">Total pencocokan</div><div class="value">${s.matches.total}</div><div class="hint">${s.matches.verified} terverifikasi</div></div>
-    <div class="stat accent"><div class="label">Porsi terdistribusi</div><div class="value">${s.impact.portions_delivered}</div></div>
-    <div class="stat"><div class="label">Rata-rata skor</div><div class="value">${s.impact.avg_score}%</div></div>
-    <div class="stat"><div class="label">Rata-rata jarak</div><div class="value">${s.impact.avg_distance_km}</div><div class="hint">km</div></div>
-    <div class="stat"><div class="label">Catatan audit</div><div class="value">${s.impact.audit_logs}</div><div class="hint">tidak dapat diubah</div></div>
-    <div class="stat"><div class="label">Pesan outbox</div><div class="value">${s.impact.outbox_messages ?? 0}</div><div class="hint">WA ${s.channels?.whatsapp === 'live' ? 'aktif' : 'sim'} · Email ${s.channels?.email === 'live' ? 'aktif' : 'sim'}</div></div>
-    <div class="stat"><div class="label">Durasi pencocokan</div><div class="value">${runs[0]?.duration_ms ?? '—'}</div><div class="hint">milidetik</div></div>
+    <div class="stat"><div class="label">Total pengguna</div><div class="value">${s.users.total}</div><div class="hint">${s.users.menunggu} menunggu verifikasi</div></div>
+    <div class="stat"><div class="label">Total pencocokan</div><div class="value">${s.alokasi.total}</div><div class="hint">${s.alokasi.terverifikasi} terverifikasi</div></div>
+    <div class="stat accent"><div class="label">Porsi terdistribusi</div><div class="value">${s.dampak.porsi_tersalurkan}</div></div>
+    <div class="stat"><div class="label">Pengurangan food waste</div><div class="value">${s.dampak.pengurangan_food_waste_persen}%</div><div class="hint">${s.dampak.porsi_gagal} porsi gagal</div></div>
+    <div class="stat"><div class="label">Rata-rata skor</div><div class="value">${s.dampak.rata_rata_skor_persen}%</div></div>
+    <div class="stat"><div class="label">Rata-rata jarak</div><div class="value">${s.dampak.rata_rata_jarak_km}</div><div class="hint">km</div></div>
+    <div class="stat"><div class="label">Catatan audit</div><div class="value">${s.dampak.log_audit}</div><div class="hint">tidak dapat diubah</div></div>
+    <div class="stat"><div class="label">Pesan outbox</div><div class="value">${s.dampak.pesan_outbox ?? 0}</div><div class="hint">WA ${s.kanal?.whatsapp === 'live' ? 'aktif' : 'sim'} · Email ${s.kanal?.email === 'live' ? 'aktif' : 'sim'}</div></div>
+    <div class="stat"><div class="label">Durasi pencocokan</div><div class="value">${runs[0]?.durasi_ms ?? '—'}</div><div class="hint">milidetik</div></div>
   </div>
   <div class="grid grid-2">
     <div class="card">
@@ -1058,10 +1061,10 @@ async function renderAdminDashboard() {
       <div class="table-wrap">
       <table>
         <tbody>
-          <tr><td>Donor</td><td style="text-align:right"><b>${s.users.donors}</b></td></tr>
-          <tr><td>Penerima</td><td style="text-align:right"><b>${s.users.recipients}</b></td></tr>
-          <tr><td>Kurir</td><td style="text-align:right"><b>${s.users.couriers}</b></td></tr>
-          <tr><td>Admin</td><td style="text-align:right"><b>${Math.max(0, s.users.total - s.users.donors - s.users.recipients - s.users.couriers)}</b></td></tr>
+          <tr><td>Donor</td><td style="text-align:right"><b>${s.users.donor}</b></td></tr>
+          <tr><td>Penerima</td><td style="text-align:right"><b>${s.users.penerima}</b></td></tr>
+          <tr><td>Kurir</td><td style="text-align:right"><b>${s.users.kurir}</b></td></tr>
+          <tr><td>Admin</td><td style="text-align:right"><b>${Math.max(0, s.users.total - s.users.donor - s.users.penerima - s.users.kurir)}</b></td></tr>
         </tbody>
       </table>
       </div>
@@ -1071,10 +1074,10 @@ async function renderAdminDashboard() {
       <div class="table-wrap">
       <table>
         <tbody>
-          <tr><td>Surplus tersedia</td><td style="text-align:right"><b>${s.listings.available} / ${s.listings.total}</b></td></tr>
-          <tr><td>Surplus terverifikasi</td><td style="text-align:right"><b>${s.listings.verified}</b></td></tr>
-          <tr><td>Kebutuhan terbuka</td><td style="text-align:right"><b>${s.needs.open} / ${s.needs.total}</b></td></tr>
-          <tr><td>Kebutuhan terpenuhi</td><td style="text-align:right"><b>${s.needs.fulfilled}</b></td></tr>
+          <tr><td>Surplus tersedia</td><td style="text-align:right"><b>${s.surplus.tersedia} / ${s.surplus.total}</b></td></tr>
+          <tr><td>Surplus terverifikasi</td><td style="text-align:right"><b>${s.surplus.terverifikasi}</b></td></tr>
+          <tr><td>Kebutuhan terbuka</td><td style="text-align:right"><b>${s.kebutuhan.terbuka} / ${s.kebutuhan.total}</b></td></tr>
+          <tr><td>Kebutuhan dipenuhi</td><td style="text-align:right"><b>${s.kebutuhan.dipenuhi}</b></td></tr>
         </tbody>
       </table>
       </div>
@@ -1092,7 +1095,7 @@ async function renderAdminDashboard() {
     <table>
       <thead><tr><th>Kandidat</th><th>Dibuat</th><th>Durasi (ms)</th></tr></thead>
       <tbody>
-      ${runs.map(r => `<tr><td>${r.candidates_listings ?? '—'}/${r.candidates_needs ?? '—'}/${r.candidates_couriers ?? '—'}</td><td class="muted">${r.created ?? '—'}</td><td><b>${r.duration_ms ?? '—'}</b></td></tr>`).join('')}
+      ${runs.map(r => `<tr><td>${r.kandidat_makanan ?? '—'}/${r.kandidat_kebutuhan ?? '—'}/${r.kandidat_kurir ?? '—'}</td><td class="muted">${r.dibuat ?? '—'}</td><td><b>${r.durasi_ms ?? '—'}</b></td></tr>`).join('')}
       </tbody>
     </table>
     </div>`}
@@ -1113,16 +1116,16 @@ async function renderAdminUsers() {
       <tbody>
       ${users.map(u => `
       <tr>
-        <td><b>${esc(u.name)}</b>${u.org_name ? `<br><span class="muted">${esc(u.org_name)}</span>` : ''}</td>
+        <td><b>${esc(u.nama)}</b>${u.nama_lembaga ? `<br><span class="muted">${esc(u.nama_lembaga)}</span>` : ''}</td>
         <td>${esc(u.email)}</td>
         <td>${statusTag(u.role)}</td>
         <td>${statusTag(u.status)}</td>
-        <td class="muted">${esc(u.address || '—')}${u.capacity ? `<br>kap. ${u.capacity} porsi` : ''}</td>
+        <td class="muted">${esc(u.alamat || '—')}${u.kapasitas ? `<br>kap. ${u.kapasitas} porsi` : ''}</td>
         <td>
           <div class="row">
-          ${u.status !== 'active' && u.role !== 'admin' ? `<button class="btn btn-sm" data-patch="/api/admin/users/${u.id}/status" data-body='{"status":"active"}'>Verifikasi</button>` : ''}
-          ${u.status !== 'rejected' && u.role !== 'admin' ? `<button class="btn btn-sm btn-danger" data-patch="/api/admin/users/${u.id}/status" data-body='{"status":"rejected"}'>Tolak</button>` : ''}
-          ${u.role !== 'admin' ? `<button class="btn btn-sm btn-outline" data-delete="/api/admin/users/${u.id}">Hapus</button>` : ''}
+          ${u.status !== 'aktif' && u.role !== 'admin' ? `<button class="btn btn-sm" data-patch="/api/admin/users/${u.id_user}/status" data-body='{"status":"aktif"}'>Verifikasi</button>` : ''}
+          ${u.status !== 'ditolak' && u.role !== 'admin' ? `<button class="btn btn-sm btn-danger" data-patch="/api/admin/users/${u.id_user}/status" data-body='{"status":"ditolak"}'>Tolak</button>` : ''}
+          ${u.role !== 'admin' ? `<button class="btn btn-sm btn-outline" data-delete="/api/admin/users/${u.id_user}">Hapus</button>` : ''}
           </div>
         </td>
       </tr>`).join('')}
@@ -1156,15 +1159,15 @@ async function renderAdminMatches() {
       <tbody>
       ${rows.map(m => `
       <tr>
-        <td class="muted">${m.id}</td>
-        <td><b>${esc(m.listing_name)}</b> (${m.portions} porsi) ${foodTypeTag(m.food_type)}<br>→ ${esc(m.need_title)} ${statusTag(m.urgency)}<br><span class="muted">${esc(m.donor_name)} → ${esc(m.recipient_name)}</span></td>
-        <td>${esc(m.courier_name)}</td>
+        <td class="muted">${m.id_alokasi}</td>
+        <td><b>${esc(m.nama_makanan)}</b> (${m.jumlah_porsi} porsi) ${foodTypeTag(m.jenis_makanan)}<br>→ ${esc(m.judul_kebutuhan)} ${statusTag(m.urgensi)}<br><span class="muted">${esc(m.nama_donor)} → ${esc(m.nama_penerima)}</span></td>
+        <td>${esc(m.nama_kurir)}</td>
         <td>
-          <b>${m.score_percent}%</b>
-          <div class="score-bar"><div style="width:${m.score_percent}%"></div></div>
-          <span class="muted">simpan ${Number(m.score_expiry*100).toFixed(0)} · jarak ${Number(m.score_distance*100).toFixed(0)} · urgensi ${Number(m.score_urgency*100).toFixed(0)} · kap. ${Number(m.score_capacity*100).toFixed(0)}</span>
+          <b>${m.skor_persen}%</b>
+          <div class="score-bar"><div style="width:${m.skor_persen}%"></div></div>
+          <span class="muted">simpan ${Number(m.skor_masa_simpan*100).toFixed(0)} · jarak ${Number(m.skor_jarak*100).toFixed(0)} · urgensi ${Number(m.skor_urgensi*100).toFixed(0)} · kap. ${Number(m.skor_kapasitas*100).toFixed(0)}</span>
         </td>
-        <td>${m.distance_km} km</td>
+        <td>${m.jarak_km} km</td>
         <td>${statusTag(m.status)}</td>
       </tr>`).join('')}
       </tbody>
@@ -1182,16 +1185,16 @@ async function renderAdminLogs() {
     <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>ID</th><th>Waktu</th><th>User</th><th>Aksi</th><th>Entity</th><th>Detail</th></tr>
+        <tr><th>ID</th><th>Waktu</th><th>User</th><th>Aksi</th><th>Entitas</th><th>Detail</th></tr>
       </thead>
       <tbody>
       ${logs.map(l => `
       <tr>
-        <td class="muted">${l.id}</td>
+        <td class="muted">${l.id_log}</td>
         <td class="muted">${fmtDate(l.created_at)}</td>
-        <td>${esc(l.user_name || 'system')}</td>
-        <td><code>${esc(l.action)}</code></td>
-        <td>${esc(l.entity)}${l.entity_id ? '#' + esc(l.entity_id) : ''}</td>
+        <td>${esc(l.nama_pengguna || 'sistem')}</td>
+        <td><code>${esc(l.aksi)}</code></td>
+        <td>${esc(l.entitas)}${l.id_entitas ? '#' + esc(l.id_entitas) : ''}</td>
         <td class="muted" style="max-width:260px;word-break:break-all">${l.detail ? esc(l.detail) : '—'}</td>
       </tr>`).join('')}
       </tbody>
@@ -1202,8 +1205,8 @@ async function renderAdminLogs() {
 
 async function renderAdminOutbox() {
   const data = await api('/api/admin/outbox');
-  const rows = data.messages || [];
-  const ch = data.channels || {};
+  const rows = data.pesan || [];
+  const ch = data.kanal || {};
   const chChip = (state) =>
     state === 'live'
       ? '<span class="pill" style="background:var(--brand-soft);color:var(--brand);border:1px solid var(--brand-border)">Aktif</span>'
@@ -1212,7 +1215,7 @@ async function renderAdminOutbox() {
   ${pageHead(
     'Pesan Terkirim',
     'Riwayat notifikasi WhatsApp &amp; email',
-    rows.some((m) => m.status === 'sent' || m.status === 'simulated')
+    rows.some((m) => m.status === 'terkirim' || m.status === 'simulasi')
       ? `<button class="btn btn-outline" data-delete="/api/admin/outbox/sent" data-confirm="Hapus semua pesan yang sudah terkirim dari riwayat?">Hapus Pesan Terkirim</button>`
       : ''
   )}
@@ -1225,14 +1228,14 @@ async function renderAdminOutbox() {
     <div class="card-head">
       <div>
         <h2>Riwayat outbox</h2>
-        <div class="sub">sent = terkirim · simulated = demo · failed = gagal</div>
+        <div class="sub">terkirim = nyata · simulasi = demo · antre = menunggu · gagal = gagal</div>
       </div>
       <div class="row">
         <span class="muted">${icon('phone', 14)} WhatsApp ${chChip(ch.whatsapp)}</span>
         <span class="muted">${icon('mail', 14)} Email ${chChip(ch.email)}</span>
       </div>
     </div>
-    ${rows.length === 0 ? '<div class="empty">Belum ada pesan — notifikasi otomatis saat match, pickup, OTP, atau verifikasi.</div>' : `
+    ${rows.length === 0 ? '<div class="empty">Belum ada pesan — notifikasi otomatis saat alokasi, pickup, OTP, atau verifikasi.</div>' : `
     <div class="table-wrap">
     <table>
       <thead>
@@ -1241,10 +1244,10 @@ async function renderAdminOutbox() {
       <tbody>
       ${rows.map((m) => `
       <tr>
-        <td class="muted">${m.id}</td>
-        <td>${m.channel === 'whatsapp' ? icon('phone', 13) : icon('mail', 13)} ${m.channel === 'whatsapp' ? 'WhatsApp' : 'Email'}</td>
-        <td>${esc(m.to_address || '—')}<br><span class="muted">${esc(m.user_name || '')}</span></td>
-        <td><b>${esc(m.subject || '—')}</b><br><span class="muted" style="max-width:280px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.body || '')}</span></td>
+        <td class="muted">${m.id_pesan}</td>
+        <td>${m.kanal === 'whatsapp' ? icon('phone', 13) : icon('mail', 13)} ${m.kanal === 'whatsapp' ? 'WhatsApp' : 'Email'}</td>
+        <td>${esc(m.tujuan || '—')}<br><span class="muted">${esc(m.nama_pengguna || '')}</span></td>
+        <td><b>${esc(m.subjek || '—')}</b><br><span class="muted" style="max-width:280px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.isi || '')}</span></td>
         <td>${statusTag(m.status)}${m.error ? `<br><span class="muted">${esc(m.error)}</span>` : ''}</td>
         <td class="muted">${fmtDate(m.created_at)}</td>
       </tr>`).join('')}
@@ -1261,25 +1264,25 @@ async function renderDonorForm() {
   <div class="card">
     <form data-action="1" data-endpoint="/api/food" data-multipart="1">
       <label>Nama surplus</label>
-      <input name="name" required placeholder="Buffet sarapan sisa" />
+      <input name="nama_makanan" required placeholder="Buffet sarapan sisa" />
       <label>Jenis makanan</label>
-      <select name="food_type" required>
-        <option value="wet">Makanan Basah (nasi, lauk, sayur, buah potong, dairy…)</option>
-        <option value="dry">Makanan Kering (roti kemasan, keripik, biskuit, bahan kering…)</option>
+      <select name="jenis_makanan" required>
+        <option value="basah">Makanan Basah (nasi, lauk, sayur, buah potong, dairy…)</option>
+        <option value="kering">Makanan Kering (roti kemasan, keripik, biskuit, bahan kering…)</option>
       </select>
       <div id="sopBox" class="section-gap"></div>
       <label class="section-gap">Deskripsi</label>
-      <textarea name="description" rows="2" placeholder="Kondisi, jenis makanan…"></textarea>
+      <textarea name="deskripsi" rows="2" placeholder="Kondisi, jenis makanan…"></textarea>
       <div class="grid grid-2">
-        <div><label>Jumlah porsi</label><input name="portions" type="number" min="1" required /></div>
-        <div><label>Berlaku s/d</label><input name="expiry_at" type="datetime-local" required /></div>
+        <div><label>Jumlah porsi</label><input name="jumlah_porsi" type="number" min="1" required /></div>
+        <div><label>Berlaku s/d</label><input name="expiry_time" type="datetime-local" required /></div>
       </div>
       ${locationSelectHtml({
         label: 'Lokasi penjemputan',
         hint: 'Kosongkan untuk pakai alamat akun — pilih kota atau GPS',
       })}
-      <label class="section-gap">Foto kondisi makanan (opsional, maks 1MB)</label>
-      <input name="photo" type="file" accept="image/*" />
+      <label class="section-gap">Foto kondisi makanan (wajib, maks 1MB)</label>
+      <input name="foto_kondisi" type="file" accept="image/*" required />
       <div class="form-actions">
         <button class="btn" type="submit">${icon('upload', 15)} Simpan surplus</button>
       </div>
@@ -1301,13 +1304,13 @@ async function renderDonorListings() {
       <tbody>
       ${rows.map(l => `
       <tr>
-        <td>${l.photo_path ? `<img class="thumb" src="${l.photo_path}" alt="" />` : '—'}</td>
-        <td><b>${esc(l.name)}</b><br><span class="muted">${esc(l.description || '')}</span></td>
-        <td>${foodTypeTag(l.food_type)}</td>
-        <td>${l.portions}</td>
-        <td class="muted">${fmtDate(l.expiry_at)}</td>
+        <td>${l.foto_kondisi ? `<img class="thumb" src="${l.foto_kondisi}" alt="" />` : '—'}</td>
+        <td><b>${esc(l.nama_makanan)}</b><br><span class="muted">${esc(l.deskripsi || '')}</span></td>
+        <td>${foodTypeTag(l.jenis_makanan)}</td>
+        <td>${l.jumlah_porsi}</td>
+        <td class="muted">${fmtDate(l.expiry_time)}</td>
         <td>${statusTag(l.status)}</td>
-        <td>${['available','matched'].includes(l.status) ? `<button class="btn btn-sm btn-danger" data-patch="/api/food/${l.id}/cancel">Batalkan</button>` : '—'}</td>
+        <td>${['tersedia','dialokasikan'].includes(l.status) ? `<button class="btn btn-sm btn-danger" data-patch="/api/food/${l.id_makanan}/cancel">Batalkan</button>` : '—'}</td>
       </tr>`).join('')}
       </tbody>
     </table>
@@ -1321,8 +1324,8 @@ async function renderDonorListings() {
       </div>
     </div>
     <div class="grid grid-2">
-      ${sopHtml('wet', { compact: true })}
-      ${sopHtml('dry', { compact: true })}
+      ${sopHtml('basah', { compact: true })}
+      ${sopHtml('kering', { compact: true })}
     </div>
   </div>`;
 }
@@ -1341,10 +1344,10 @@ async function renderDonorMatches() {
       <tbody>
       ${rows.map(m => `
       <tr>
-        <td><b>${esc(m.listing_name)}</b> ${foodTypeTag(m.food_type)}<br><span class="muted">${m.portions} porsi</span></td>
-        <td>${esc(m.need_title)}<br><span class="muted">${esc(m.recipient_name)}</span></td>
-        <td>${esc(m.courier_name)}</td>
-        <td><b>${m.score_percent ?? Number((m.score*100).toFixed(1))}%</b></td>
+        <td><b>${esc(m.nama_makanan)}</b> ${foodTypeTag(m.jenis_makanan)}<br><span class="muted">${m.jumlah_porsi} porsi</span></td>
+        <td>${esc(m.judul_kebutuhan)}<br><span class="muted">${esc(m.nama_penerima)}</span></td>
+        <td>${esc(m.nama_kurir)}</td>
+        <td><b>${m.skor_persen ?? ''}%</b></td>
         <td>${statusTag(m.status)}</td>
       </tr>`).join('')}
       </tbody>
@@ -1361,21 +1364,21 @@ async function renderRecipientForm() {
   <div class="card">
     <form data-action="1" data-endpoint="/api/needs">
       <label>Judul kebutuhan</label>
-      <input name="title" required placeholder="Makan malam warga prasejahtera" />
+      <input name="judul" required placeholder="Makan malam warga prasejahtera" />
       <div class="grid grid-2">
-        <div><label>Porsi dibutuhkan</label><input name="portions_needed" type="number" min="1" required /></div>
+        <div><label>Porsi dibutuhkan</label><input name="porsi_dibutuhkan" type="number" min="1" required /></div>
         <div>
           <label>Tingkat urgensi</label>
-          <select name="urgency">
-            <option value="low">Rendah</option>
-            <option value="medium" selected>Sedang</option>
-            <option value="high">Tinggi</option>
-            <option value="critical">Kritis</option>
+          <select name="urgensi">
+            <option value="rendah">Rendah</option>
+            <option value="sedang" selected>Sedang</option>
+            <option value="tinggi">Tinggi</option>
+            <option value="kritis">Kritis</option>
           </select>
         </div>
       </div>
       <label>Catatan</label>
-      <textarea name="note" rows="2"></textarea>
+      <textarea name="catatan" rows="2"></textarea>
       ${locationSelectHtml({
         label: 'Lokasi penyaluran',
         hint: 'Pilih kota/kabupaten atau GPS agar muncul di peta & rute',
@@ -1402,11 +1405,11 @@ async function renderRecipientNeedsList() {
       <tbody>
       ${rows.map(n => `
       <tr>
-        <td><b>${esc(n.title)}</b><br><span class="muted">${esc(n.note || '')}</span></td>
-        <td>${n.portions_needed}</td>
-        <td>${statusTag(n.urgency)}</td>
+        <td><b>${esc(n.judul)}</b><br><span class="muted">${esc(n.catatan || '')}</span></td>
+        <td>${n.porsi_dibutuhkan}</td>
+        <td>${statusTag(n.urgensi)}</td>
         <td>${statusTag(n.status)}</td>
-        <td>${n.status === 'open' ? `<button class="btn btn-sm btn-outline" data-patch="/api/needs/${n.id}" data-body='{"status":"expired"}'>Tutup</button>` : '—'}</td>
+        <td>${n.status === 'terbuka' ? `<button class="btn btn-sm btn-outline" data-patch="/api/needs/${n.id_kebutuhan}" data-body='{"status":"kedaluwarsa"}'>Tutup</button>` : '—'}</td>
       </tr>`).join('')}
       </tbody>
     </table>
@@ -1416,12 +1419,12 @@ async function renderRecipientNeedsList() {
 
 async function renderRecipientMatches() {
   const rows = await api('/api/matches');
-  const ready = rows.filter((m) => ['picked_up', 'delivered'].includes(m.status));
+  const ready = rows.filter((m) => ['dijemput', 'terkirim'].includes(m.status));
   const withOtp = await Promise.all(
     ready.map(async (m) => {
       let otp = null;
       try {
-        otp = await api(`/api/deliveries/${m.id}/otp-status`);
+        otp = await api(`/api/deliveries/${m.id_alokasi}/otp-status`);
       } catch (_) {}
       return { ...m, otpInfo: otp };
     })
@@ -1435,14 +1438,14 @@ async function renderRecipientMatches() {
   <div class="card">
     <div class="card-head"><h2>Menunggu konfirmasi</h2></div>
     ${withOtp.length === 0 ? '<div class="empty">Belum ada kiriman menunggu konfirmasi OTP.</div>' : withOtp.map((m) => {
-      const code = m.otpInfo?.code && !m.otpInfo.used_at ? m.otpInfo.code : null;
-      const expired = m.otpInfo?.expires_at && new Date(m.otpInfo.expires_at).getTime() < Date.now();
+      const code = m.otpInfo?.kode && !m.otpInfo.digunakan_pada ? m.otpInfo.kode : null;
+      const expired = m.otpInfo?.kedaluwarsa_pada && new Date(m.otpInfo.kedaluwarsa_pada).getTime() < Date.now();
       return `
       <div class="notif unread">
         <div class="spread">
           <div>
-            <div class="notif-title">${esc(m.listing_name)} — ${m.portions} porsi ${foodTypeTag(m.food_type)}</div>
-            <span class="muted">Dari ${esc(m.donor_name)} · Kurir ${esc(m.courier_name)}</span>
+            <div class="notif-title">${esc(m.nama_makanan)} — ${m.jumlah_porsi} porsi ${foodTypeTag(m.jenis_makanan)}</div>
+            <span class="muted">Dari ${esc(m.nama_donor)} · Kurir ${esc(m.nama_kurir)}</span>
           </div>
           ${statusTag(m.status)}
         </div>
@@ -1452,16 +1455,16 @@ async function renderRecipientMatches() {
             ? `<div class="otp-box">
                 <div class="otp-label">Kode OTP Anda</div>
                 <div class="otp-code">${esc(code)}</div>
-                <div class="muted">Berlaku s/d ${fmtDate(m.otpInfo.expires_at)}</div>
+                <div class="muted">Berlaku s/d ${fmtDate(m.otpInfo.kedaluwarsa_pada)}</div>
               </div>`
             : `<div class="otp-box otp-box-wait">
                 <div class="otp-label">Kode OTP</div>
-                <div class="muted">${m.otpInfo?.used_at ? 'Sudah dipakai' : expired ? 'Kedaluwarsa — minta kurir jemput ulang' : 'Belum dibuat — menunggu kurir mengunggah foto & menjemput'}</div>
+                <div class="muted">${m.otpInfo?.digunakan_pada ? 'Sudah dipakai' : expired ? 'Kedaluwarsa — minta kurir jemput ulang' : 'Belum dibuat — menunggu kurir mengunggah foto & menjemput'}</div>
               </div>`
         }
         <div class="row" style="margin-top:10px">
-          <input style="max-width:200px;margin:0" id="otp-${m.id}" placeholder="6 digit OTP" maxlength="6" inputmode="numeric" value="${code && !expired ? esc(code) : ''}" />
-          <button class="btn btn-sm" type="button" id="verifyBtn-${m.id}" data-verify="${m.id}">${icon('check', 14)} Konfirmasi terima</button>
+          <input style="max-width:200px;margin:0" id="otp-${m.id_alokasi}" placeholder="6 digit OTP" maxlength="6" inputmode="numeric" value="${code && !expired ? esc(code) : ''}" />
+          <button class="btn btn-sm" type="button" id="verifyBtn-${m.id_alokasi}" data-verify="${m.id_alokasi}">${icon('check', 14)} Konfirmasi terima</button>
         </div>
       </div>`;
     }).join('')}
@@ -1475,7 +1478,7 @@ async function renderRecipientMatches() {
         <tr><th>Surplus</th><th>Donor</th><th>Kurir</th><th>Status</th></tr>
       </thead>
       <tbody>
-      ${rows.map(m => `<tr><td>${esc(m.listing_name)}</td><td>${esc(m.donor_name)}</td><td>${esc(m.courier_name)}</td><td>${statusTag(m.status)}</td></tr>`).join('')}
+      ${rows.map(m => `<tr><td>${esc(m.nama_makanan)}</td><td>${esc(m.nama_donor)}</td><td>${esc(m.nama_kurir)}</td><td>${statusTag(m.status)}</td></tr>`).join('')}
       </tbody>
     </table>
     </div>`}
@@ -1484,50 +1487,59 @@ async function renderRecipientMatches() {
 
 async function renderCourier() {
   const rows = await api('/api/matches');
-  const active = rows.filter((m) => ['proposed', 'accepted', 'picked_up', 'delivered'].includes(m.status));
+  const active = rows.filter((m) => ['diajukan', 'diterima', 'dijemput', 'terkirim'].includes(m.status));
   return `
   ${pageHead('Tugas Kurir', 'Ambil foto kondisi makanan, antar, dan tandai status pengiriman')}
   ${flowStripHtml(['Terima tugas', 'Foto & jemput', 'Antar & tandai sampai', 'Penerima OTP → selesai'])}
   <div class="card">
     <div class="card-head"><h2>Tugas aktif</h2></div>
     ${active.length === 0 ? '<div class="empty"><div class="empty-title">Belum ada tugas</div>Minta admin menjalankan pencocokan AI.</div>' : active.map((m) => {
-      const route = m.route;
+      const route = m.rute;
       return `
       <div class="notif unread">
         <div class="spread">
           <div>
-            <div class="notif-title">Pencocokan #${m.id}: ${esc(m.listing_name)} — ${m.portions} porsi ${foodTypeTag(m.food_type)}</div>
-            <span class="muted">Untuk ${esc(m.need_title)} (${esc(m.recipient_name)}) · Urgensi ${m.urgency} · Skor ${m.score_percent ?? ''}%</span>
+            <div class="notif-title">Pencocokan #${m.id_alokasi}: ${esc(m.nama_makanan)} — ${m.jumlah_porsi} porsi ${foodTypeTag(m.jenis_makanan)}</div>
+            <span class="muted">Untuk ${esc(m.judul_kebutuhan)} (${esc(m.nama_penerima)}) · Urgensi ${statusTag(m.urgensi)} · Skor ${m.skor_persen ?? ''}%</span>
           </div>
           ${statusTag(m.status)}
         </div>
         ${flowStepsHtml(m.status)}
-        ${m.food_type === 'wet' || m.food_type === 'dry' ? sopHtml(m.food_type, { compact: true }) : ''}
+        ${m.jenis_makanan === 'basah' || m.jenis_makanan === 'kering' ? sopHtml(m.jenis_makanan, { compact: true }) : ''}
         ${route ? `
         <div style="margin-top:12px">
           <div class="spread" style="margin-bottom:6px">
             <strong style="font-size:13px">${icon('route', 14)} Rute pengantaran</strong>
-            <span class="muted">${route.total_distance_km} km · ± ${route.total_duration_min} menit</span>
+            <span class="muted">${route.total_jarak_km} km · ± ${route.total_durasi_menit} menit</span>
           </div>
-          ${route.waypoints.map((w) => `<div class="route-step">${esc(w.label)}</div>`).join('')}
-          <p class="muted" style="margin-top:6px">Tahap: ${route.legs.map((l) => `${l.from}→${l.to}: ${l.distance_km} km / ${l.duration_min} mnt`).join(' · ')}</p>
+          ${(route.titik || []).map((w) => `<div class="route-step">${esc(w.nama)}</div>`).join('')}
+          <p class="muted" style="margin-top:6px">Tahap: ${(route.segmen || []).map((l) => `${esc(l.dari)}→${esc(l.ke)}: ${l.jarak_km} km / ${l.durasi_menit} mnt`).join(' · ')}</p>
         </div>
         ` : ''}
-        <p class="muted" style="margin-top:8px">Donor: ${esc(m.donor_phone || '—')} — ${esc(m.donor_address || '')}<br>
-        Penerima: ${esc(m.recipient_phone || '—')} — ${esc(m.recipient_address || '')}</p>
+        <p class="muted" style="margin-top:8px">Donor: ${esc(m.telepon_donor || '—')} — ${esc(m.alamat_donor || '')}<br>
+        Penerima: ${esc(m.telepon_penerima || '—')} — ${esc(m.alamat_penerima || '')}</p>
         <div class="row" style="margin-top:10px">
-          ${['proposed', 'accepted'].includes(m.status) ? `
-            <form id="pickup-${m.id}" data-action="1" data-endpoint="/api/deliveries/${m.id}/pickup" data-multipart="1">
+          ${['diajukan', 'diterima'].includes(m.status) ? `
+            <form id="pickup-${m.id_alokasi}" data-action="1" data-endpoint="/api/deliveries/${m.id_alokasi}/pickup" data-multipart="1">
               <label>Foto kondisi makanan (wajib, maks 1MB)</label>
-              <input type="file" name="photo" accept="image/*" required style="margin:0" />
+              <input type="file" name="foto_jemput" accept="image/*" required style="margin:0" />
               <div class="form-actions">
                 <button class="btn btn-sm" type="submit">${icon('upload', 14)} Foto &amp; jemput</button>
               </div>
             </form>
           ` : ''}
-          ${m.status === 'picked_up' ? `<button class="btn btn-sm" data-post="/api/deliveries/${m.id}/deliver">${icon('check', 14)} Tandai sampai di lokasi</button>` : ''}
-          ${m.status === 'delivered' ? `<span class="muted">Menunggu penerima memasukkan OTP…</span>` : ''}
-          ${m.photo_path ? `<img class="thumb" src="${m.photo_path}" alt="Foto serah terima" />` : ''}
+          ${m.status === 'dijemput' ? `
+            <form id="deliver-${m.id_alokasi}" data-action="1" data-endpoint="/api/deliveries/${m.id_alokasi}/deliver" data-multipart="1">
+              <label>Foto bukti pengantaran (wajib, maks 1MB)</label>
+              <input type="file" name="foto_antar" accept="image/*" required style="margin:0" />
+              <div class="form-actions">
+                <button class="btn btn-sm" type="submit">${icon('check', 14)} Tandai sampai di lokasi</button>
+              </div>
+            </form>
+          ` : ''}
+          ${m.status === 'terkirim' ? `<span class="muted">Menunggu penerima memasukkan OTP…</span>` : ''}
+          ${m.foto_jemput ? `<img class="thumb" src="${m.foto_jemput}" alt="Foto penjemputan" />` : ''}
+          ${m.foto_antar ? `<img class="thumb" src="${m.foto_antar}" alt="Foto pengantaran" />` : ''}
         </div>
       </div>`;
     }).join('')}
@@ -1541,7 +1553,7 @@ async function renderCourier() {
         <tr><th>#</th><th>Surplus</th><th>Penerima</th><th>Skor</th><th>Jarak</th><th>Status</th></tr>
       </thead>
       <tbody>
-      ${rows.map(m => `<tr><td class="muted">${m.id}</td><td>${esc(m.listing_name)}</td><td>${esc(m.recipient_name)}</td><td><b>${m.score_percent ?? ''}%</b></td><td>${m.distance_km} km</td><td>${statusTag(m.status)}</td></tr>`).join('')}
+      ${rows.map(m => `<tr><td class="muted">${m.id_alokasi}</td><td>${esc(m.nama_makanan)}</td><td>${esc(m.nama_penerima)}</td><td><b>${m.skor_persen ?? ''}%</b></td><td>${m.jarak_km} km</td><td>${statusTag(m.status)}</td></tr>`).join('')}
       </tbody>
     </table>
     </div>`}
@@ -1558,12 +1570,12 @@ async function renderNotif() {
   )}
   <div class="card">
     ${rows.length === 0 ? '<div class="empty">Belum ada notifikasi.</div>' : rows.map((n) => `
-      <div class="notif ${n.read_at ? '' : 'unread'}">
-        <div class="notif-title">${esc(n.title)}</div>
-        <p class="muted" style="margin-bottom:6px">${esc(n.message)}</p>
+      <div class="notif ${n.dibaca_pada ? '' : 'unread'}">
+        <div class="notif-title">${esc(n.judul)}</div>
+        <p class="muted" style="margin-bottom:6px">${esc(n.pesan)}</p>
         <div class="spread">
           <span class="muted">${fmtDate(n.created_at)}</span>
-          ${n.read_at ? '' : `<button class="btn btn-sm btn-ghost" data-post="/api/notifications/${n.id}/read">Tandai dibaca</button>`}
+          ${n.dibaca_pada ? '' : `<button class="btn btn-sm btn-ghost" data-post="/api/notifications/${n.id_notifikasi}/read">Tandai dibaca</button>`}
         </div>
       </div>`).join('')}
   </div>`;

@@ -24,6 +24,7 @@ jobs:
       - name: E2E test + audit tab
         run: |
           set -e
+          node server/seed.js --force --full
           nohup node server/index.js > server.log 2>&1 &
           echo $! > server.pid
           ok=0
