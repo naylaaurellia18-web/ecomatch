@@ -1,7 +1,7 @@
 {
-  "name": "Food Rescue AI — Redistribusi Pangan",
-  "short_name": "Food Rescue",
-  "description": "Platform redistribusi surplus makanan berbasis AI Matching & GIS.",
+  "name": "EcoMatch — AI Routing Sampah Makanan MBG",
+  "short_name": "EcoMatch",
+  "description": "Pengalihan sampah makanan MBG ke TPS pengolah berbasis AI Routing & GIS.",
   "id": "/",
   "start_url": "/",
   "scope": "/",
@@ -34,8 +34,8 @@
   ],
   "shortcuts": [
     {
-      "name": "Catat Surplus",
-      "short_name": "Surplus",
+      "name": "Catat Sampah",
+      "short_name": "Sampah",
       "url": "/?tab=donor"
     },
     {

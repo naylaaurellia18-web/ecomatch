@@ -21,40 +21,41 @@ const tabs = {
   admin: [
     ['Beranda', '/api/admin/stats'],
     ['Peta GIS', '/api/geo'],
-    ['Peta GIS', '/api/matches'],
     ['Pengguna', '/api/admin/users'],
-    ['Pencocokan AI', '/api/admin/matches'],
+    ['Routing AI', '/api/routing'],
+    ['Pencocokan (alias)', '/api/admin/matches'],
     ['Pesan Terkirim', '/api/admin/outbox'],
     ['Catatan Audit', '/api/admin/logs'],
     ['Notifikasi', '/api/notifications'],
+    ['Regulasi', '/api/admin/regulations'],
+    ['Kepatuhan', '/api/compliance/summary'],
   ],
   donor: [
-    ['Stok Surplus', '/api/food'],
-    ['Pencocokan Saya', '/api/matches'],
+    ['Stok Sampah', '/api/waste/mine'],
+    ['Routing Saya', '/api/routing'],
+    ['Poin & Insentif', '/api/mbg/motivation'],
     ['Peta GIS', '/api/geo'],
-    ['Peta GIS', '/api/matches'],
     ['Notifikasi', '/api/notifications'],
   ],
   recipient: [
-    ['Kebutuhan Pangan', '/api/needs'],
-    ['Konfirmasi OTP', '/api/matches'],
+    ['Profil TPS', '/api/tps/me'],
+    ['Daftar TPS', '/api/tps/list'],
+    ['Konfirmasi OTP', '/api/routing'],
     ['Peta GIS', '/api/geo'],
-    ['Peta GIS', '/api/matches'],
     ['Notifikasi', '/api/notifications'],
   ],
   courier: [
-    ['Tugas Kurir', '/api/matches'],
+    ['Tugas Kurir', '/api/routing'],
     ['Peta GIS', '/api/geo'],
-    ['Peta GIS', '/api/matches'],
     ['Notifikasi', '/api/notifications'],
   ],
 };
 
 const creds = {
-  admin: ['admin@foodrescue.id', 'admin123'],
-  donor: ['donor@foodrescue.id', 'donor123'],
-  recipient: ['penerima@foodrescue.id', 'penerima123'],
-  courier: ['kurir@foodrescue.id', 'kurir123'],
+  admin: ['admin@ecomatch.id', 'admin123'],
+  donor: ['donor@ecomatch.id', 'donor123'],
+  recipient: ['tps@ecomatch.id', 'tps123'],
+  courier: ['kurir@ecomatch.id', 'kurir123'],
 };
 
 (async () => {
@@ -79,12 +80,12 @@ const creds = {
     }
   }
 
-  // OTP status for recipient on delivered matches
-  const recTok = await login(...creds.recipient);
-  const matches = await req('/api/matches', { token: recTok });
-  const ready = (matches.data || []).filter((m) => ['dijemput', 'terkirim'].includes(m.status));
+  // OTP status for TPS on ready alokasi
+  const tpsTok = await login(...creds.recipient);
+  const alokasi = await req('/api/routing', { token: tpsTok });
+  const ready = (Array.isArray(alokasi.data) ? alokasi.data : []).filter((m) => ['dijemput', 'terkirim'].includes(m.status));
   for (const m of ready) {
-    const r = await req(`/api/deliveries/${m.id_alokasi}/otp-status`, { token: recTok });
+    const r = await req(`/api/deliveries/${m.id_alokasi}/otp-status`, { token: tpsTok });
     report.push(`${r.ok ? 'OK ' : 'FAIL'} [recipient] OTP #${m.id_alokasi} -> ${r.status} ${r.data.error || ''}`);
     if (!r.ok) fails++;
   }

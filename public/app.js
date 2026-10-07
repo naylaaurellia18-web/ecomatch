@@ -90,16 +90,17 @@ function bindLocationSelects(root = document) {
 }
 
 function flowStepsHtml(status) {
-  const order = ['diajukan', 'dijemput', 'terkirim', 'terverifikasi'];
+  const order = ['dialokasikan', 'dijemput', 'terkirim', 'terverifikasi'];
   const labels = {
-    diajukan: 'Ditugaskan',
-    diterima: 'Ditugaskan',
+    dialokasikan: 'Dialokasikan',
+    diajukan: 'Dialokasikan',
+    diterima: 'Dialokasikan',
     dijemput: 'Dijemput',
     terkirim: 'Sampai',
     terverifikasi: 'Selesai',
     dibatalkan: 'Dibatalkan',
   };
-  const key = status === 'diterima' ? 'diajukan' : status;
+  const key = ['diajukan', 'diterima'].includes(status) ? 'dialokasikan' : status;
   const idx = order.indexOf(key);
   if (status === 'dibatalkan') {
     return `<div class="flow-steps"><span class="flow-step cancelled">Dibatalkan</span></div>`;
@@ -157,6 +158,7 @@ const ICONS = {
   mail: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
   message: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
   phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  award: '<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>',
 };
 
 function icon(name, size = 16) {
@@ -241,8 +243,8 @@ function statusTag(s) {
     tersedia: ['tag-green', 'Tersedia'], dialokasikan: ['tag-blue', 'Dialokasikan'],
     dijemput: ['tag-yellow', 'Dijemput'], terkirim: ['tag-yellow', 'Terkirim'],
     terverifikasi: ['tag-green', 'Terverifikasi'], dibatalkan: ['tag-gray', 'Dibatalkan'],
-    gagal: ['tag-red', 'Gagal'], diajukan: ['tag-blue', 'Diajukan'],
-    diterima: ['tag-blue', 'Diterima'], terbuka: ['tag-green', 'Terbuka'],
+    gagal: ['tag-red', 'Gagal'], diajukan: ['tag-blue', 'Dialokasikan'],
+    diterima: ['tag-blue', 'Dialokasikan'], terbuka: ['tag-green', 'Terbuka'],
     dipenuhi: ['tag-green', 'Dipenuhi'], kedaluwarsa: ['tag-gray', 'Kedaluwarsa'],
     menunggu: ['tag-yellow', 'Menunggu'], aktif: ['tag-green', 'Aktif'],
     ditolak: ['tag-red', 'Ditolak'], antre: ['tag-yellow', 'Antre'],
@@ -251,20 +253,59 @@ function statusTag(s) {
     sedang: ['tag-blue', 'Sedang'], rendah: ['tag-gray', 'Rendah'],
     basah: ['tag-blue', 'Makanan Basah'], kering: ['tag-yellow', 'Makanan Kering'],
     donor: ['tag-blue', 'Donor'], penerima: ['tag-green', 'Penerima'],
+    donor_mbg: ['tag-blue', 'Donor MBG'], tps_pengolah: ['tag-green', 'TPS Pengolah'],
     kurir: ['tag-yellow', 'Kurir'], admin: ['tag-gray', 'Admin'],
+    nasi: ['tag-blue', 'Nasi'], sayur: ['tag-green', 'Sayur'], lauk: ['tag-yellow', 'Lauk'],
+    buah: ['tag-green', 'Buah'], campuran: ['tag-blue', 'Campuran'], lainnya: ['tag-gray', 'Lainnya'],
+    sisa_nasi: ['tag-blue', 'Sisa Nasi'], kulit_buah: ['tag-green', 'Kulit/Sisa Buah'],
+    segar: ['tag-green', 'Segar'], mulai_busu: ['tag-yellow', 'Mulai Busuk'],
+    busuk: ['tag-red', 'Busuk'],
   };
   const [cls, label] = map[s] || ['tag-gray', s];
   return `<span class="tag ${cls}">${label}</span>`;
 }
 
 const ROLE_LABEL = {
-  donor: 'Donor',
-  penerima: 'Penerima',
+  donor_mbg: 'Donor MBG',
+  tps_pengolah: 'TPS Pengolah',
   kurir: 'Kurir',
   admin: 'Admin',
 };
 
+const JENIS_SAMPAH = ['nasi', 'sayur', 'lauk', 'buah', 'campuran', 'lainnya'];
+const JENIS_LABEL = {
+  nasi: 'Nasi', sayur: 'Sayur', lauk: 'Lauk', buah: 'Buah', campuran: 'Campuran',
+  lainnya: 'Lainnya', sisa_nasi: 'Sisa Nasi', kulit_buah: 'Kulit/Sisa Buah',
+};
+function jenisLabel(j) {
+  return JENIS_LABEL[j] || String(j || '').replace(/_/g, ' ');
+}
+const JENIS_TPS = [
+  ['tps_3r', 'TPS 3R'],
+  ['tps_komposter', 'TPS Komposter'],
+  ['tps_maggot', 'TPS Maggot/BSSF'],
+  ['tps_eco_enzyme', 'TPS Eco Enzyme'],
+  ['bank_sampah', 'Bank Sampah'],
+  ['lainnya', 'Lainnya'],
+];
+const JENIS_PENGOLAHAN = [
+  ['komposter', 'Komposter'],
+  ['maggot_bsf', 'Maggot BSF'],
+  ['eco_enzyme', 'Eco Enzyme'],
+  ['bank_sampah', 'Bank Sampah'],
+  ['lainnya', 'Lainnya'],
+];
+const KATEGORI_DITERIMA = ['sisa_nasi', 'sayur', 'lauk', 'kulit_buah', 'campuran', 'lainnya'];
+
 const FOOD_TYPE_LABEL = { basah: 'Makanan Basah', kering: 'Makanan Kering' };
+
+function sopKeyForJenis(jenis) {
+  return ['nasi', 'sayur', 'lauk', 'buah', 'campuran', 'sisa_nasi', 'kulit_buah'].includes(jenis)
+    ? 'basah'
+    : jenis === 'kering'
+      ? 'kering'
+      : null;
+}
 
 const SOP = {
   basah: {
@@ -294,8 +335,8 @@ const SOP = {
         title: 'Suhu & Rentang Aman',
         items: [
           'Zona berbahaya 5°C–60°C — makanan basah jangan lama di rentang ini',
-          'Target: dari dapur → kurir → penerima dalam ≤ 4 jam (ideal ≤ 2 jam)',
-          'Saat tiba, penerima cek bau, tekstur, dan suhu — bila ragu, jangan dikonsumsi',
+          'Target: dari dapur → kurir → TPS dalam ≤ 4 jam (ideal ≤ 2 jam)',
+          'Saat tiba, TPS cek bau, tekstur, dan suhu — bila ragu, olah segera',
         ],
       },
       {
@@ -336,7 +377,7 @@ const SOP = {
         items: [
           'Umumnya aman di suhu ruang selama kemasan tersegel',
           'Hindari suhu ekstrem & sinar matahari langsung (bisa mencairkan/rusak)',
-          'Cek masa simpan sebelum dicatat; yang kedaluwarsa tidak boleh dibagikan',
+          'Cek masa simpan sebelum dicatat; yang kedaluwarsa tidak boleh diolah',
         ],
       },
       {
@@ -424,20 +465,21 @@ const NAV = {
     ['dashboard', 'dashboard', 'Beranda'],
     ['gis', 'map', 'Peta GIS'],
     ['users', 'users', 'Pengguna'],
-    ['matches', 'cpu', 'Pencocokan AI'],
+    ['matches', 'cpu', 'Routing AI'],
     ['outbox', 'message', 'Pesan Terkirim'],
     ['logs', 'file', 'Catatan Audit'],
     ['notif', 'bell', 'Notifikasi'],
   ],
-  donor: [
-    ['donor', 'package', 'Catat Surplus'],
-    ['donor-listings', 'list', 'Stok Surplus'],
-    ['donor-matches', 'link', 'Pencocokan Saya'],
+  donor_mbg: [
+    ['donor', 'package', 'Catat Sampah'],
+    ['donor-listings', 'list', 'Stok Sampah'],
+    ['donor-matches', 'link', 'Routing Saya'],
+    ['donor-points', 'award', 'Poin & Insentif'],
     ['gis', 'map', 'Peta GIS'],
     ['notif', 'bell', 'Notifikasi'],
   ],
-  penerima: [
-    ['recipient', 'heart', 'Kebutuhan Pangan'],
+  tps_pengolah: [
+    ['recipient', 'heart', 'Profil TPS'],
     ['recipient-matches', 'key', 'Konfirmasi OTP'],
     ['gis', 'map', 'Peta GIS'],
     ['notif', 'bell', 'Notifikasi'],
@@ -453,14 +495,15 @@ const TAB_TITLES = {
   dashboard: 'Beranda',
   gis: 'Peta GIS',
   users: 'Pengguna',
-  matches: 'Pencocokan AI',
+  matches: 'Routing AI',
   outbox: 'Pesan Terkirim',
   logs: 'Catatan Audit',
   notif: 'Notifikasi',
-  donor: 'Catat Surplus',
-  'donor-listings': 'Stok Surplus',
-  'donor-matches': 'Pencocokan Saya',
-  recipient: 'Kebutuhan Pangan',
+  donor: 'Catat Sampah',
+  'donor-listings': 'Stok Sampah',
+  'donor-matches': 'Routing Saya',
+  'donor-points': 'Poin & Insentif',
+  recipient: 'Profil TPS',
   'recipient-matches': 'Konfirmasi OTP',
   courier: 'Tugas Kurir',
 };
@@ -539,6 +582,13 @@ function render() {
   if (statusEl) statusEl.textContent = me.status === 'aktif' ? 'Terverifikasi' : me.status;
 
   const tabs = NAV[me.role] || [];
+  if (!tabs.length) {
+    layout.hidden = true;
+    authRoot.hidden = false;
+    authRoot.innerHTML = `<div class="empty"><div class="empty-title">Peran ${esc(me.role)} tidak memiliki menu</div>
+      <button class="btn" onclick="logout()">Keluar</button></div>`;
+    return;
+  }
   if (!currentTab || !tabs.find((t) => t[0] === currentTab)) currentTab = tabs[0][0];
   renderNav();
 
@@ -560,7 +610,8 @@ async function renderView() {
       donor: renderDonorForm,
       'donor-listings': renderDonorListings,
       'donor-matches': renderDonorMatches,
-      recipient: renderRecipientForm,
+      'donor-points': renderDonorPoints,
+      recipient: renderTpsProfile,
       'recipient-matches': renderRecipientMatches,
       courier: renderCourier,
     };
@@ -574,6 +625,18 @@ async function renderView() {
   } catch (e) {
     view.innerHTML = `<div class="empty"><div class="empty-title">Terjadi kesalahan</div>${esc(e.message)}</div>`;
   }
+}
+
+function formDataToObject(fd) {
+  const body = {};
+  fd.forEach((v, k) => {
+    if (k in body) {
+      body[k] = Array.isArray(body[k]) ? [...body[k], v] : [body[k], v];
+    } else {
+      body[k] = v;
+    }
+  });
+  return body;
 }
 
 function bindView() {
@@ -592,11 +655,14 @@ function bindView() {
         if (f.dataset.multipart === '1') {
           res = await api(f.dataset.endpoint, { method: 'POST', body: fd });
         } else {
-          const body = {};
-          fd.forEach((v, k) => (body[k] = v));
+          const body = formDataToObject(fd);
           res = await api(f.dataset.endpoint, { method: f.dataset.method || 'POST', body });
         }
-        toast(res.message || 'Berhasil');
+        let pesan = res.message || 'Berhasil';
+        if (res.klasifikasi) {
+          pesan += ` — klasifikasi: ${res.klasifikasi.kategori}/${res.klasifikasi.tingkat_pembusukan} (${Math.round(Number(res.klasifikasi.skor_keyakinan || 0) * 100)}%)`;
+        }
+        toast(pesan);
         renderView();
       } catch (e) {
         toast(e.message, 'error');
@@ -651,31 +717,32 @@ function bindView() {
 /* ========== GIS MAP ========== */
 
 async function renderGisMap() {
-  const [geo, matches] = await Promise.all([
+  const [geo, alokasi] = await Promise.all([
     api('/api/geo'),
-    api('/api/matches').catch(() => []),
+    api('/api/routing').catch(() => []),
   ]);
   const users = geo.users || [];
-  const activeMatches = matches.filter((m) => !['dibatalkan'].includes(m.status));
+  const tps = geo.tps || [];
+  const active = alokasi.filter((m) => !['dibatalkan'].includes(m.status));
 
   return `
-  ${pageHead('Peta GIS', 'Sebaran donor, penerima, kurir &amp; rute pengantaran')}
+  ${pageHead('Peta GIS', 'Sebaran donor MBG, TPS pengolah, kurir &amp; rute alokasi sampah')}
   <div class="card map-card">
     <div class="map-toolbar">
       <div class="map-legend">
-        <span><i class="dot dot-donor"></i> Donor</span>
-        <span><i class="dot dot-recipient"></i> Penerima</span>
+        <span><i class="dot dot-donor"></i> Donor MBG</span>
+        <span><i class="dot dot-recipient"></i> TPS Pengolah</span>
         <span><i class="dot dot-courier"></i> Kurir</span>
-        <span><i class="dot dot-listing"></i> Surplus tersedia</span>
-        <span><i class="dot" style="background:#2563eb;border-radius:2px;height:3px;width:16px"></i> Rute pengantaran</span>
+        <span><i class="dot dot-listing"></i> Sampah tersedia</span>
+        <span><i class="dot" style="background:#2563eb;border-radius:2px;height:3px;width:16px"></i> Rute alokasi</span>
       </div>
     </div>
     <div class="map-wrap"><div id="gisMap"></div></div>
     <div class="map-stats">
-      <div class="stat"><div class="label">Donor</div><div class="value">${users.filter((u) => u.role === 'donor' && u.lat).length}</div></div>
-      <div class="stat"><div class="label">Penerima</div><div class="value">${users.filter((u) => u.role === 'penerima' && u.lat).length}</div></div>
+      <div class="stat"><div class="label">Donor MBG</div><div class="value">${users.filter((u) => u.role === 'donor_mbg' && u.lat).length}</div></div>
+      <div class="stat"><div class="label">TPS Pengolah</div><div class="value">${tps.filter((t) => t.lat).length}</div></div>
       <div class="stat"><div class="label">Kurir</div><div class="value">${users.filter((u) => u.role === 'kurir' && u.lat).length}</div></div>
-      <div class="stat accent"><div class="label">Rute aktif</div><div class="value">${activeMatches.length}</div></div>
+      <div class="stat accent"><div class="label">Rute aktif</div><div class="value">${active.length}</div></div>
     </div>
   </div>
   <p class="muted" style="font-size:12.5px">Marker hanya menampilkan lokasi di area Madiun.</p>`;
@@ -704,16 +771,17 @@ function initGisMap() {
 async function loadMapData() {
   if (!gisMap || !gisLayer) return;
 
-  const [geo, matches] = await Promise.all([
+  const [geo, alokasi] = await Promise.all([
     api('/api/geo'),
-    api('/api/matches').catch(() => []),
+    api('/api/routing').catch(() => []),
   ]);
   const users = geo.users || [];
   const listings = geo.listings || [];
+  const tpsById = new Map((geo.tps || []).map((t) => [Number(t.id_user), t]));
 
   gisLayer.clearLayers();
 
-  const icon = (color, label) =>
+  const mkIcon = (color) =>
     L.divIcon({
       className: '',
       html: `<div style="background:${color};width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 2px ${color}88"></div>`,
@@ -724,14 +792,19 @@ async function loadMapData() {
 
   for (const u of users) {
     if (!inMadiun(u.lat, u.lng)) continue;
-    if (!['donor', 'penerima', 'kurir'].includes(u.role)) continue;
-    const colors = { donor: '#2563eb', penerima: '#dc2626', kurir: '#f59e0b' };
-    const roleLabel = { donor: 'Donor', penerima: 'Penerima', kurir: 'Kurir' };
-    L.marker([u.lat, u.lng], { icon: icon(colors[u.role]) })
+    if (!['donor_mbg', 'tps_pengolah', 'kurir'].includes(u.role)) continue;
+    const colors = { donor_mbg: '#2563eb', tps_pengolah: '#dc2626', kurir: '#f59e0b' };
+    const roleLabel = { donor_mbg: 'Donor MBG', tps_pengolah: 'TPS Pengolah', kurir: 'Kurir' };
+    const tps = u.role === 'tps_pengolah' ? tpsById.get(Number(u.id_user)) : null;
+    L.marker([u.lat, u.lng], { icon: mkIcon(colors[u.role]) })
       .bindPopup(
         `<b>${esc(u.nama)}</b><br>${roleLabel[u.role]} · ${statusTag(u.status)}<br>` +
           `<span class="muted">${esc(u.alamat || '')}</span>` +
-          (u.kapasitas ? `<br><span class="muted">Kapasitas: ${u.kapasitas} porsi</span>` : '')
+          (tps
+            ? `<br><span class="muted">${esc(tps.nama_tps || '')} · ${Number(tps.kapasitas_kg_hari || 0)} kg/hari</span>`
+            : u.kapasitas
+              ? `<br><span class="muted">Kapasitas: ${u.kapasitas} porsi</span>`
+              : '')
       )
       .addTo(gisLayer);
   }
@@ -747,13 +820,13 @@ async function loadMapData() {
       fillOpacity: 0.95,
     })
       .bindPopup(
-        `<b>${esc(l.nama_makanan)}</b><br>${l.jumlah_porsi} porsi · ${foodTypeTag(l.jenis_makanan)} · ${statusTag(l.status)}<br>` +
-          `<span class="muted">Berlaku s/d: ${fmtDate(l.expiry_time)}</span>`
+        `<b>${esc(l.nama_sampah)}</b><br>${l.berat_kg} kg · ${statusTag(l.jenis_makanan)} · ${statusTag(l.status)}<br>` +
+          `<span class="muted">Diproduksi: ${fmtDate(l.waktu_produksi)}</span>`
       )
       .addTo(gisLayer);
   }
 
-  for (const m of matches) {
+  for (const m of alokasi) {
     if (!m.rute || m.status === 'dibatalkan') continue;
     const pts = (m.rute.titik || [])
       .filter((w) => inMadiun(w.lat, w.lng))
@@ -771,7 +844,7 @@ async function loadMapData() {
       fillOpacity: 1,
     })
       .bindPopup(
-          `<b>Pencocokan #${m.id_alokasi}</b><br>${esc(m.nama_makanan || '')} → ${esc(m.judul_kebutuhan || '')}<br>` +
+          `<b>Alokasi #${m.id_alokasi}</b><br>${esc(m.nama_sampah || '')} → ${esc(m.nama_tps || '')}<br>` +
           `${m.jarak_km} km · ${statusTag(m.status)}` +
           (m.skor_persen != null ? `<br>Skor: ${m.skor_persen}%` : '')
       )
@@ -787,31 +860,31 @@ function isLocalHost() {
 
 function renderAuth() {
   const demoNote = isLocalHost()
-    ? `<div class="demo-note">Coba langsung — Admin: <b>admin@foodrescue.id</b> / <b>admin123</b></div>`
+    ? `<div class="demo-note">Coba langsung — Admin: <b>admin@ecomatch.id</b> / <b>admin123</b></div>`
     : '';
   return `
   <div class="auth-wrap">
     <aside class="auth-aside">
       <div class="auth-brand">
         <span class="mark">${icon('leaf', 20)}</span>
-        <span>Food Rescue AI</span>
+        <span>EcoMatch</span>
       </div>
       <div class="auth-hero">
-        <h2>Salah satu makanan berlebih, berkah buat sesama</h2>
-        <p>Hubungkan donor, penerima manfaat, dan kurir dalam satu aplikasi — gratis dan mudah dipakai.</p>
+        <h2>Sisa makanan MBG bukan akhir — olah kembali di TPS</h2>
+        <p>EcoMatch mengalihkan sampah makanan MBG ke TPS pengolah terdekat dengan routing AI &amp; peta GIS.</p>
         <ul class="auth-points">
-          <li><span class="tick">${icon('check', 12)}</span> Daftar cukup nama, email &amp; sandi</li>
-          <li><span class="tick">${icon('check', 12)}</span> Cocokkan surplus secara otomatis</li>
-          <li><span class="tick">${icon('check', 12)}</span> Pantau pengantaran di peta</li>
-          <li><span class="tick">${icon('check', 12)}</span> Konfirmasi serah terima via OTP</li>
+          <li><span class="tick">${icon('check', 12)}</span> Catat sampah makanan hanya dengan foto</li>
+          <li><span class="tick">${icon('check', 12)}</span> Klasifikasi &amp; routing AI otomatis</li>
+          <li><span class="tick">${icon('check', 12)}</span> Pantau penjemputan di peta</li>
+          <li><span class="tick">${icon('check', 12)}</span> Serah terima terverifikasi via OTP</li>
         </ul>
       </div>
-      <div class="auth-foot">Melayani distribusi pangan yang merata dan aman</div>
+      <div class="auth-foot">Mengalihkan sampah makanan MBG dengan aman dan terlacak</div>
     </aside>
     <div class="auth-panel">
       <button class="theme-switch auth-theme" type="button" data-theme-toggle title="Ganti tema" aria-label="Ganti tema terang/gelap"></button>
       <div class="auth-card">
-        <div class="eyebrow">Platform redistribusi pangan</div>
+        <div class="eyebrow">AI Routing Sampah Makanan MBG</div>
         <h1>Masuk ke akun Anda</h1>
         <p class="sub">Belum punya akun? Daftar gratis — cuma 4 langkah singkat.</p>
         <div class="auth-tabs">
@@ -831,7 +904,7 @@ function renderAuth() {
         </form>
         <form id="formReg" hidden data-action="1" data-endpoint="/api/auth/register">
           <label>Nama / Nama Organisasi</label>
-          <input name="nama" required placeholder="Masjid Jami' Kota Madiun" />
+          <input name="nama" required placeholder="SPPG Dapur MBG Kota Madiun" />
           <label>Email</label>
           <input name="email" type="email" required autocomplete="email" placeholder="nama@contoh.id" />
           <label>Kata Sandi</label>
@@ -839,16 +912,16 @@ function renderAuth() {
           <label>Saya mendaftar sebagai</label>
           <div class="role-cards">
             <label class="role-card">
-              <input type="radio" name="role" value="donor" checked />
-              <span class="role-card-body"><b>Donor</b><small>Punya makanan berlebih (hotel/resto/ritel)</small></span>
+              <input type="radio" name="role" value="donor_mbg" checked />
+              <span class="role-card-body"><b>Donor MBG</b><small>Punya sisa makanan MBG (dapur/SPPG/hotel/resto)</small></span>
             </label>
             <label class="role-card">
-              <input type="radio" name="role" value="penerima" />
-              <span class="role-card-body"><b>Penerima</b><small>Butuh bantuan porsi makanan</small></span>
+              <input type="radio" name="role" value="tps_pengolah" />
+              <span class="role-card-body"><b>TPS Pengolah</b><small>Mengelola TPS kompos/bank sampah/maggot</small></span>
             </label>
             <label class="role-card">
               <input type="radio" name="role" value="kurir" />
-              <span class="role-card-body"><b>Kurir</b><small>Ingin jadi relawan pengantar</small></span>
+              <span class="role-card-body"><b>Kurir</b><small>Ingin jadi relawan penjemput sampah</small></span>
             </label>
           </div>
           <details class="more-details">
@@ -864,13 +937,13 @@ function renderAuth() {
                 <input name="kapasitas" type="number" min="1" placeholder="50" />
               </div>
               <div id="orgField">
-                <label>Nama Organisasi</label>
-                <input name="nama_lembaga" placeholder="Hotel / Panti / Komunitas" />
+                <label>Nama Organisasi / SPPG</label>
+                <input name="nama_lembaga" placeholder="SPPG / TPS / Komunitas" />
               </div>
             </div>
           </details>
           <button class="btn btn-block" type="submit">Daftar sekarang</button>
-          <p class="reg-note">Akun Anda perlu diverifikasi admin dulu sebelum bisa masuk — biasanya cepat.</p>
+          <p class="reg-note">Akun perlu diverifikasi admin dulu — akun TPS juga perlu melengkapi profil TPS setelah disetujui.</p>
         </form>
         <form id="formForgot" hidden>
           <label>Email terdaftar</label>
@@ -946,14 +1019,14 @@ function bindAuth() {
   formReg.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const fd = new FormData(formReg);
-    const body = Object.fromEntries(fd.entries());
+    const body = formDataToObject(fd);
     if (!body.lat) delete body.lat;
     if (!body.lng) delete body.lng;
     delete body.location;
     try {
       const res = await api('/api/auth/register', { method: 'POST', body });
       toast(res.message);
-      showRegSuccess(body.email);
+      showRegSuccess(body.email, body.role);
     } catch (e) {
       toast(e.message, 'error');
     }
@@ -1001,14 +1074,18 @@ function bindAuth() {
   bindLocationSelects(formReg);
 }
 
-function showRegSuccess(email) {
+function showRegSuccess(email, role) {
   const card = document.querySelector('.auth-card');
   if (!card) return;
+  const catatanTps =
+    role === 'tps_pengolah'
+      ? ' <b>Setelah disetujui admin</b>, lengkapi profil TPS (kapasitas, jenis olahan) agar bisa menerima alokasi routing.'
+      : '';
   card.innerHTML = `
     <div class="auth-success">
       <div class="auth-success-icon">${icon('check', 28)}</div>
       <h1>Pendaftaran berhasil!</h1>
-      <p class="sub">Akun <b>${esc(email)}</b> sudah dibuat. <b>Menunggu verifikasi admin</b> dulu ya — setelah itu Anda bisa masuk.</p>
+      <p class="sub">Akun <b>${esc(email)}</b> sudah dibuat. <b>Menunggu verifikasi admin</b> dulu ya — setelah itu Anda bisa masuk.${catatanTps}</p>
       <button class="btn btn-block" id="backToLogin">${icon('arrowRight', 15)} Kembali ke halaman masuk</button>
     </div>`;
   document.getElementById('backToLogin').onclick = () => render();
@@ -1018,42 +1095,43 @@ function showRegSuccess(email) {
 
 async function renderAdminDashboard() {
   const s = await api('/api/admin/stats');
-  const runs = s.kinerja?.riwayat_pencocokan || [];
+  const runs = s.kinerja?.riwayat_routing || [];
   const isEmpty =
-    s.surplus.total === 0 && s.kebutuhan.total === 0 && s.alokasi.total === 0 && s.users.total <= 1;
+    (s.sampah?.total ?? 0) === 0 && (s.alokasi?.total ?? 0) === 0 && (s.users?.total ?? 0) <= 1;
 
   return `
   ${pageHead(
     'Beranda',
-    'Ringkasan operasional redistribusi surplus makanan',
+    'Ringkasan operasional pengalihan sampah makanan MBG ke TPS pengolah',
     `<div class="row">
-      <button class="btn" data-post="/api/matches/run">${icon('sparkles', 15)} Jalankan Pencocokan AI</button>
-      <button class="btn btn-outline" data-post="/api/admin/clean" data-confirm="Hapus semua data transaksi (surplus, kebutuhan, alokasi, notifikasi)? Akun login tetap ada.">Bersihkan Data</button>
+      <button class="btn" data-post="/api/routing/run">${icon('sparkles', 15)} Jalankan Routing AI</button>
+      <button class="btn btn-outline" data-post="/api/admin/clean" data-confirm="Hapus semua data transaksi (sampah, alokasi, log pengolahan, notifikasi)? Akun login tetap ada.">Bersihkan Data</button>
     </div>`
   )}
   ${isEmpty ? `
   <div class="card">
     <div class="empty" style="border:none;background:transparent;padding:12px 8px">
       <div class="empty-title">Web masih kosong — siap diisi dari nol</div>
-      Alur peluncuran: daftarkan donor &amp; penerima, verifikasi pengguna, lalu jalankan pencocokan AI.
+      Alur peluncuran: daftarkan donor MBG &amp; TPS, verifikasi pengguna, lalu jalankan routing AI.
     </div>
     <div class="flow-list">
-      <div class="flow-item"><span class="flow-num">1</span><div><strong>Donor catat surplus</strong><span>Foto, porsi, masa simpan, lokasi</span></div></div>
-      <div class="flow-item"><span class="flow-num">2</span><div><strong>Penerima ajukan kebutuhan</strong><span>Jumlah porsi &amp; tingkat urgensi</span></div></div>
-      <div class="flow-item"><span class="flow-num">3</span><div><strong>Admin verifikasi pengguna</strong><span>Aktifkan akun donor, penerima, kurir</span></div></div>
-      <div class="flow-item"><span class="flow-num">4</span><div><strong>Jalankan pencocokan AI</strong><span>Skor multi-kriteria + rute peta</span></div></div>
+      <div class="flow-item"><span class="flow-num">1</span><div><strong>Donor catat sampah makanan</strong><span>Foto, berat kg, jenis, lokasi</span></div></div>
+      <div class="flow-item"><span class="flow-num">2</span><div><strong>Klasifikasi &amp; routing AI</strong><span>Skor multi-kriteria + rute peta</span></div></div>
+      <div class="flow-item"><span class="flow-num">3</span><div><strong>Admin verifikasi pengguna</strong><span>Aktifkan akun donor, TPS, kurir</span></div></div>
+      <div class="flow-item"><span class="flow-num">4</span><div><strong>Kurir jemput, TPS konfirmasi OTP</strong><span>Serah terima terlacak sampai log pengolahan</span></div></div>
     </div>
   </div>` : ''}
   <div class="stat-grid">
     <div class="stat"><div class="label">Total pengguna</div><div class="value">${s.users.total}</div><div class="hint">${s.users.menunggu} menunggu verifikasi</div></div>
-    <div class="stat"><div class="label">Total pencocokan</div><div class="value">${s.alokasi.total}</div><div class="hint">${s.alokasi.terverifikasi} terverifikasi</div></div>
-    <div class="stat accent"><div class="label">Porsi terdistribusi</div><div class="value">${s.dampak.porsi_tersalurkan}</div></div>
-    <div class="stat"><div class="label">Pengurangan food waste</div><div class="value">${s.dampak.pengurangan_food_waste_persen}%</div><div class="hint">${s.dampak.porsi_gagal} porsi gagal</div></div>
+    <div class="stat"><div class="label">Total alokasi</div><div class="value">${s.alokasi.total}</div><div class="hint">${s.alokasi.terverifikasi} terverifikasi</div></div>
+    <div class="stat accent"><div class="label">Kg dialihkan</div><div class="value">${s.dampak.kg_dialihkan}</div><div class="hint">kg (status aktif)</div></div>
+    <div class="stat"><div class="label">Kg terverifikasi</div><div class="value">${s.dampak.kg_terverifikasi}</div><div class="hint">kg selesai di TPS</div></div>
     <div class="stat"><div class="label">Rata-rata skor</div><div class="value">${s.dampak.rata_rata_skor_persen}%</div></div>
     <div class="stat"><div class="label">Rata-rata jarak</div><div class="value">${s.dampak.rata_rata_jarak_km}</div><div class="hint">km</div></div>
+    <div class="stat"><div class="label">Klasifikasi AI</div><div class="value">${s.klasifikasi.total}</div><div class="hint">${s.klasifikasi.perlu_verifikasi} perlu verifikasi</div></div>
     <div class="stat"><div class="label">Catatan audit</div><div class="value">${s.dampak.log_audit}</div><div class="hint">tidak dapat diubah</div></div>
     <div class="stat"><div class="label">Pesan outbox</div><div class="value">${s.dampak.pesan_outbox ?? 0}</div><div class="hint">WA ${s.kanal?.whatsapp === 'live' ? 'aktif' : 'sim'} · Email ${s.kanal?.email === 'live' ? 'aktif' : 'sim'}</div></div>
-    <div class="stat"><div class="label">Durasi pencocokan</div><div class="value">${runs[0]?.durasi_ms ?? '—'}</div><div class="hint">milidetik</div></div>
+    <div class="stat"><div class="label">Durasi routing</div><div class="value">${runs[0]?.durasi_ms ?? '—'}</div><div class="hint">ms · SLA ${s.kinerja?.target_routing_ms ?? 3000} ms</div></div>
   </div>
   <div class="grid grid-2">
     <div class="card">
@@ -1061,23 +1139,23 @@ async function renderAdminDashboard() {
       <div class="table-wrap">
       <table>
         <tbody>
-          <tr><td>Donor</td><td style="text-align:right"><b>${s.users.donor}</b></td></tr>
-          <tr><td>Penerima</td><td style="text-align:right"><b>${s.users.penerima}</b></td></tr>
+          <tr><td>Donor MBG</td><td style="text-align:right"><b>${s.users.donor_mbg}</b></td></tr>
+          <tr><td>TPS Pengolah</td><td style="text-align:right"><b>${s.users.tps_pengolah}</b></td></tr>
           <tr><td>Kurir</td><td style="text-align:right"><b>${s.users.kurir}</b></td></tr>
-          <tr><td>Admin</td><td style="text-align:right"><b>${Math.max(0, s.users.total - s.users.donor - s.users.penerima - s.users.kurir)}</b></td></tr>
+          <tr><td>Admin</td><td style="text-align:right"><b>${s.users.admin}</b></td></tr>
         </tbody>
       </table>
       </div>
     </div>
     <div class="card">
-      <h2>Stok surplus &amp; kebutuhan</h2>
+      <h2>Sampah &amp; TPS</h2>
       <div class="table-wrap">
       <table>
         <tbody>
-          <tr><td>Surplus tersedia</td><td style="text-align:right"><b>${s.surplus.tersedia} / ${s.surplus.total}</b></td></tr>
-          <tr><td>Surplus terverifikasi</td><td style="text-align:right"><b>${s.surplus.terverifikasi}</b></td></tr>
-          <tr><td>Kebutuhan terbuka</td><td style="text-align:right"><b>${s.kebutuhan.terbuka} / ${s.kebutuhan.total}</b></td></tr>
-          <tr><td>Kebutuhan dipenuhi</td><td style="text-align:right"><b>${s.kebutuhan.dipenuhi}</b></td></tr>
+          <tr><td>Sampah tersedia</td><td style="text-align:right"><b>${s.sampah.tersedia} / ${s.sampah.total}</b></td></tr>
+          <tr><td>Sampah terverifikasi</td><td style="text-align:right"><b>${s.sampah.terverifikasi}</b></td></tr>
+          <tr><td>TPS aktif</td><td style="text-align:right"><b>${s.tps.aktif} / ${s.tps.total}</b></td></tr>
+          <tr><td>Klasifikasi perlu verifikasi</td><td style="text-align:right"><b>${s.klasifikasi.perlu_verifikasi}</b></td></tr>
         </tbody>
       </table>
       </div>
@@ -1086,16 +1164,16 @@ async function renderAdminDashboard() {
   <div class="card">
     <div class="card-head">
       <div>
-        <h2>Riwayat kinerja pencocokan AI</h2>
-        <div class="sub">Durasi tiap kali dijalankan</div>
+        <h2>Riwayat kinerja routing AI</h2>
+        <div class="sub">Durasi tiap kali dijalankan — target SLA ${s.kinerja?.target_routing_ms ?? 3000} ms</div>
       </div>
     </div>
-    ${runs.length === 0 ? '<div class="empty">Belum ada proses — klik “Jalankan Pencocokan AI”.</div>' : `
+    ${runs.length === 0 ? '<div class="empty">Belum ada proses — klik “Jalankan Routing AI”.</div>' : `
     <div class="table-wrap">
     <table>
-      <thead><tr><th>Kandidat</th><th>Dibuat</th><th>Durasi (ms)</th></tr></thead>
+      <thead><tr><th>Kandidat (Sampah/TPS/Kurir)</th><th>Alokasi dibuat</th><th>Mesin</th><th>Durasi (ms)</th></tr></thead>
       <tbody>
-      ${runs.map(r => `<tr><td>${r.kandidat_makanan ?? '—'}/${r.kandidat_kebutuhan ?? '—'}/${r.kandidat_kurir ?? '—'}</td><td class="muted">${r.dibuat ?? '—'}</td><td><b>${r.durasi_ms ?? '—'}</b></td></tr>`).join('')}
+      ${runs.map(r => `<tr><td>${r.kandidat_sampah ?? '—'}/${r.kandidat_tps ?? '—'}/${r.kandidat_kurir ?? '—'}</td><td><b>${r.dibuat ?? '—'}</b></td><td class="muted">${esc(r.mesin || '—')}</td><td><b>${r.durasi_ms ?? '—'}</b></td></tr>`).join('')}
       </tbody>
     </table>
     </div>`}
@@ -1105,7 +1183,7 @@ async function renderAdminDashboard() {
 async function renderAdminUsers() {
   const users = await api('/api/admin/users');
   return `
-  ${pageHead('Pengguna', 'Verifikasi, tolak, atau hapus akun donor, penerima, dan kurir')}
+  ${pageHead('Pengguna', 'Verifikasi, tolak, atau hapus akun donor MBG, TPS pengolah, dan kurir')}
   <div class="card">
     ${users.length <= 1 ? '<div class="empty">Belum ada pengguna selain admin. Ajukan pendaftaran dari halaman masuk.</div>' : `
     <div class="table-wrap">
@@ -1136,36 +1214,36 @@ async function renderAdminUsers() {
 }
 
 async function renderAdminMatches() {
-  const rows = await api('/api/admin/matches');
+  const rows = await api('/api/routing');
   return `
   ${pageHead(
-    'Pencocokan AI',
-    'Surplus dicocokkan ke kebutuhan &amp; kurir terdekat',
-    `<button class="btn" data-post="/api/matches/run">${icon('sparkles', 15)} Jalankan Pencocokan</button>`
+    'Routing AI',
+    'Sampah makanan dialokasikan ke TPS pengolah &amp; kurir terdekat',
+    `<button class="btn" data-post="/api/routing/run">${icon('sparkles', 15)} Jalankan Routing</button>`
   )}
   <div class="card">
     <div class="card-head">
       <div>
-        <h2>Hasil pencocokan</h2>
-        <div class="sub">${rows.length} entri</div>
+        <h2>Hasil alokasi</h2>
+        <div class="sub">${rows.length} entri · skor = 0,35×jenis + 0,25×kapasitas + 0,25×jarak + 0,15×urgensi</div>
       </div>
     </div>
-    ${rows.length === 0 ? '<div class="empty"><div class="empty-title">Belum ada pencocokan</div>Isi surplus &amp; kebutuhan dulu, lalu jalankan pencocokan AI.</div>' : `
+    ${rows.length === 0 ? '<div class="empty"><div class="empty-title">Belum ada alokasi</div>Catat sampah makanan &amp; daftarkan TPS dulu, lalu jalankan routing AI.</div>' : `
     <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>#</th><th>Surplus → Kebutuhan</th><th>Kurir</th><th>Skor</th><th>Jarak</th><th>Status</th></tr>
+        <tr><th>#</th><th>Sampah → TPS</th><th>Kurir</th><th>Skor</th><th>Jarak</th><th>Status</th></tr>
       </thead>
       <tbody>
       ${rows.map(m => `
       <tr>
         <td class="muted">${m.id_alokasi}</td>
-        <td><b>${esc(m.nama_makanan)}</b> (${m.jumlah_porsi} porsi) ${foodTypeTag(m.jenis_makanan)}<br>→ ${esc(m.judul_kebutuhan)} ${statusTag(m.urgensi)}<br><span class="muted">${esc(m.nama_donor)} → ${esc(m.nama_penerima)}</span></td>
+        <td><b>${esc(m.nama_sampah)}</b> (${m.berat_kg} kg) ${statusTag(m.kategori || m.jenis_makanan)}<br>→ ${esc(m.nama_tps)} ${m.tingkat_pembusukan ? statusTag(m.tingkat_pembusukan) : ''}<br><span class="muted">${esc(m.nama_donor)} → ${esc(m.nama_tps)}</span></td>
         <td>${esc(m.nama_kurir)}</td>
         <td>
           <b>${m.skor_persen}%</b>
           <div class="score-bar"><div style="width:${m.skor_persen}%"></div></div>
-          <span class="muted">simpan ${Number(m.skor_masa_simpan*100).toFixed(0)} · jarak ${Number(m.skor_jarak*100).toFixed(0)} · urgensi ${Number(m.skor_urgensi*100).toFixed(0)} · kap. ${Number(m.skor_kapasitas*100).toFixed(0)}</span>
+          <span class="muted">jenis ${Number(m.skor_jenis_cocok*100).toFixed(0)} · kap. ${Number(m.skor_kapasitas*100).toFixed(0)} · jarak ${Number(m.skor_jarak*100).toFixed(0)} · urg. ${Number(m.skor_urgensi*100).toFixed(0)}</span>
         </td>
         <td>${m.jarak_km} km</td>
         <td>${statusTag(m.status)}</td>
@@ -1258,59 +1336,65 @@ async function renderAdminOutbox() {
 }
 
 async function renderDonorForm() {
+  const now = new Date(Date.now() - 60000);
+  const waktuDefault = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
   return `
-  ${pageHead('Catat Surplus Makanan', 'Catat surplus dari hotel, restoran, atau ritel untuk dibagikan')}
-  ${flowStripHtml(['Isi form surplus', 'AI Matching oleh admin', 'Kurir jemput & antar', 'Penerima konfirmasi OTP'])}
+  ${pageHead('Catat Sampah Makanan MBG', 'Catat sisa makanan MBG dari dapur/SPPG untuk dialihkan ke TPS pengolah')}
+  ${flowStripHtml(['Isi form + foto', 'Klasifikasi otomatis', 'Routing AI ke TPS', 'Kurir jemput &amp; OTP TPS'])}
   <div class="card">
-    <form data-action="1" data-endpoint="/api/food" data-multipart="1">
-      <label>Nama surplus</label>
-      <input name="nama_makanan" required placeholder="Buffet sarapan sisa" />
-      <label>Jenis makanan</label>
-      <select name="jenis_makanan" required>
-        <option value="basah">Makanan Basah (nasi, lauk, sayur, buah potong, dairy…)</option>
-        <option value="kering">Makanan Kering (roti kemasan, keripik, biskuit, bahan kering…)</option>
-      </select>
-      <div id="sopBox" class="section-gap"></div>
-      <label class="section-gap">Deskripsi</label>
-      <textarea name="deskripsi" rows="2" placeholder="Kondisi, jenis makanan…"></textarea>
+    <form data-action="1" data-endpoint="/api/waste" data-multipart="1">
+      <label>Nama sampah makanan</label>
+      <input name="nama_sampah" required maxlength="200" placeholder="Sisa nasi kotak sarapan MBG" />
       <div class="grid grid-2">
-        <div><label>Jumlah porsi</label><input name="jumlah_porsi" type="number" min="1" required /></div>
-        <div><label>Berlaku s/d</label><input name="expiry_time" type="datetime-local" required /></div>
+        <div>
+          <label>Jenis makanan</label>
+          <select name="jenis_makanan" required>
+            ${JENIS_SAMPAH.map((j) => `<option value="${j}"${j === 'campuran' ? ' selected' : ''}>${jenisLabel(j)}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label>Berat (kg)</label>
+          <input name="berat_kg" type="number" min="0.1" max="10000" step="0.1" required placeholder="18.5" />
+        </div>
       </div>
+      <label>Waktu produksi</label>
+      <input name="waktu_produksi" type="datetime-local" required value="${waktuDefault}" />
       ${locationSelectHtml({
         label: 'Lokasi penjemputan',
         hint: 'Kosongkan untuk pakai alamat akun — pilih kota atau GPS',
       })}
-      <label class="section-gap">Foto kondisi makanan (wajib, maks 1MB)</label>
-      <input name="foto_kondisi" type="file" accept="image/*" required />
+      <label class="section-gap">Foto kondisi sampah (wajib, maks 1MB)</label>
+      <input name="foto" type="file" accept="image/*" required />
       <div class="form-actions">
-        <button class="btn" type="submit">${icon('upload', 15)} Simpan surplus</button>
+        <button class="btn" type="submit">${icon('upload', 15)} Simpan sampah makanan</button>
       </div>
+      <p class="muted" style="font-size:12.5px">Sampah akan diklasifikasi otomatis (FR-11) lalu menunggu routing AI (FR-04) menuju TPS terdekat.</p>
     </form>
   </div>`;
 }
 
 async function renderDonorListings() {
-  const rows = await api('/api/food');
+  const rows = await api('/api/waste/mine');
   return `
-  ${pageHead('Stok Surplus Saya', 'Pantau status surplus yang telah Anda catat')}
+  ${pageHead('Stok Sampah Saya', 'Pantau status sampah makanan yang telah Anda catat')}
   <div class="card">
-    ${rows.length === 0 ? '<div class="empty"><div class="empty-title">Belum ada stok surplus</div>Catat surplus terlebih dahulu.</div>' : `
+    ${rows.length === 0 ? '<div class="empty"><div class="empty-title">Belum ada stok sampah</div>Catat sampah makanan terlebih dahulu.</div>' : `
     <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Foto</th><th>Nama</th><th>Jenis</th><th>Porsi</th><th>Masa simpan</th><th>Status</th><th>Aksi</th></tr>
+        <tr><th>Foto</th><th>Nama</th><th>Jenis</th><th>Berat</th><th>Klasifikasi</th><th>Produksi</th><th>Status</th><th>Aksi</th></tr>
       </thead>
       <tbody>
       ${rows.map(l => `
       <tr>
-        <td>${l.foto_kondisi ? `<img class="thumb" src="${l.foto_kondisi}" alt="" />` : '—'}</td>
-        <td><b>${esc(l.nama_makanan)}</b><br><span class="muted">${esc(l.deskripsi || '')}</span></td>
-        <td>${foodTypeTag(l.jenis_makanan)}</td>
-        <td>${l.jumlah_porsi}</td>
-        <td class="muted">${fmtDate(l.expiry_time)}</td>
+        <td>${l.foto_url ? `<img class="thumb" src="${l.foto_url}" alt="" />` : '—'}</td>
+        <td><b>${esc(l.nama_sampah)}</b></td>
+        <td>${statusTag(l.jenis_makanan)}</td>
+        <td>${l.berat_kg} kg</td>
+        <td>${l.kategori ? `${statusTag(l.kategori)} <span class="muted">${statusTag(l.tingkat_pembusukan)}</span>` : '—'}</td>
+        <td class="muted">${fmtDate(l.waktu_produksi)}</td>
         <td>${statusTag(l.status)}</td>
-        <td>${['tersedia','dialokasikan'].includes(l.status) ? `<button class="btn btn-sm btn-danger" data-patch="/api/food/${l.id_makanan}/cancel">Batalkan</button>` : '—'}</td>
+        <td>${['tersedia','dialokasikan'].includes(l.status) ? `<button class="btn btn-sm btn-danger" data-patch="/api/waste/${l.id_sampah}" data-body='{"status":"dibatalkan"}'>Batalkan</button>` : '—'}</td>
       </tr>`).join('')}
       </tbody>
     </table>
@@ -1331,21 +1415,21 @@ async function renderDonorListings() {
 }
 
 async function renderDonorMatches() {
-  const rows = await api('/api/matches');
+  const rows = await api('/api/routing');
   return `
-  ${pageHead('Pencocokan Surplus Saya', 'Hasil pencocokan AI untuk surplus yang Anda catat')}
+  ${pageHead('Routing Sampah Saya', 'Hasil routing AI untuk sampah makanan yang Anda catat')}
   <div class="card">
-    ${rows.length === 0 ? '<div class="empty"><div class="empty-title">Belum ada pencocokan</div>Tunggu admin menjalankan pencocokan AI.</div>' : `
+    ${rows.length === 0 ? '<div class="empty"><div class="empty-title">Belum ada alokasi</div>Tunggu admin menjalankan routing AI.</div>' : `
     <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Surplus</th><th>Penerima</th><th>Kurir</th><th>Skor</th><th>Status</th></tr>
+        <tr><th>Sampah</th><th>TPS Pengolah</th><th>Kurir</th><th>Skor</th><th>Status</th></tr>
       </thead>
       <tbody>
       ${rows.map(m => `
       <tr>
-        <td><b>${esc(m.nama_makanan)}</b> ${foodTypeTag(m.jenis_makanan)}<br><span class="muted">${m.jumlah_porsi} porsi</span></td>
-        <td>${esc(m.judul_kebutuhan)}<br><span class="muted">${esc(m.nama_penerima)}</span></td>
+        <td><b>${esc(m.nama_sampah)}</b> ${statusTag(m.kategori || m.jenis_makanan)}<br><span class="muted">${m.berat_kg} kg</span></td>
+        <td>${esc(m.nama_tps)}<br><span class="muted">${m.jarak_km} km</span></td>
         <td>${esc(m.nama_kurir)}</td>
         <td><b>${m.skor_persen ?? ''}%</b></td>
         <td>${statusTag(m.status)}</td>
@@ -1356,69 +1440,153 @@ async function renderDonorMatches() {
   </div>`;
 }
 
-async function renderRecipientForm() {
-  const needsList = await renderRecipientNeedsList();
+async function renderDonorPoints() {
+  const m = await api('/api/mbg/motivation');
+  const target = Number(m.target_kg_klaim_pertama || 5);
+  const progres = Math.min(100, Math.round((Number(m.kg_terverifikasi) / target) * 100));
+  const bisaKlaim = Number(m.kg_terverifikasi) >= target;
+  const klaimRows = m.klaim || [];
   return `
-  ${pageHead('Kebutuhan Pangan', 'Ajukan kebutuhan porsi makanan untuk komunitas atau lembaga Anda')}
-  ${flowStripHtml(['Ajukan kebutuhan', 'AI Matching donor & kurir', 'Kurir mengantar', 'Masukkan OTP'])}
-  <div class="card">
-    <form data-action="1" data-endpoint="/api/needs">
-      <label>Judul kebutuhan</label>
-      <input name="judul" required placeholder="Makan malam warga prasejahtera" />
-      <div class="grid grid-2">
-        <div><label>Porsi dibutuhkan</label><input name="porsi_dibutuhkan" type="number" min="1" required /></div>
-        <div>
-          <label>Tingkat urgensi</label>
-          <select name="urgensi">
-            <option value="rendah">Rendah</option>
-            <option value="sedang" selected>Sedang</option>
-            <option value="tinggi">Tinggi</option>
-            <option value="kritis">Kritis</option>
-          </select>
-        </div>
-      </div>
-      <label>Catatan</label>
-      <textarea name="catatan" rows="2"></textarea>
-      ${locationSelectHtml({
-        label: 'Lokasi penyaluran',
-        hint: 'Pilih kota/kabupaten atau GPS agar muncul di peta & rute',
-      })}
-      <div class="form-actions">
-        <button class="btn" type="submit">${icon('upload', 15)} Simpan kebutuhan</button>
-      </div>
-    </form>
+  ${pageHead('Poin &amp; Insentif', 'Poin kepatuhan dari kg sampah terverifikasi + klaim insentif (FR-15)')}
+  ${flowStripHtml(['Catat sampah', 'Sampah terverifikasi di TPS', 'Poin bertambah', 'Klaim insentif'])}
+  <div class="stat-grid">
+    <div class="stat"><div class="label">Kg dialihkan</div><div class="value">${m.kg_dialihkan}</div><div class="hint">kg status aktif</div></div>
+    <div class="stat"><div class="label">Kg terverifikasi</div><div class="value">${m.kg_terverifikasi}</div><div class="hint">target klaim ${target} kg</div></div>
+    <div class="stat accent"><div class="label">Poin</div><div class="value">${m.poin}</div><div class="hint">${m.poin_per_kg} poin / kg</div></div>
+    <div class="stat"><div class="label">Progres klaim</div><div class="value">${progres}%</div><div class="hint">${bisaKlaim ? 'siap diklaim' : `kurang ${(target - Number(m.kg_terverifikasi)).toFixed(1)} kg`}</div></div>
   </div>
-  ${needsList}`;
-}
-
-async function renderRecipientNeedsList() {
-  const rows = await api('/api/needs');
-  return `
   <div class="card">
-    <div class="card-head"><h2>Kebutuhan saya</h2></div>
-    ${rows.length === 0 ? '<div class="empty">Belum ada kebutuhan tercatat.</div>' : `
+    <div class="card-head"><h2>${icon('award', 16)} Motivasi</h2></div>
+    <p>${esc(m.motivasi || '')}</p>
+    <div class="row" style="margin-top:12px">
+      ${['sertifikat', 'badge', 'laporan_kepatuhan', 'laporan_csr'].map((j) => `
+        <button class="btn btn-sm ${bisaKlaim ? '' : 'btn-outline'}" data-post="/api/mbg/motivation/claim" data-body='{"jenis_insentif":"${j}"}' ${bisaKlaim ? '' : `data-confirm="Anda belum mencapai ${target} kg terverifikasi — klaim akan ditolak. Lanjutkan?"`}>Klaim ${j.replace(/_/g, ' ')}</button>
+      `).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><h2>Riwayat klaim</h2></div>
+    ${klaimRows.length === 0 ? '<div class="empty">Belum ada klaim.</div>' : `
     <div class="table-wrap">
     <table>
-      <thead>
-        <tr><th>Judul</th><th>Porsi</th><th>Urgensi</th><th>Status</th><th>Aksi</th></tr>
-      </thead>
+      <thead><tr><th>#</th><th>Jenis</th><th>Nilai</th><th>Periode</th><th>Waktu</th></tr></thead>
       <tbody>
-      ${rows.map(n => `
-      <tr>
-        <td><b>${esc(n.judul)}</b><br><span class="muted">${esc(n.catatan || '')}</span></td>
-        <td>${n.porsi_dibutuhkan}</td>
-        <td>${statusTag(n.urgensi)}</td>
-        <td>${statusTag(n.status)}</td>
-        <td>${n.status === 'terbuka' ? `<button class="btn btn-sm btn-outline" data-patch="/api/needs/${n.id_kebutuhan}" data-body='{"status":"kedaluwarsa"}'>Tutup</button>` : '—'}</td>
-      </tr>`).join('')}
+      ${klaimRows.map((k) => `<tr><td class="muted">${k.id_motivasi}</td><td>${statusTag(k.jenis_insentif)}</td><td><b>${k.nilai}</b></td><td>${esc(k.periode)}</td><td class="muted">${fmtDate(k.created_at)}</td></tr>`).join('')}
       </tbody>
     </table>
     </div>`}
   </div>`;
 }
 
+function jenisDiterimaFormHtml(selected = []) {
+  return `
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px">
+    ${KATEGORI_DITERIMA.map((k) => `
+      <label class="role-card" style="padding:6px 8px">
+        <input type="checkbox" name="jenis_diterima" value="${k}" ${selected.includes(k) ? 'checked' : ''} />
+        <span class="role-card-body" style="gap:2px"><b style="font-size:12.5px">${jenisLabel(k)}</b></span>
+      </label>`).join('')}
+  </div>`;
+}
+
+async function renderTpsProfile() {
+  let tps = null;
+  let galat = null;
+  try {
+    tps = await api('/api/tps/me');
+  } catch (e) {
+    galat = e.message;
+  }
+
+  if (!tps) {
+    return `
+    ${pageHead('Daftarkan TPS Pengolah', 'Akun Anda belum punya profil TPS — isi data dasar agar bisa menerima alokasi routing')}
+    ${flowStripHtml(['Daftar profil TPS', 'Admin verifikasi', 'Terima alokasi routing', 'Konfirmasi OTP'])}
+    <div class="card">
+      <p class="muted">${galat ? esc(galat) : ''}</p>
+      <form data-action="1" data-endpoint="/api/tps/register">
+        <label>Nama TPS</label>
+        <input name="nama_tps" required maxlength="120" placeholder="TPS Kompos Kawatan" />
+        <div class="grid grid-2">
+          <div>
+            <label>Jenis TPS</label>
+            <select name="jenis_tps">${JENIS_TPS.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select>
+          </div>
+          <div>
+            <label>Jenis pengolahan</label>
+            <select name="jenis_pengolahan">${JENIS_PENGOLAHAN.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select>
+          </div>
+        </div>
+        <div class="grid grid-2">
+          <div><label>Kapasitas (kg/hari)</label><input name="kapasitas_kg_hari" type="number" min="0" max="100000" value="100" /></div>
+          <div><label>Radius layanan (km)</label><input name="radius_layanan_km" type="number" min="0" max="100" value="15" /></div>
+        </div>
+        <label class="section-gap">Kategori sampah yang diterima</label>
+        ${jenisDiterimaFormHtml(KATEGORI_DITERIMA)}
+        ${locationSelectHtml({ label: 'Lokasi TPS', hint: 'Wajib agar TPS muncul di routing &amp; peta' })}
+        <div class="form-actions">
+          <button class="btn" type="submit">${icon('upload', 15)} Daftarkan TPS</button>
+        </div>
+      </form>
+    </div>`;
+  }
+
+  const terpakai = Number(tps.terpakai_kg_hari_ini || 0);
+  const kapasitas = Number(tps.kapasitas_kg_hari || 0);
+  const progres = kapasitas > 0 ? Math.min(100, Math.round((terpakai / kapasitas) * 100)) : 0;
+  return `
+  ${pageHead('Profil TPS Pengolah', 'Kapasitas, jenis olahan, dan lokasi TPS Anda (FR-03)')}
+  ${flowStripHtml(['Profil &amp; kapasitas', 'Routing AI alokasikan sampah', 'Kurir antar', 'OTP + log pengolahan'])}
+  <div class="stat-grid">
+    <div class="stat"><div class="label">Kapasitas harian</div><div class="value">${kapasitas}</div><div class="hint">kg/hari</div></div>
+    <div class="stat"><div class="label">Terpakai hari ini</div><div class="value">${terpakai}</div><div class="hint">${progres}% dari kapasitas</div></div>
+    <div class="stat accent"><div class="label">Sisa kapasitas</div><div class="value">${tps.sisa_kapasitas_kg}</div><div class="hint">kg hari ini</div></div>
+    <div class="stat"><div class="label">Status</div><div class="value" style="font-size:1.1rem">${tps.aktif ? 'Aktif' : 'Nonaktif'}</div><div class="hint">radius ${tps.radius_layanan_km} km</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><h2>Ubah profil TPS</h2></div>
+    <form data-action="1" data-endpoint="/api/tps/me" data-method="PATCH">
+      <label>Nama TPS</label>
+      <input name="nama_tps" required maxlength="120" value="${esc(tps.nama_tps || '')}" />
+      <div class="grid grid-2">
+        <div>
+          <label>Jenis TPS</label>
+          <select name="jenis_tps">${JENIS_TPS.map(([v, l]) => `<option value="${v}" ${tps.jenis_tps === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+        </div>
+        <div>
+          <label>Jenis pengolahan</label>
+          <select name="jenis_pengolahan">${JENIS_PENGOLAHAN.map(([v, l]) => `<option value="${v}" ${tps.jenis_pengolahan === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="grid grid-3">
+        <div><label>Kapasitas (kg/hari)</label><input name="kapasitas_kg_hari" type="number" min="0" max="100000" value="${kapasitas}" /></div>
+        <div><label>Radius (km)</label><input name="radius_layanan_km" type="number" min="0" max="100" value="${tps.radius_layanan_km}" /></div>
+        <div>
+          <label>Status TPS</label>
+          <select name="aktif"><option value="1" ${tps.aktif ? 'selected' : ''}>Aktif menerima</option><option value="0" ${!tps.aktif ? 'selected' : ''}>Nonaktif</option></select>
+        </div>
+      </div>
+      <label class="section-gap">Kategori sampah yang diterima</label>
+      ${jenisDiterimaFormHtml(tps.jenis_diterima || [])}
+      <div class="grid grid-2">
+        <div><label>Telepon</label><input name="telepon" value="${esc(tps.telepon || '')}" placeholder="08xxx" /></div>
+        <div><label>Izin operasional</label><input name="izin_operasional" maxlength="200" value="${esc(tps.izin_operasional || '')}" placeholder="NIB / izin kelurahan…" /></div>
+      </div>
+      <label class="section-gap">Alamat</label>
+      <input name="alamat" maxlength="300" value="${esc(tps.alamat || '')}" placeholder="Jl. …, Madiun" />
+      ${locationSelectHtml({
+        label: 'Lokasi TPS',
+        hint: 'Pilih ulang bila TPS pindah — agar rute & peta diperbarui',
+      })}
+      <div class="form-actions">
+        <button class="btn" type="submit">${icon('check', 15)} Simpan profil</button>
+      </div>
+    </form>
+  </div>`;
+}
+
 async function renderRecipientMatches() {
-  const rows = await api('/api/matches');
+  const rows = await api('/api/routing');
   const ready = rows.filter((m) => ['dijemput', 'terkirim'].includes(m.status));
   const withOtp = await Promise.all(
     ready.map(async (m) => {
@@ -1432,9 +1600,9 @@ async function renderRecipientMatches() {
   return `
   ${pageHead(
     'Konfirmasi OTP',
-    'Masukkan kode 6 digit untuk konfirmasi serah terima'
+    'Masukkan kode 6 digit untuk konfirmasi serah terima sampah makanan'
   )}
-  ${flowStripHtml(['Kurir jemput surplus', 'Kurir antar ke Anda', 'OTP muncul di sini', 'Konfirmasi terima'])}
+  ${flowStripHtml(['Kurir jemput sampah', 'Kurir antar ke TPS', 'OTP muncul di sini', 'Konfirmasi terima'])}
   <div class="card">
     <div class="card-head"><h2>Menunggu konfirmasi</h2></div>
     ${withOtp.length === 0 ? '<div class="empty">Belum ada kiriman menunggu konfirmasi OTP.</div>' : withOtp.map((m) => {
@@ -1444,7 +1612,7 @@ async function renderRecipientMatches() {
       <div class="notif unread">
         <div class="spread">
           <div>
-            <div class="notif-title">${esc(m.nama_makanan)} — ${m.jumlah_porsi} porsi ${foodTypeTag(m.jenis_makanan)}</div>
+            <div class="notif-title">${esc(m.nama_sampah)} — ${m.berat_kg} kg ${statusTag(m.kategori || m.jenis_makanan)}</div>
             <span class="muted">Dari ${esc(m.nama_donor)} · Kurir ${esc(m.nama_kurir)}</span>
           </div>
           ${statusTag(m.status)}
@@ -1459,12 +1627,13 @@ async function renderRecipientMatches() {
               </div>`
             : `<div class="otp-box otp-box-wait">
                 <div class="otp-label">Kode OTP</div>
-                <div class="muted">${m.otpInfo?.digunakan_pada ? 'Sudah dipakai' : expired ? 'Kedaluwarsa — minta kurir jemput ulang' : 'Belum dibuat — menunggu kurir mengunggah foto & menjemput'}</div>
+                <div class="muted">${m.otpInfo?.digunakan_pada ? 'Sudah dipakai' : expired ? 'Kedaluwarsa — minta OTP ulang' : 'Belum dibuat — menunggu kurir mengunggah foto & menjemput'}</div>
               </div>`
         }
         <div class="row" style="margin-top:10px">
           <input style="max-width:200px;margin:0" id="otp-${m.id_alokasi}" placeholder="6 digit OTP" maxlength="6" inputmode="numeric" value="${code && !expired ? esc(code) : ''}" />
           <button class="btn btn-sm" type="button" id="verifyBtn-${m.id_alokasi}" data-verify="${m.id_alokasi}">${icon('check', 14)} Konfirmasi terima</button>
+          <button class="btn btn-sm btn-outline" type="button" data-post="/api/deliveries/${m.id_alokasi}/resend-otp">Kirim ulang OTP</button>
         </div>
       </div>`;
     }).join('')}
@@ -1475,10 +1644,10 @@ async function renderRecipientMatches() {
     <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Surplus</th><th>Donor</th><th>Kurir</th><th>Status</th></tr>
+        <tr><th>Sampah</th><th>Donor</th><th>Kurir</th><th>Status</th></tr>
       </thead>
       <tbody>
-      ${rows.map(m => `<tr><td>${esc(m.nama_makanan)}</td><td>${esc(m.nama_donor)}</td><td>${esc(m.nama_kurir)}</td><td>${statusTag(m.status)}</td></tr>`).join('')}
+      ${rows.map(m => `<tr><td>${esc(m.nama_sampah)} <span class="muted">${m.berat_kg} kg</span></td><td>${esc(m.nama_donor)}</td><td>${esc(m.nama_kurir)}</td><td>${statusTag(m.status)}</td></tr>`).join('')}
       </tbody>
     </table>
     </div>`}
@@ -1486,26 +1655,27 @@ async function renderRecipientMatches() {
 }
 
 async function renderCourier() {
-  const rows = await api('/api/matches');
-  const active = rows.filter((m) => ['diajukan', 'diterima', 'dijemput', 'terkirim'].includes(m.status));
+  const rows = await api('/api/routing');
+  const active = rows.filter((m) => ['dialokasikan', 'dijemput', 'terkirim'].includes(m.status));
   return `
-  ${pageHead('Tugas Kurir', 'Ambil foto kondisi makanan, antar, dan tandai status pengiriman')}
-  ${flowStripHtml(['Terima tugas', 'Foto & jemput', 'Antar & tandai sampai', 'Penerima OTP → selesai'])}
+  ${pageHead('Tugas Kurir', 'Ambil foto kondisi sampah, antar ke TPS, dan tandai status pengiriman')}
+  ${flowStripHtml(['Terima tugas', 'Foto &amp; jemput', 'Antar &amp; tandai sampai', 'TPS OTP → selesai'])}
   <div class="card">
     <div class="card-head"><h2>Tugas aktif</h2></div>
-    ${active.length === 0 ? '<div class="empty"><div class="empty-title">Belum ada tugas</div>Minta admin menjalankan pencocokan AI.</div>' : active.map((m) => {
+    ${active.length === 0 ? '<div class="empty"><div class="empty-title">Belum ada tugas</div>Minta admin menjalankan routing AI.</div>' : active.map((m) => {
       const route = m.rute;
+      const sopKey = sopKeyForJenis(m.jenis_makanan) || sopKeyForJenis(m.kategori);
       return `
       <div class="notif unread">
         <div class="spread">
           <div>
-            <div class="notif-title">Pencocokan #${m.id_alokasi}: ${esc(m.nama_makanan)} — ${m.jumlah_porsi} porsi ${foodTypeTag(m.jenis_makanan)}</div>
-            <span class="muted">Untuk ${esc(m.judul_kebutuhan)} (${esc(m.nama_penerima)}) · Urgensi ${statusTag(m.urgensi)} · Skor ${m.skor_persen ?? ''}%</span>
+            <div class="notif-title">Alokasi #${m.id_alokasi}: ${esc(m.nama_sampah)} — ${m.berat_kg} kg ${statusTag(m.kategori || m.jenis_makanan)}</div>
+            <span class="muted">Untuk ${esc(m.nama_tps)} · Skor ${m.skor_persen ?? ''}% · Jarak ${m.jarak_km} km</span>
           </div>
           ${statusTag(m.status)}
         </div>
         ${flowStepsHtml(m.status)}
-        ${m.jenis_makanan === 'basah' || m.jenis_makanan === 'kering' ? sopHtml(m.jenis_makanan, { compact: true }) : ''}
+        ${sopKey ? sopHtml(sopKey, { compact: true }) : ''}
         ${route ? `
         <div style="margin-top:12px">
           <div class="spread" style="margin-bottom:6px">
@@ -1516,12 +1686,12 @@ async function renderCourier() {
           <p class="muted" style="margin-top:6px">Tahap: ${(route.segmen || []).map((l) => `${esc(l.dari)}→${esc(l.ke)}: ${l.jarak_km} km / ${l.durasi_menit} mnt`).join(' · ')}</p>
         </div>
         ` : ''}
-        <p class="muted" style="margin-top:8px">Donor: ${esc(m.telepon_donor || '—')} — ${esc(m.alamat_donor || '')}<br>
-        Penerima: ${esc(m.telepon_penerima || '—')} — ${esc(m.alamat_penerima || '')}</p>
+        <p class="muted" style="margin-top:8px">Jemput: (${m.lat_donor ?? '—'}, ${m.lng_donor ?? '—'})<br>
+        Antar: ${esc(m.nama_tps)} (${m.lat_tps ?? '—'}, ${m.lng_tps ?? '—'})</p>
         <div class="row" style="margin-top:10px">
-          ${['diajukan', 'diterima'].includes(m.status) ? `
+          ${m.status === 'dialokasikan' ? `
             <form id="pickup-${m.id_alokasi}" data-action="1" data-endpoint="/api/deliveries/${m.id_alokasi}/pickup" data-multipart="1">
-              <label>Foto kondisi makanan (wajib, maks 1MB)</label>
+              <label>Foto kondisi sampah (wajib, maks 1MB)</label>
               <input type="file" name="foto_jemput" accept="image/*" required style="margin:0" />
               <div class="form-actions">
                 <button class="btn btn-sm" type="submit">${icon('upload', 14)} Foto &amp; jemput</button>
@@ -1533,11 +1703,11 @@ async function renderCourier() {
               <label>Foto bukti pengantaran (wajib, maks 1MB)</label>
               <input type="file" name="foto_antar" accept="image/*" required style="margin:0" />
               <div class="form-actions">
-                <button class="btn btn-sm" type="submit">${icon('check', 14)} Tandai sampai di lokasi</button>
+                <button class="btn btn-sm" type="submit">${icon('check', 14)} Tandai sampai di TPS</button>
               </div>
             </form>
           ` : ''}
-          ${m.status === 'terkirim' ? `<span class="muted">Menunggu penerima memasukkan OTP…</span>` : ''}
+          ${m.status === 'terkirim' ? `<span class="muted">Menunggu TPS memasukkan OTP…</span>` : ''}
           ${m.foto_jemput ? `<img class="thumb" src="${m.foto_jemput}" alt="Foto penjemputan" />` : ''}
           ${m.foto_antar ? `<img class="thumb" src="${m.foto_antar}" alt="Foto pengantaran" />` : ''}
         </div>
@@ -1550,10 +1720,10 @@ async function renderCourier() {
     <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>#</th><th>Surplus</th><th>Penerima</th><th>Skor</th><th>Jarak</th><th>Status</th></tr>
+        <tr><th>#</th><th>Sampah</th><th>TPS</th><th>Skor</th><th>Jarak</th><th>Status</th></tr>
       </thead>
       <tbody>
-      ${rows.map(m => `<tr><td class="muted">${m.id_alokasi}</td><td>${esc(m.nama_makanan)}</td><td>${esc(m.nama_penerima)}</td><td><b>${m.skor_persen ?? ''}%</b></td><td>${m.jarak_km} km</td><td>${statusTag(m.status)}</td></tr>`).join('')}
+      ${rows.map(m => `<tr><td class="muted">${m.id_alokasi}</td><td>${esc(m.nama_sampah)}</td><td>${esc(m.nama_tps)}</td><td><b>${m.skor_persen ?? ''}%</b></td><td>${m.jarak_km} km</td><td>${statusTag(m.status)}</td></tr>`).join('')}
       </tbody>
     </table>
     </div>`}
@@ -1565,7 +1735,7 @@ async function renderNotif() {
   return `
   ${pageHead(
     'Notifikasi',
-    'Pembaruan pencocokan, penjemputan, dan status serah terima',
+    'Pembaruan alokasi, penjemputan, dan status serah terima',
     `<button class="btn btn-outline btn-sm" data-post="/api/notifications/read-all">${icon('check', 14)} Tandai semua dibaca</button>`
   )}
   <div class="card">
@@ -1581,7 +1751,7 @@ async function renderNotif() {
   </div>`;
 }
 
-/* OTP verify buttons (khusus halaman penerima) */
+/* OTP verify buttons (khusus halaman TPS) */
 document.addEventListener('click', async (ev) => {
   const btn = ev.target.closest('[data-verify]');
   if (!btn) return;

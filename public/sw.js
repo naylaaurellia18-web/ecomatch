@@ -1,4 +1,4 @@
-const CACHE = 'frai-v4';
+const CACHE = 'ecomatch-v1';
 const PRECACHE = [
   '/',
   '/index.html',
