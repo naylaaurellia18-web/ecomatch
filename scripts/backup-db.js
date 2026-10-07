@@ -5,7 +5,7 @@
  * Lokal:   node scripts/backup-db.js
  * Turso:   TURSO_DATABASE_URL=... TURSO_AUTH_TOKEN=... node scripts/backup-db.js
  *
- * Output: backups/food_rescue-<timestamp>.json (+ .sql ringkas untuk restore manual)
+ * Output: backups/ecomatch-<timestamp>.json (+ .sql ringkas untuk restore manual)
  */
 const fs = require('node:fs');
 const path = require('node:path');
@@ -13,8 +13,6 @@ const path = require('node:path');
 const OUT_DIR = path.join(__dirname, '..', 'backups');
 const TABLES = [
   'user',
-  'surplus_makanan',
-  'kebutuhan_pangan',
   'alokasi',
   'kode_otp',
   'reset_sandi',
@@ -89,7 +87,7 @@ function dumpToSql(dump) {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   const cloud = Boolean(process.env.TURSO_DATABASE_URL || process.env.LIBSQL_DATABASE_URL);
   const dump = cloud ? await dumpCloud() : await dumpSqliteLocal();
-  const base = path.join(OUT_DIR, `food_rescue-${stamp()}`);
+  const base = path.join(OUT_DIR, `ecomatch-${stamp()}`);
   fs.writeFileSync(base + '.json', JSON.stringify(dump, null, 2));
   fs.writeFileSync(base + '.sql', dumpToSql(dump));
   const counts = Object.fromEntries(Object.entries(dump).map(([k, v]) => [k, v.length]));

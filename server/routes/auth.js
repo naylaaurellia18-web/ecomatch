@@ -26,8 +26,8 @@ router.post('/register', async (req, res, next) => {
     if (!isEmail(email)) {
       return res.status(400).json({ error: 'Format email tidak valid' });
     }
-    if (!['donor', 'penerima', 'kurir'].includes(role)) {
-      return res.status(400).json({ error: 'Peran harus donor, penerima, atau kurir' });
+    if (!['donor_mbg', 'tps_pengolah', 'kurir'].includes(role)) {
+      return res.status(400).json({ error: 'Peran harus donor_mbg, tps_pengolah, atau kurir' });
     }
     if (password.length < 6 || password.length > 128) {
       return res.status(400).json({ error: 'Kata sandi minimal 6, maksimal 128 karakter' });
@@ -55,7 +55,19 @@ router.post('/register', async (req, res, next) => {
       ]
     );
 
-    await audit(result.lastInsertRowid, 'USER_REGISTER', 'user', result.lastInsertRowid, { role });
+    const userId = result.lastInsertRowid;
+
+    // Auto-buat profil MBG (SPPG) untuk donor; profil TPS dibuat via POST /api/tps/register
+    if (role === 'donor_mbg') {
+      await db.run(`INSERT INTO profil_mbg (id_user, nama_sppg, alamat, kontak) VALUES (?, ?, ?, ?)`, [
+        userId,
+        clampStr(nama_lembaga, 120) || cleanName,
+        clampStr(alamat, 300),
+        clampStr(telepon, 60),
+      ]);
+    }
+
+    await audit(userId, 'USER_REGISTER', 'user', userId, { role });
     res.status(201).json({
       message: 'Registrasi berhasil. Menunggu verifikasi admin.',
       status: 'menunggu',
@@ -137,7 +149,7 @@ router.post('/forgot-password', async (req, res, next) => {
       expiresAt,
     ]);
 
-    const subject = 'Reset kata sandi Food Rescue AI';
+    const subject = 'Reset kata sandi EcoMatch';
     const body = `Halo ${user.nama},\n\nKode reset kata sandi Anda: ${code}\nBerlaku 15 menit. Abaikan bila tidak meminta.`;
     const mail = await sendEmail(user.email, subject, body);
     if (!mail.skipped) {

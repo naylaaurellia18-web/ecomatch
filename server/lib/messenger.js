@@ -1,4 +1,4 @@
-const DEFAULT_FROM = process.env.MAIL_FROM || 'Food Rescue AI <no-reply@foodrescue.local>';
+const DEFAULT_FROM = process.env.MAIL_FROM || 'EcoMatch <no-reply@ecomatch.local>';
 
 function isConfigured() {
   return Boolean(process.env.SMTP_HOST);
@@ -103,7 +103,7 @@ async function sendEmail(to, subject, body) {
       html: `<div style="font-family:system-ui,sans-serif;font-size:14px;line-height:1.5">
   <p><b>${escapeHtml(subject)}</b></p>
   <p>${escapeHtml(body).replace(/\n/g, '<br>')}</p>
-  <p style="color:#64748b;font-size:12px">Food Rescue AI — Redistribusi Pangan</p>
+  <p style="color:#64748b;font-size:12px">EcoMatch — Pengalihan Sampah Makanan MBG ke TPS Pengolah</p>
 </div>`,
     });
     return { ok: true, simulated: false, to, response: info.messageId || 'ok' };

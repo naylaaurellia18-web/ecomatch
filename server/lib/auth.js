@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('node:crypto');
 
-const DEV_SECRET = 'food-rescue-ai-dev-secret-change-in-production';
+const DEV_SECRET = 'ecomatch-dev-secret-change-in-production';
 const JWT_EXPIRES = '12h';
 
 function isProduction() {

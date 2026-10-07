@@ -6,10 +6,13 @@ const { seed } = require('./seed');
 const { storageMode } = require('./lib/storage');
 
 const authRoutes = require('./routes/auth');
-const foodRoutes = require('./routes/food');
-const needRoutes = require('./routes/needs');
-const { router: matchingRoutes } = require('./routes/matching');
+const wasteRoutes = require('./routes/waste');
+const classifyRoutes = require('./routes/classify');
+const tpsRoutes = require('./routes/tps');
+const routingRoutes = require('./routes/routing');
 const deliveryRoutes = require('./routes/deliveries');
+const complianceRoutes = require('./routes/compliance');
+const mbgRoutes = require('./routes/mbg');
 const notificationRoutes = require('./routes/notifications');
 const geoRoutes = require('./routes/geo');
 const adminRoutes = require('./routes/admin');
@@ -76,7 +79,7 @@ function boot() {
   if (!bootPromise) {
     bootPromise = (async () => {
       await db.init();
-      const userCount = (await db.get('SELECT COUNT(*) AS c FROM user'))?.c ?? 0;
+      const userCount = Number((await db.get('SELECT COUNT(*) AS c FROM user'))?.c ?? 0);
       if (userCount === 0) {
         await seed();
         console.log('Database kosong — seed dijalankan otomatis.');
@@ -84,10 +87,6 @@ function boot() {
       await db.run(
         `UPDATE reset_sandi SET digunakan_pada = datetime('now')
          WHERE digunakan_pada IS NULL AND kedaluwarsa_pada < datetime('now')`
-      );
-      await db.run(
-        `UPDATE surplus_makanan SET status = 'gagal'
-         WHERE status = 'tersedia' AND expiry_time < datetime('now')`
       );
       console.log(`Foto storage: ${storageMode()}`);
     })().catch((e) => {
@@ -108,10 +107,13 @@ app.use(async (_req, _res, next) => {
 });
 
 app.use('/api/auth', authRoutes);
-app.use('/api/food', foodRoutes);
-app.use('/api/needs', needRoutes);
-app.use('/api/matches', matchingRoutes);
+app.use('/api/waste', wasteRoutes);
+app.use('/api/classify', classifyRoutes);
+app.use('/api/tps', tpsRoutes);
+app.use('/api/routing', routingRoutes);
 app.use('/api/deliveries', deliveryRoutes);
+app.use('/api/compliance', complianceRoutes);
+app.use('/api/mbg', mbgRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/geo', geoRoutes);
 app.use('/api/admin', adminRoutes);
@@ -123,14 +125,14 @@ app.get('/api/health', async (_req, res) => {
   } catch {
     /* DB belum siap */
   }
-  const { engineStatus } = require('./lib/matching');
+  const { engineStatus } = require('./lib/routing');
   res.json({
     status: 'ok',
-    service: 'Food Rescue AI',
+    service: 'EcoMatch',
     db: dbInfo,
-    ai_matching: engineStatus(),
+    ai_routing: engineStatus(),
     routing: { provider: process.env.ROUTE_PROVIDER || 'osrm', fallback: 'haversine' },
-    skpl: 'SKPL_FoodRescueAI_Regenerasi',
+    skpl: 'SKPL_EcoMatch_v2.0',
   });
 });
 

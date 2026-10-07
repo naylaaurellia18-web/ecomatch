@@ -44,7 +44,7 @@ function signCloudinary(params, apiSecret) {
 
 async function uploadCloudinary(file, cfg) {
   const timestamp = Math.floor(Date.now() / 1000);
-  const folder = process.env.CLOUDINARY_FOLDER || 'food-rescue-ai';
+  const folder = process.env.CLOUDINARY_FOLDER || 'ecomatch';
   const params = { folder, timestamp };
   const signature = signCloudinary(params, cfg.apiSecret);
 

@@ -18,6 +18,19 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+// FR-06: PATCH adalah metode baku; POST dipertahankan agar klien lama tetap jalan
+router.patch('/:id/read', async (req, res, next) => {
+  try {
+    await db.run(`UPDATE notifikasi SET dibaca_pada = datetime('now') WHERE id_notifikasi = ? AND id_user = ?`, [
+      req.params.id,
+      req.user.id,
+    ]);
+    res.json({ message: 'Berhasil' });
+  } catch (e) {
+    next(e);
+  }
+});
+
 router.post('/:id/read', async (req, res, next) => {
   try {
     await db.run(`UPDATE notifikasi SET dibaca_pada = datetime('now') WHERE id_notifikasi = ? AND id_user = ?`, [

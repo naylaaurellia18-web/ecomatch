@@ -5,7 +5,7 @@ const PORT = process.env.PORT || 3000;
 boot()
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`Food Rescue AI berjalan di http://localhost:${PORT}`);
+      console.log(`EcoMatch berjalan di http://localhost:${PORT}`);
     });
   })
   .catch((e) => {

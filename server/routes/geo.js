@@ -7,6 +7,8 @@ const router = express.Router();
 
 router.use(authenticate, requireActive);
 
+const ROLES_LOKASI = `('donor_mbg','tps_pengolah','kurir')`;
+
 /**
  * Titik terdekat di sekitar posisi (SKPL: GIS Service / spatial data store).
  * Utamakan PostGIS (ST_DWithin + ST_Distance pada view v_lokasi_geospasial);
@@ -31,7 +33,7 @@ router.get('/nearby', async (req, res, next) => {
     const rows = await db.all(
       `SELECT id_user, nama, role, lat, lng FROM user
        WHERE lat IS NOT NULL AND lng IS NOT NULL
-         AND role IN ('donor','penerima','kurir')`
+         AND role IN ${ROLES_LOKASI}`
     );
     const hasil = rows
       .map((r) => ({ ...r, jarak_km: Number((haversineKm(lat, lng, r.lat, r.lng) ?? Infinity).toFixed(3)) }))
@@ -49,18 +51,26 @@ router.get('/', async (_req, res, next) => {
     const users = await db.all(
       `SELECT id_user, nama, role, status, alamat, lat, lng, kapasitas
        FROM user
-       WHERE role IN ('donor', 'penerima', 'kurir')
+       WHERE role IN ${ROLES_LOKASI}
          AND lat IS NOT NULL AND lng IS NOT NULL
        ORDER BY id_user`
     );
-    const listings = await db.all(
-      `SELECT id_makanan, nama_makanan, jumlah_porsi, jenis_makanan, status, expiry_time, lat, lng, id_donor
-       FROM surplus_makanan
-       WHERE lat IS NOT NULL AND lng IS NOT NULL
-         AND status IN ('tersedia', 'dialokasikan')
-       ORDER BY id_makanan`
+    const tps = await db.all(
+      `SELECT t.id_user, t.nama_tps, t.jenis_pengolahan, t.kapasitas_kg_hari, t.radius_layanan_km, t.aktif,
+              u.lat, u.lng, u.alamat
+         FROM tps_pengolah t JOIN user u ON u.id_user = t.id_user
+        WHERE u.lat IS NOT NULL AND u.lng IS NOT NULL
+        ORDER BY t.id_user`
     );
-    res.json({ users, listings });
+    const listings = await db.all(
+      `SELECT s.id_sampah, s.nama_sampah, s.berat_kg, s.jenis_makanan, s.status, s.waktu_produksi,
+              s.id_donor, u.lat, u.lng
+         FROM sampah_makanan s JOIN user u ON u.id_user = s.id_donor
+        WHERE u.lat IS NOT NULL AND u.lng IS NOT NULL
+          AND s.status IN ('tersedia', 'dialokasikan')
+        ORDER BY s.id_sampah`
+    );
+    res.json({ users, tps, listings });
   } catch (e) {
     next(e);
   }
