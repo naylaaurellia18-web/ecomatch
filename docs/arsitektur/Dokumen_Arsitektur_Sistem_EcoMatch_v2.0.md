@@ -208,7 +208,7 @@ flowchart TD
     D -->|Melebihi limit| X([Ditolak 429])
     D -->|Benar| F["OTP sekali pakai<br/>alokasi & sampah 'terverifikasi'"]
     F --> G["TPS mencatat hasil pengolahan<br/>POST /tps/:id/log (input_kg - output_kg)"]
-    G --> H["Notifikasi kurir & MBG<br/>+ log_audit VERIFY_OTP, PENGOLAHAN_LOG"]
+    G --> H["Notifikasi kurir & MBG<br/>+ log_audit VERIFY_OTP + LOG_PENGOLAHAN"]
     H --> L([Transaksi selesai - immutable])
 ```
 
@@ -485,7 +485,7 @@ sequenceDiagram
         API->>DB: log_audit ROUTE_WASTE
         API-->>A: 200 alokasi terbentuk
     else ALT: tidak ada kandidat
-        API->>DB: log_audit MATCH_NOT_FOUND
+        API->>DB: log_audit ROUTE_NOT_FOUND
         API->>NS: notify(MBG, belum ada TPS yang cocok)
         API-->>A: 200 tanpa alokasi (TC-05)
     end
@@ -502,6 +502,7 @@ sequenceDiagram
     participant DB as Database
     participant NS as Notification Service
     participant AU as Audit Service
+    actor A as Admin (Dashboard)
 
     K->>API: POST /deliveries/:id/pickup (foto_jemput)
     API->>API: requireRole(kurir) + magic-bytes
@@ -536,8 +537,8 @@ sequenceDiagram
     opt OPT: TPS mencatat hasil pengolahan
         T->>API: POST /api/tps/:id/log (input_kg, output_kg, output_jenis, foto)
         API->>DB: INSERT pengolahan_log
-        API->>AU: audit(PENGOLAHAN_LOG)
-        API-->>T: 200 log pengolahan tercatat
+        API->>AU: audit(LOG_PENGOLAHAN)
+        API-->>T: 201 log pengolahan dicatat
     end
 
     opt OPT: Admin memantau kepatuhan
@@ -743,7 +744,7 @@ erDiagram
 | Stack & teknologi sesuai repo (`package.json`, `docker-compose`, `ai_matching/`) | ☑ (§7) |
 | `schema_ecomatch.sql` + `ERD_EcoMatch.png` | ☐ → **Fase 2** |
 | Detail routing engine Python + `config/routing.json` | ☐ → **Fase 3** |
-| UML vektor (.drawio/.svg) + naskah uji 30 skenario | ☐ → **Fase 6** |
+| UML vektor (.drawio/.svg) + naskah uji 30 skenario | ☑ (**Fase 6**: `docs/arsitektur/UML_EcoMatch.drawio` 12 halaman + `docs/pengujian/Laporan_Evaluasi_System.md`) |
 
 ---
 
@@ -770,9 +771,9 @@ erDiagram
 - `schema_ecomatch.sql`, `ERD_EcoMatch.png` — Fase 2
 - `config/routing.json`, `ai_matching/` — Fase 3
 - `server/` (routes, lib), `public/` (PWA) — Fase 4 & 5
-- `UML_EcoMatch.drawio`, `Laporan_Evaluasi_System.md` — Fase 6
+- `docs/arsitektur/UML_EcoMatch.drawio` (12 halaman), `docs/pengujian/Laporan_Evaluasi_System.md`, generator `scripts/gen_uml_drawio.py` — Fase 6
 
-**C. Rekomendasi nama diagram** (untuk pembuatan UML Fase 6): `activity-routing-mbg-tps`, `activity-serah-terima-otp`, `activity-registrasi-eco-match`, `class-backend-eco-match`, `sequence-klasifikasi-sampah`, `sequence-routing-mbg-tps`, `sequence-serah-terima-otp`, `sequence-compliance`, `activity-pengolahan-tps`, `erd-eco-match`.
+**C. Nama halaman UML Fase 6** (dihasilkan `scripts/gen_uml_drawio.py` dari mermaid §1/§5/§6 + 2 diagram turunan kode backend): `arsitektur-3tier-ecomatch`, `activity-unggah-klasifikasi-mbg`, `activity-routing-mbg-tps`, `activity-serah-terima-otp`, `activity-registrasi-eco-match`, `class-backend-eco-match`, `sequence-klasifikasi-sampah`, `sequence-routing-mbg-tps`, `sequence-serah-terima-otp`, `sequence-compliance`, `activity-pengolahan-tps`, `erd-eco-match`.
 
 ---
 

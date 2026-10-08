@@ -1,7 +1,7 @@
 {
-  "name": "food-rescue-ai",
+  "name": "ecomatch",
   "version": "1.0.0",
-  "description": "Platform redistribusi surplus makanan berbasis AI Matching & GIS — PWA + WhatsApp/Email gateway",
+  "description": "EcoMatch — AI Routing Sampah Makanan MBG ke TPS Pengolah (Kota Madiun), PWA + WhatsApp/Email gateway",
   "main": "server/index.js",
   "type": "commonjs",
   "engines": {
