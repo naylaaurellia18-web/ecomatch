@@ -1,258 +1,206 @@
-# Food Rescue AI
+# EcoMatch
 
-Platform redistribusi surplus makanan berbasis **AI Matching & GIS** — menghubungkan Donor, Penerima Manfaat, Kurir/Relawan, dan Admin.
+**AI Routing Sampah Makanan MBG ke TPS Pengolah — Kota Madiun, Jawa Timur**
 
-Dibangun untuk tugas kuliah sesuai dokumen SKPL (10 FR + 8 NFR).
+Platform redistribusi sampah makanan dari dapur MBG (Makan Bergizi Gratis) ke **TPS Pengolah** (kompos, maggot, eco-enzyme) berbasis **AI Routing & GIS** — menghubungkan Donor MBG, TPS Pengolah, Kurir, dan Admin.
 
-## Tautan Produksi
+Dibangun sesuai dokumen SKPL versi 2.0: **17 FR + 11 NFR**.
+
+## Tautan
 
 | Yang dituju | Tautan |
 |---|---|
 | Repositori Publik (GitHub) | https://github.com/naylaaurellia18-web/food-rescue-ai |
-| Frontend Produksi (Vercel) | https://food-rescue-ai-blond.vercel.app |
-| Backend REST / API (health) | https://food-rescue-ai-blond.vercel.app/api/health |
 | Riwayat Pipeline CI/CD (GitHub Actions) | https://github.com/naylaaurellia18-web/food-rescue-ai/actions |
 
-> **Railway (backend terpisah):** impor repo di [railway.app](https://railway.app) → service `food-rescue-ai` memakai `railway.json` (start `node server/index.js`, health `/api/health`). Setelah deploy, URL-nya `https://<project>.up.railway.app`. Agar auto-deploy dari Actions: tambah secret `RAILWAY_TOKEN` di repo → Settings → Secrets and variables → Actions.
-
-## Hardening Produksi (P0)
-
-Sebelum dipakai masyarakat (bukan cuma demo TA):
-
-| P0 | Status di kode |
-|----|----------------|
-| JWT_SECRET wajib kuat di produksi | `server/lib/auth.js` — app **gagal start** bila `NODE_ENV=production` tanpa secret ≥32 char |
-| Tanpa akun demo di produksi | `server/seed.js` — admin dari `ADMIN_EMAIL` / `ADMIN_PASSWORD`; akun `*@foodrescue.id` **tidak** dibuat di produksi |
-| Foto tidak membesar DB | `server/lib/storage.js` — isi `CLOUDINARY_URL` → upload eksternal; tanpa env → base64 (demo) |
-| Backup DB | `node scripts/backup-db.js` + Actions harian (butuh secret `TURSO_*`) |
-| Uptime monitor | Actions tiap 15 menit → `GET /api/health` di Vercel |
-| Error log terstruktur | middleware error JSON (method/path/status/message) |
-
-## Hardening Produksi (P1)
-
-| P1 | Status di kode |
-|----|----------------|
-| Lupa sandi | `POST /api/auth/forgot-password` + `/reset-password` — kode 6 digit, 15 menit, sekali pakai; email via SMTP (simulasi → outbox) |
-| Rate limit login | 5 gagal / 15 menit per IP+email → **429** (`server/lib/ratelimit.js`) |
-| Rate limit reset | 5 permintaan / jam per IP+email |
-| Halaman legal (UU PDP) | `/privacy.html` + `/syarat.html`, tautan di layar auth |
-| Kredensial demo disembunyikan | catatan `admin@…` hanya di `localhost` |
-| File legacy root dihapus | `index.html`/`login.html`/`js/` dll tidak lagi dipakai — SPA di `public/` |
-
-## Hardening Produksi (P2)
-
-| P2 | Status di kode |
-|----|----------------|
-| Security headers | `server/app.js` — `nosniff`, `X-Frame-Options: DENY`, referrer/permissions policy; `Cache-Control: no-store` untuk `/api/*` |
-| Auto-expire listing | boot: `available` lewat `expiry_at` → `expired`; kode reset kadaluarsa ditandai terpakai |
-| Panduan deploy aman | `DEPLOY.md` — `JWT_SECRET` kuat, `ADMIN_*`, SMTP untuk lupa sandi |
-| Kapasitas free tier | bagian di bawah — kapan perlu upgrade |
-
-## Hardening Produksi (P3)
-
-| P3 | Status di kode |
-|----|----------------|
-| Content-Security-Policy | `server/app.js` — `default-src 'self'`, tanpa `unsafe-inline` untuk script; ekstrak inline theme → `public/theme.js` |
-| HSTS | header otomatis bila request HTTPS (`x-forwarded-proto`) |
-| CORS allowlist | env `ALLOWED_ORIGINS` (pisah koma); tanpa env → same-origin only |
-| Rate limit OTP | 5 percobaan / 15 menit per IP+match+penerima → **429** |
-| Rate limit register | 10 registrasi / jam per IP |
-| Perbandingan kode timing-safe | OTP & kode reset via `crypto.timingSafeEqual` (`server/lib/validate.js`) |
-| Validasi input | format email, batas panjang field, whitelist status/urgensi need, bound porsi |
-| Upload gambar magic-bytes | tolak file yang bukan PNG/JPEG/GIF/WebP sungguhan (bukan cuma MIME) |
-| Error 500 tidak bocor detail | pesan internal hanya di log server; klien dapat pesan generik |
-| Limit ukuran field | nama/deskripsi/alamat/dicatat maksimal agar aman dari abuse |
-
-**Env wajib di Vercel/Railway (`NODE_ENV=production` otomatis):**
-
-| Key | Nilai |
-|-----|--------|
-| `JWT_SECRET` | `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` |
-| `ADMIN_EMAIL` | email admin asli |
-| `ADMIN_PASSWORD` | sandi kuat ≥12 karakter (hanya dipakai saat DB masih kosong) |
-| `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | dari app.turso.tech |
-
-**Jangan di produksi:** CallMeBot & Gmail App Password hanya untuk demo — ganti ke WhatsApp Business API / provider email resmi saat trafik nyata.
-
-## Kapasitas & Skala (free tier)
-
-| Layanan | Free tier (perkiraan) | Tanda perlu upgrade |
-|---------|----------------------|---------------------|
-| **Vercel** | Serverless, sleep dingin di Hobby-less; bandwidth & fungsi terbatas bulanan | Situs sering cold start lama / lewat kuota bulanan → Hobby/Pro |
-| **Railway** | Kuota jam-bulan kecil; service bisa stop saat habis | Build/deploy gagal “out of credits” → bayar plan kecil |
-| **Turso** | Database kecil (beberapa GB), kueri terbatas | DB > free quota / butuh replika → plan berbayar |
-| **SQLite lokal** | Hanya demo dev | Jangan dipakai di produksi multi-instance |
-
-**Saat mulai ramai (ratusan pengguna/hari):**
-
-1. Isi `CLOUDINARY_URL` — jangan simpan foto base64 di DB  
-2. Aktifkan `SMTP_*` resmi (bukan hanya simulasi outbox)  
-3. Ganti CallMeBot → **WhatsApp Business Cloud API** (`WHATSAPP_API_URL` + token resmi)  
-4. Backup Turso otomatis via Actions (`TURSO_*` secret)  
-5. Bila Vercel/Railway mulai limit → naikkan plan kecil, arsitektur kode tidak perlu diubah (stateless JWT)
-
-Rate limit in-memory per instance (`server/lib/ratelimit.js`) cukup untuk demo/trafik kecil; untuk multi-instance produksi pindahkan ke store terpusat (mis. Redis) bila diperlukan.
+> **CI/CD:** setiap push ke `main` → uji e2e + audit tab → auto-deploy backend ke Railway (service `food-rescue-ai`, butuh secret `RAILWAY_TOKEN`). Uptime monitor `GET /api/health` tiap 15 menit (`vars.PRODUCTION_URL`). Panduan lengkap: [`DEPLOY.md`](DEPLOY.md).
 
 ## Tech Stack
 
 | Layer | Teknologi |
 |-------|-----------|
 | Backend | Node.js 24 + Express |
-| Database | SQLite (`node:sqlite` built-in) lokal / Turso di Vercel |
-| Auth | JWT + bcrypt (RBAC 4 role) |
+| Database | **PostgreSQL + PostGIS** (SKPL) via `DATABASE_URL` — fallback libSQL/Turso & SQLite lokal |
+| AI Routing | Mesin skoring multi-kriteria in-process (`server/lib/routing.js`) + layanan **Python FastAPI** (`ai_matching/`, timeout → fallback JS) |
+| Klasifikasi | Rule-based transparan + skor keyakinan + verifikasi admin (NFR-10 ≥ 85%) |
+| Auth | JWT HS256 + bcrypt (RBAC 4 role: `donor_mbg`, `tps_pengolah`, `kurir`, `admin`) |
 | Frontend | SPA HTML/CSS/JS + **PWA** (installable di mobile) |
-| GIS | Haversine distance + estimasi durasi rute |
-| Upload | Multer (foto surplus & foto serah terima) |
-| Notifikasi | In-app + **WhatsApp Gateway** + **Mail Server** (outbox) |
+| GIS | Leaflet + OpenStreetMap, **OSRM** (rute jalan) fallback haversine, jarak PostGIS `ST_Distance`/`ST_DWithin` |
+| Upload | Multer (1 MB, magic-bytes) — Cloudinary opsional / base64 demo |
+| Notifikasi | In-app + **WhatsApp Gateway** + **Mail Server** (outbox `server/lib/channels.js`) |
 
 ## Cara Menjalankan
 
 ```bash
 npm install
-npm run seed:accounts   # akun login saja (tanpa listing)
-npm run clean           # hapus data transaksi, akun tetap
-npm start               # http://localhost:3000
+docker compose up -d                 # PostgreSQL + PostGIS di :5433 (opsional — tanpa ini pakai SQLite lokal)
+cp .env.example .env                 # isi DATABASE_URL bila pakai Docker di atas
+npm run seed:local -- --force --full # akun demo + data sampah demo Madiun
+npm run start:local                  # http://localhost:3000
 ```
 
-Uji end-to-end otomatis:
+Layanan AI Python (opsional — bila mati, mesin JavaScript otomatis dipakai):
 
 ```bash
-node e2e-test.js
+npm run start:ai                     # FastAPI di http://127.0.0.1:8001
 ```
 
-## Akun Demo
+Uji end-to-end (server harus sedang jalan):
+
+```bash
+npm run test:e2e                     # 45 pemeriksaan alur lengkap
+node tab-audit.js                    # audit API tiap tab per peran (23 cek)
+```
+
+Verifikasi sehat: `GET /api/health` → `{"status":"ok","service":"EcoMatch","db":{...},"ai_routing":{...}}`
+
+### Akun Demo
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | admin@foodrescue.id | admin123 |
-| Donor | donor@foodrescue.id | donor123 |
-| Penerima | penerima@foodrescue.id | penerima123 |
-| Kurir | kurir@foodrescue.id | kurir123 |
+| Admin | admin@ecomatch.id | admin123 |
+| Donor MBG | donor@ecomatch.id | donor123 |
+| TPS Pengolah | tps@ecomatch.id | tps123 |
+| Kurir | kurir@ecomatch.id | kurir123 |
+
+> Mode: `--force --full` (akun + data demo) · `--force --accounts` (hanya akun login) · `--clean` (hapus data transaksi, akun tetap). Di **produksi** akun demo tidak dibuat — admin datang dari `ADMIN_EMAIL`/`ADMIN_PASSWORD`.
 
 ## Alur End-to-End
 
-1. **Donor** login → Input surplus makanan (FR-02, foto + expiry + porsi)
-2. **Penerima** login → Update kebutuhan + urgensi (FR-03)
-3. **Admin** klik **Jalankan AI Matching** (FR-04) → skor multi-kriteria, < 3 detik
-4. **Kurir** menerima notifikasi (FR-06) → lihat rute GIS (FR-05) → upload foto kondisi makanan (FR-07) → pickup → deliver
-5. **Penerima** konfirmasi serah terima via **OTP 6 digit** (FR-08)
-6. **Admin** pantau dashboard analitik (FR-09), kelola pengguna (FR-10), audit log immutable
-
-## Skema Database (ERD)
-
-```
-users 1────∞ food_listings 1────1 matches ∞────1 food_needs ∞────1 users (recipient)
-                  │                  │
-                  │                  ∞
-                  │             otp_codes
-                  │             notifications
-                  ∞
-             (photo_path)
-
-users 1────∞ matches (courier_id)
-audit_logs (immutable — trigger BLOCK UPDATE & DELETE)
-```
-
-### Tabel
-
-| Tabel | Fungsi |
-|-------|--------|
-| `users` | 4 role (donor/recipient/courier/admin), status pending→active, lat/lng, kapasitas kurir |
-| `food_listings` | FR-02 surplus makanan: nama, porsi, expiry, foto, status |
-| `food_needs` | FR-03 kebutuhan pangan + urgensi (low→critical) |
-| `matches` | Hasil FR-04: skor total + 4 sub-skor, jarak, rute JSON, status alur |
-| `otp_codes` | FR-08 OTP 6 digit, expiry 30 menit, sekali pakai |
-| `notifications` | FR-06 notifikasi per user |
-| `message_outbox` | Outbox WhatsApp & email (sent/simulated/failed) |
-| `audit_logs` | Log immutable (trigger SQLite cegah UPDATE/DELETE) |
-
-## Algoritma AI Matching (FR-04)
-
-**Bobot multi-kriteria:**
-
-| Kriteria | Bobot | Skor |
-|----------|-------|------|
-| Expiry time makanan | 0.35 | ≤2 jam = 1.0 … >24 jam = 0.3 (makin mendesak, makin diprioritaskan) |
-| Jarak GIS | 0.30 | ≤1 km = 1.0 … ≥30 km = 0 (jarak total: kurir→donor→penerima) |
-| Urgensi penerima | 0.20 | critical=1.0, high=0.75, medium=0.5, low=0.25 |
-| Kapasitas kurir | 0.15 | porsi ≤ kapasitas = 1.0 … >1.5× kapasitas = 0.2 |
-
-```
-score = 0.35·expiry + 0.30·distance + 0.20·urgency + 0.15·capacity
-```
-
-**Algoritma:** generate semua triplet (listing × need × courier) yang valid → filter jarak ≤30 km & score ≥0.3 → **greedy assignment** urut skor tertinggi (satu listing / need / courier hanya sekali) → simpan match + rute + notifikasi.
-
-**Performa:** diukur per run, target **< 3.000 ms** (hasil demo ~1–25 ms).
+1. **Donor MBG** login → unggah sampah makanan: jenis, berat, foto, waktu produksi (FR-02)
+2. **Klasifikasi AI** menyarankan kategori + tingkat pembusukan + skor keyakinan (FR-11); admin verifikasi bila keyakinan rendah
+3. **AI Routing** menjalankan alokasi → TPS Pengolah terbaik: filter aturan + skor multi-kriteria, < 3 detik (FR-04/13) + penjelasan skor (`/explain`)
+4. **Kurir** foto jemput (FR-07) → lihat rute GIS MBG → TPS (FR-05, OSRM) → foto antar
+5. **TPS** konfirmasi serah terima via **OTP 6 digit** (FR-08) → catat hasil pengolahan input/output kg (FR-12)
+6. **Admin** pantau dashboard (FR-09), kepatuhan regulasi & traceability end-to-end (FR-14/17), kelola pengguna + audit immutable (FR-10), konfigurasi regulasi daerah (FR-16)
+7. **Donor MBG** kumpulkan poin & sertifikat kepatuhan (FR-15); notifikasi in-app/WA/email ke semua pihak (FR-06); profil & registrasi TPS (FR-03)
 
 ## Peta FR → Implementasi
 
 | FR | Endpoint / Lokasi |
 |----|-------------------|
-| FR-01 | `POST /api/auth/register`, `POST /api/auth/login`, middleware RBAC `server/middleware.js` |
-| FR-02 | `POST /api/food` (multipart, foto) |
-| FR-03 | `POST /api/needs`, `PATCH /api/needs/:id` |
-| FR-04 | `POST /api/matches/run` → `server/lib/matching.js` |
-| FR-05 | `server/lib/gis.js` (haversine + waypoint legs) |
+| FR-01 | `POST /api/auth/register` · `POST /api/auth/login` · lupa/reset sandi — RBAC `server/middleware.js` |
+| FR-02 | `POST /api/waste` (multipart, foto) · `GET /api/waste/mine` · `PATCH|DELETE /api/waste/:id` |
+| FR-03 | `GET|PATCH /api/tps/me` — profil TPS Pengolah |
+| FR-04 | `POST /api/routing/run` · `GET /api/routing` · `GET /api/routing/:id/explain` → `server/lib/routing.js` |
+| FR-05 | `GET /api/geo` · `GET /api/geo/nearby` → `server/lib/gis.js` (OSRM + haversine) |
 | FR-06 | `GET /api/notifications` + fanout WA/email `server/lib/channels.js` |
-| FR-07 | `POST /api/deliveries/:id/pickup` (foto wajib) |
-| FR-08 | `POST /api/deliveries/:id/verify-otp` |
-| FR-09 | `GET /api/admin/stats` + halaman Dashboard |
-| FR-10 | `GET/PATCH/DELETE /api/admin/users` |
-| Outbox | `GET /api/admin/outbox` — riwayat pesan WhatsApp & email |
+| FR-07 | `POST /api/deliveries/:id/pickup` · `POST /api/deliveries/:id/deliver` (foto wajib) |
+| FR-08 | `POST /api/deliveries/:id/verify-otp` · `POST /api/deliveries/:id/resend-otp` |
+| FR-09 | `GET /api/admin/stats` — kg dialihkan, TPS aktif, cakupan |
+| FR-10 | `GET /api/admin/users` · `PATCH /api/admin/users/:id/status` · `GET /api/admin/audit` (log immutable) |
+| FR-11 | `POST /api/classify` · `GET /api/classify/:id` · `PATCH /api/classify/:id/verify` |
+| FR-12 | `POST /api/tps/register` · `GET /api/tps/list` · `POST /api/tps/:id/log` · `GET /api/tps/:id/dashboard` |
+| FR-13 | Bobot routing di `config/routing.json` (bagian FR-04) |
+| FR-14 | `GET /api/compliance/summary` · `/report` · `/trace/:id` · `/regulations` |
+| FR-15 | `GET /api/mbg/motivation` · `POST /api/mbg/motivation/claim` · `GET /api/admin/mbg/report` |
+| FR-16 | `POST|PATCH|GET /api/admin/regulations` — aturan JSON per daerah (default `KOTA_MADIUN`) |
+| FR-17 | `GET /api/compliance/trace/:id` — MBG → klasifikasi → alokasi → pengolahan |
+
+Detail lengkap (tabel DB, logic, tech): [`docs/arsitektur/Dokumen_Arsitektur_Sistem_EcoMatch_v2.0.md`](docs/arsitektur/Dokumen_Arsitektur_Sistem_EcoMatch_v2.0.md) §2–§3.
 
 ## NFR yang Dipenuhi
 
-- **Keamanan** — bcrypt (10 rounds), JWT 12h, RBAC, akun aktif setelah verifikasi admin
-- **Performa** — matching < 3 detik (di-log di audit)
-- **Auditabilitas** — `audit_logs` dengan trigger immutable SQLite
-- **Portabilitas** — web SPA responsif + **PWA** (Donor/Penerima/Kurir bisa install dari browser mobile)
-- **Skalabilitas** — stateless JWT; SQLite WAL untuk demo; siap migrasi PostgreSQL
+- **Keamanan (NFR-01)** — bcrypt 10 rounds, JWT 12 jam, RBAC per-route, rate-limit login/OTP/register
+- **Performa (NFR-02)** — AI Routing < 3 detik (in-process + timeout fallback); hasil evaluasi ~0,3 ms/run
+- **Ketersediaan (NFR-03)** — healthcheck `/api/health`, auto-restart, uptime monitor 15 menit
+- **Skalabilitas (NFR-04)** — JWT stateless (tanpa sesi) → horizontal scale; PostgreSQL + PostGIS
+- **Usability (NFR-05)** — API tunggal per aksi, PWA offline-first, form lokasi terpandu
+- **Akurasi jarak (NFR-06)** — OSRM rute jalan, fallback haversine; adapter GIS bisa ditukar
+- **Portabilitas (NFR-07)** — PWA installable Android/iOS, CSP ketat, browser evergreen
+- **Auditabilitas (NFR-08)** — `log_audit` immutable via trigger DB + bukti foto + OTP sekali pakai
+- **Kepatuhan (NFR-09)** — traceability tiap kg: MBG → TPS → output olahan (`pengolahan_log`)
+- **Klasifikasi (NFR-10)** — rule-based + skor keyakinan + jalur verifikasi admin
+- **Fleksibilitas daerah (NFR-11)** — regulasi sebagai data JSON per `kode_daerah`
 
-## Notifikasi Eksternal (WhatsApp & Email)
+## Algoritma AI Routing (FR-04/13)
 
-Setiap `notify()` in-app otomatis di-fanout ke:
+**Bobot multi-kriteria** (`config/routing.json`):
 
-| Kanal | Env | Tanpa env |
-|-------|-----|-----------|
-| WhatsApp (CallMeBot, gratis) | `CALLMEBOT_APIKEY` | mode **simulasi** (tersimpan di outbox) |
-| WhatsApp (gateway lain) | `WHATSAPP_API_URL`, `WHATSAPP_API_TOKEN` | mode **simulasi** |
-| Mail Server (Gmail SMTP) | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, `NOTIFY_EMAIL` | mode **simulasi** |
+| Kriteria | Bobot | Skor |
+|----------|-------|------|
+| Kesesuaian jenis | 0.35 | `jenis_diterima` TPS memuat kategori sampah = 1.0 |
+| Kapasitas | 0.25 | min(sisa kapasitas TPS, kapasitas kurir) ÷ berat sampah |
+| Jarak | 0.25 | haversine sampah → TPS; skor penuh di ≤ 1 km, linear → 0 di radius 15 km |
+| Urgensi pembusukan | 0.15 | busuk (>24 jam) = 1,0 · sedang (≤24 jam) = 0,6 · segar (≤12 jam) = 0,3 — yang paling mendesak diprioritaskan |
 
-Admin memantau lewat menu **Pesan Terkirim** (`GET /api/admin/outbox`).
+```
+skor = 0.35·jenis_cocok + 0.25·kapasitas + 0.25·jarak + 0.15·urgensi
+```
 
-Format body POST WhatsApp (kompatibel gateways umum): `{ phone, to, target, message, text, body }` + header `Authorization: Bearer <token>`.
+**Filter aturan:** TPS `aktif` saja · kategori harus diterima · radius 15 km · skor ≥ **0,30** (`BATAS_SKOR`) — TPS yang gugur diberi alasan. Setelah lulus filter: **greedy assignment** urut trip terdekat → simpan `alokasi` + 4 sub-skor + `jarak_km` + `rute_json` + penjelasan.
 
-## PWA (Mobile App)
+**Mesin:** layanan Python `ai_matching/routing.py` (timeout 1,8 dtk) → bila gagal, `server/lib/routing.js` in-process. Provider rute: OSRM (`ROUTE_PROVIDER=osrm`) / haversine.
 
-- `public/manifest.webmanifest` + `public/sw.js` + ikon di `public/icons/`
-- Tampilan standalone, bisa di-install dari Chrome/Safari mobile
-- Shortcut: Catat Surplus · Konfirmasi OTP · Tugas Kurir
-- API selalu network-first; aset di-cache untuk offline shell
+**Hasil evaluasi 30 skenario** (banding vs baseline jarak-saja, [`docs/pengujian/`](docs/pengujian/)):
+
+| Metrik | EcoMatch AI | Baseline |
+|--------|-------------|----------|
+| Alokasi sah | 50,00% | 50,00% |
+| Jarak rata-rata | 30,18 km | 20,68 km |
+| Skor rata-rata | 0,91 | 0,83 |
+| % sampah busuk yang tetap dialihkan | **87,68%** | 56,88% |
+| % sampah tidak segar dialihkan (gabungan) | **73,78%** | 56,33% |
+
+> AI Routing rela menempuh jarak lebih jauh agar sampah busuk/tidak segar tetap sampai ke TPS — dampak utama kepatuhan (lihat `Laporan_Evaluasi_System.md`).
 
 ## Struktur Proyek
 
 ```
 food-rescue-ai/
-├── package.json
+├── package.json            # nama: ecomatch
 ├── server/
-│   ├── index.js          # entry Express
-│   ├── db.js             # skema SQLite + trigger immutable
-│   ├── seed.js           # data demo
-│   ├── middleware.js      # auth + RBAC
-│   ├── lib/
-│   │   ├── auth.js       # bcrypt + JWT + OTP
-│   │   ├── gis.js        # haversine + rute
-│   │   ├── matching.js   # algoritma multi-kriteria
-│   │   ├── messenger.js  # kirim WhatsApp & email
-│   │   ├── channels.js   # fanout notify → outbox
-│   │   └── audit.js      # audit + notifikasi
-│   └── routes/
-│       ├── auth.js  food.js  needs.js
-│       ├── matching.js  deliveries.js
-│       ├── notifications.js  admin.js
-├── public/               # SPA + PWA (manifest, sw, icons)
-├── uploads/              # foto
-├── data/                 # food_rescue.db
-└── e2e-test.js           # uji alur lengkap
+│   ├── index.js            # entry Express
+│   ├── app.js              # middleware + /api/health
+│   ├── db.js               # PostgreSQL / libSQL / SQLite + trigger immutable
+│   ├── middleware.js       # auth + RBAC
+│   ├── seed.js             # data demo (--force --full | --accounts | --clean)
+│   ├── lib/                # routing, gis, klasifikasi, auth, audit, channels, ...
+│   └── routes/             # auth, waste, classify, tps, routing, geo,
+│                           # deliveries, compliance, mbg, notifications, admin
+├── ai_matching/            # layanan Python FastAPI (routing + klasifikasi)
+├── config/routing.json     # bobot, radius, BATAS_SKOR
+├── public/                 # SPA + PWA (manifest, sw, icons)
+├── docs/                   # SKPL, arsitektur (+ UML), laporan, pengujian
+├── scripts/                # evaluasi-30-skenario.js, gen_uml_drawio.py, backup-db.js
+├── e2e-test.js             # uji alur lengkap (45 pemeriksaan)
+├── tab-audit.js            # audit API tiap tab per peran
+└── docker-compose.yml      # PostgreSQL + PostGIS lokal
 ```
+
+## Pengujian & CI
+
+| Uji | Perintah | Cakupan |
+|-----|----------|---------|
+| E2E | `npm run test:e2e` | 45 pemeriksaan: auth→waste→routing→deliveries→OTP→pengolahan→compliance |
+| Audit tab | `node tab-audit.js` | 23 pemeriksaan API per tab & peran |
+| Evaluasi | `node scripts/evaluasi-30-skenario.js` | 30 skenario vs baseline + sensitivitas + kecepatan |
+| CI | `.github/workflows/ci.yml` | seed → server → e2e + audit → auto-deploy Railway |
+| Uptime | `.github/workflows/uptime.yml` | `GET /api/health` tiap 15 menit |
+
+## Keamanan (Ringkas)
+
+- `JWT_SECRET` wajib ≥ 32 char di produksi — app **gagal start** tanpa itu
+- Rate limit: login 5 gagal/15 mnt, OTP 5/15 mnt, register 10/jam → **429**
+- OTP & kode reset dibanding `crypto.timingSafeEqual`
+- Security headers: CSP tanpa `unsafe-inline` script, HSTS (HTTPS), `nosniff`, `X-Frame-Options: DENY`, CORS allowlist `ALLOWED_ORIGINS`
+- Upload gambar magic-bytes (tolak file palsu), limit ukuran field
+- `log_audit` immutable: trigger DB menolak UPDATE & DELETE
+- Error 500 tidak bocor detail internal; pesan generik ke klien
+
+## PWA (Mobile App)
+
+- `public/manifest.webmanifest` + `public/sw.js` + ikon di `public/icons/`
+- Standalone, install dari Chrome/Safari mobile; API network-first, shell di-cache untuk offline
+- Shortcut: unggah sampah · tugas kurir · konfirmasi OTP
+
+## Dokumen Proyek
+
+| Dokumen | Isi |
+|---------|-----|
+| [`docs/SKPL_EcoMatch_v2.0.docx`](docs/SKPL_EcoMatch_v2.0.docx) | SKPL EcoMatch v2.0 — 17 FR + 11 NFR |
+| [`docs/arsitektur/Dokumen_Arsitektur_Sistem_EcoMatch_v2.0.md`](docs/arsitektur/Dokumen_Arsitektur_Sistem_EcoMatch_v2.0.md) | Arsitektur lengkap: FR/NFR → backend, keputusan desain |
+| [`docs/arsitektur/UML_EcoMatch.drawio`](docs/arsitektur/UML_EcoMatch.drawio) | 12 diagram (activity, sequence, class, ERD, arsitektur) — buka di draw.io |
+| [`docs/Laporan_Project_EcoMatch_v1.0.docx`](docs/Laporan_Project_EcoMatch_v1.0.docx) | Laporan project (docx) — Bab 1–4, evaluasi 30 skenario |
+| [`docs/pengujian/Laporan_Evaluasi_System.md`](docs/pengujian/Laporan_Evaluasi_System.md) | Naskah uji sistem + hasil 30 skenario |
+| [`DEPLOY.md`](DEPLOY.md) | Panduan deploy (lokal/Railway/Render/Vercel) |

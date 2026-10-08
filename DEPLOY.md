@@ -1,220 +1,188 @@
-# Food Rescue AI — Deploy ke Vercel (Gratis, tanpa kartu)
+# EcoMatch — Panduan Deploy
 
-## Arsitektur
+## Opsi Deploy
 
-| Layer | Lokal | Online (Vercel) |
-|-------|-------|-----------------|
-| Runtime | Node.js | Vercel Serverless (Node) |
-| Database | SQLite `data/food_rescue.db` | **Turso** (SQLite cloud, gratis) |
-| Static | `public/` | `public/` via Vercel |
-| Foto | Base64 di database | Base64 di database (persist) |
+| Opsi | Cocok untuk | Konfigurasi |
+|------|-------------|-------------|
+| **Lokal (dev/demo)** | pengembangan & demo TA | `docker-compose.yml` (PostGIS :5433) + `npm run start:local` |
+| **Railway** | backend produksi (rekomendasi) | `railway.json` (Nixpacks, healthcheck `/api/health`) + auto-deploy `ci.yml` |
+| **Render** | alternatif backend | `render.yaml` (Node free plan, healthcheck `/api/health`) |
+| **Vercel** | fullstack serverless | `vercel.json` + `api/index.js` + database Turso/libSQL |
 
-App otomatis pindah ke Turso jika env `TURSO_DATABASE_URL` terisi.
+**Prioritas database:** `DATABASE_URL` (PostgreSQL + PostGIS) → `TURSO_DATABASE_URL` (libSQL) → SQLite lokal `data/food_rescue.db`.
 
 ---
 
-## 1. Buat Database Turso (gratis, ~2 menit)
+## 1. Jalankan Lokal
 
-1. Buka **https://app.turso.tech** → **Sign in with GitHub**
-2. Klik **Create Database**
-   - Name: `food-rescue-ai`
-   - Region: `ap-southeast-1` (Singapore) atau terdekat
-3. Buka database → tab **Connect** / **Tokens**
-4. Catat dua nilai ini:
-   - **URL** → `libsql://food-rescue-ai-xxx.turso.io`
-   - **Auth token** → string panjang `eyJ...` (kalau belum ada, klik **Create token** dulu)
-
-Atau pakai CLI (opsional):
-```bash
-turso db create food-rescue-ai
-turso db show food-rescue-ai --url
-turso db tokens create food-rescue-ai
+```powershell
+npm install
+docker compose up -d                 # PostgreSQL + PostGIS di :5433
+copy .env.example .env               # DATABASE_URL menunjuk ke Docker di atas
+npm run seed:local -- --force --full # akun demo + data sampah Madiun
+npm run start:local                  # http://localhost:3000
 ```
 
+Tanpa Docker, app otomatis memakai SQLite lokal (cukup `npm run seed -- --force --full` + `npm start`).
+
+Layanan AI Python (opsional — bila tidak jalan, mesin JavaScript dipakai otomatis):
+
+```powershell
+npm run start:ai                     # FastAPI :8001
+```
+
+Verifikasi:
+
+```
+GET /api/health
+→ {"status":"ok","service":"EcoMatch","db":{"dialek":"postgresql",...},
+   "ai_routing":{...},"routing":{"provider":"osrm","fallback":"haversine"},...}
+```
+
+Uji end-to-end (server sedang jalan): `npm run test:e2e` · `node tab-audit.js`
+
 ---
 
-## 2. Deploy ke Vercel (tanpa kartu)
+## 2. Environment Variables
 
-1. Buka **https://vercel.com** → **Sign up with GitHub**
-2. Klik **Add New… → Project**
-3. Import repo **`naylaaurellia18-web/food-rescue-ai`** → **Import**
-4. Di **Environment Variables** isi:
+### Wajib di produksi (`NODE_ENV=production`)
+
+| Key | Nilai |
+|-----|--------|
+| `JWT_SECRET` | ≥32 karakter acak — generate: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` — app **gagal start** tanpa ini |
+| `ADMIN_EMAIL` | email admin asli (dipakai saat DB kosong) |
+| `ADMIN_PASSWORD` | sandi kuat ≥12 karakter (hanya saat DB kosong) |
+| `DATABASE_URL` / `TURSO_*` | koneksi database (lihat tabel prioritas di atas) |
+
+### Database & AI Routing
+
+| Key | Fungsi |
+|-----|--------|
+| `DATABASE_URL` | PostgreSQL + PostGIS (contoh Docker: `postgresql://postgres:foodrescue@127.0.0.1:5433/food_rescue`) |
+| `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | libSQL cloud (opsional) |
+| `AI_MATCHING_URL` | layanan Python (`http://127.0.0.1:8001`) — kosong/gagal → mesin JS |
+| `ROUTE_PROVIDER` | `osrm` (default) atau `haversine` |
+| `OSRM_BASE_URL` / `OSRM_TIMEOUT_MS` | OSRM publik default / timeout (fallback haversine) |
+
+### Opsional
+
+| Key | Fungsi |
+|-----|--------|
+| `ALLOW_DEMO_ACCOUNTS` | izinkan akun demo di produksi (TIDAK disarankan) |
+| `ALLOWED_ORIGINS` | CORS allowlist (pisah koma); kosong = same-origin only |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | email lupa sandi & notifikasi (tanpa env → mode simulasi/outbox) |
+| `MAIL_FROM` / `NOTIFY_EMAIL` | alamat pengirim / tujuan notifikasi |
+| `CLOUDINARY_URL` | foto ke Cloudinary (tanpa env → base64 di DB, demo) |
+| `CALLMEBOT_APIKEY` | WhatsApp via CallMeBot (demo) |
+| `WHATSAPP_API_URL` / `WHATSAPP_API_TOKEN` | gateway WhatsApp lain (produksi: provider resmi) |
+
+---
+
+## 3. Deploy ke Railway (rekomendasi produksi)
+
+1. Buka **https://railway.app** → import repo GitHub
+2. Railway otomatis mendeteksi `railway.json` (Nixpacks, `npm ci`, start `npm start`, healthcheck `/api/health`)
+3. Tambah plugin **PostgreSQL** Railway → salin `DATABASE_URL` ke environment service
+4. Set environment variables wajib (bagian 2): `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`
+5. Deploy → URL `https://<project>.up.railway.app`
+6. **Auto-deploy:** tambah secret `RAILWAY_TOKEN` di repo → Settings → Secrets and variables → Actions → setiap push ke `main` (setelah uji e2e lulus) di-deploy otomatis oleh `ci.yml`
+
+---
+
+## 4. Deploy ke Render (alternatif)
+
+1. Buka **https://render.com** → New → Web Service → import repo
+2. Render membaca `render.yaml` (build `npm install`, start `npm start`, healthcheck `/api/health`)
+3. Tambah environment: `JWT_SECRET`, `DATABASE_URL` (Postgres addon Render / eksternal), `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `NODE_ENV=production`
+
+---
+
+## 5. Deploy ke Vercel (serverless + Turso)
+
+1. Buat database **Turso** (https://app.turso.tech): `turso db create ecomatch` → catat URL + auth token
+2. Buka **https://vercel.com** → Add New → Project → import repo (deteksi `vercel.json`)
+3. Isi environment variables:
 
    | Key | Nilai |
    |-----|--------|
-   | `TURSO_DATABASE_URL` | URL Turso dari langkah 1 |
-   | `TURSO_AUTH_TOKEN` | Auth token Turso |
-   | `JWT_SECRET` | **wajib ≥32 karakter acak** — generate: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` — app **gagal start** tanpa ini |
-   | `ADMIN_EMAIL` | email admin asli (saat DB kosong) |
-   | `ADMIN_PASSWORD` | sandi kuat ≥12 karakter (hanya saat DB kosong) |
+   | `TURSO_DATABASE_URL` | URL Turso |
+   | `TURSO_AUTH_TOKEN` | token Turso |
+   | `JWT_SECRET` | **wajib ≥32 karakter acak** |
+   | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | admin pertama (saat DB kosong) |
 
-   **Notifikasi & lupa sandi (tanpa env → mode simulasi / outbox):**
+4. **Build & Deploy** → dapat URL `https://<nama>-xxx.vercel.app`
+5. Verifikasi: `GET /api/health` → `db.dialek = "libsql"`
 
-   | Key | Fungsi |
-   |-----|--------|
-   | `CALLMEBOT_APIKEY` | **WhatsApp (CallMeBot, gratis)** — lihat langkah di bawah |
-   | `SMTP_HOST` | `smtp.gmail.com` (Gmail) — **wajib** agar kode *lupa sandi* benar-benar terkirim email |
-   | `SMTP_PORT` | `587` |
-   | `SMTP_USER` | Email Gmail pengirim |
-   | `SMTP_PASS` | **App Password** Gmail (16 digit, bukan password login) |
-   | `MAIL_FROM` | `Food Rescue AI <you@gmail.com>` |
-   | `NOTIFY_EMAIL` | Semua email notifikasi dikirim ke kotak masuk ini |
-   | `WHATSAPP_API_URL` / `WHATSAPP_API_TOKEN` | Alternatif gateway WA lain (produksi: WhatsApp Business API) |
-   | `CLOUDINARY_URL` | Opsional — foto ke Cloudinary (tanpa ini: base64 di DB) |
-
-5. **Build & Deploy** → tunggu 1–2 menit
-6. Dapat URL: `https://food-rescue-ai-xxx.vercel.app` 🎉
-
-> **Pertama kali jalan:** app auto-create tabel + seed **hanya admin** dari `ADMIN_EMAIL`/`ADMIN_PASSWORD`.  
-> Akun demo (`*@foodrescue.id`) **tidak** dibuat di produksi.
+> Catatan: mode Turso/SQLite adalah fallback tanpa ekstensi PostGIS — fitur geospasial memakai fallback haversine. Untuk fungsi penuh (SKPL: PostgreSQL + PostGIS), pakai Railway/Render/lokal.
 
 ---
 
-## 3. Verifikasi
+## 6. Reset & Backup Data
 
-Buka URL Vercel → login dengan `ADMIN_EMAIL` / `ADMIN_PASSWORD` yang Anda set → jalankan AI Matching.
+| Aksi | Perintah |
+|------|----------|
+| Bersihkan data transaksi, akun tetap | `npm run clean` |
+| Reset total + akun demo | `npm run seed:local -- --force --full` |
+| Reset total + akun login saja | `npm run seed:local -- --force --accounts` |
+| Backup SQLite lokal / Turso | `node scripts/backup-db.js` |
+| Backup PostgreSQL | `pg_dump "$DATABASE_URL" > backup.sql` |
+| Reset Turso via SQL | [`server/reset-turso.sql`](server/reset-turso.sql) → SQL console Turso → Run → redeploy |
 
-Cek health: `https://-URL-KAMU-/api/health`  
-Harus: `{"status":"ok","db":"turso"}`
-
----
-
-## 4. Jalankan Lokal (tetap bisa)
-
-```powershell
-cd C:\Users\nuy07\food-rescue-ai
-npm install
-npm start
-```
-
-http://localhost:3000 — pakai SQLite lokal (tanpa Turso).
-
-Uji end-to-end:
-
-```powershell
-npm run test:e2e
-```
+> `--force` menghapus semua user lalu seed ulang — jangan jalankan di produksi tanpa `ALLOW_FORCE_SEED_PRODUCTION=1`.
 
 ---
 
-## Akun Demo
+## 7. Notifikasi Nyata (WhatsApp & Email)
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@foodrescue.id | admin123 |
+### WhatsApp — CallMeBot (demo, gratis)
 
-> Mode **fresh** (default): hanya admin — web kosong, belum ada donor/listing/match.  
-> Mode **full demo** (lokal): `npm run seed -- --force --full` — akun + listing/kebutuhan contoh di **Madiun**.  
-> Mode **akun saja** (data bersih): `npm run seed:accounts` — hanya akun login, tanpa listing/match.  
-> **Bersihkan data, akun tetap**: `npm run clean` — hapus listing, kebutuhan, match, notifikasi, audit; akun login tidak dihapus.
+1. Buka **https://www.callmebot.com** → catat nomor bot
+2. Simpan nomor itu di kontak HP → kirim dari WhatsApp: `I allow callmebot to send me messages`
+3. Balasan berisi `APIKEY` → isi env `CALLMEBOT_APIKEY=123456` → restart/redeploy
 
----
+### Email — Gmail App Password
 
-## 🗑️ Reset di Turso
+1. **https://myaccount.google.com** → Keamanan → aktifkan Verifikasi 2 Langkah
+2. **App passwords** → buat baru (nama bebas, mis. `EcoMatch`) → dapat password 16 digit
+3. Isi env: `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=587`, `SMTP_USER=<email>`, `SMTP_PASS=<app password>`, `MAIL_FROM="EcoMatch <email>"`, `NOTIFY_EMAIL=<email>`
+4. Restart lokal / Redeploy
 
-Dua opsi di file [`server/reset-turso.sql`](./server/reset-turso.sql):
+### Cek status
 
-- **OPSI A — bersihkan data, akun login tetap**: hapus listing/kebutuhan/match/OTP/notifikasi/outbox, tapi `DELETE FROM users` dikomentari → akun login tetap ada.
-- **OPSI B — reset total (web jadi baru)**: hapus semua termasuk users → web fresh, hanya admin saat auto-seed.
-
-Langkah:
-
-1. Buka **https://app.turso.tech** → pilih database `food-rescue-ai`
-2. Buka tab **SQL** / **Console**
-3. Pilih opsi di file SQL (aktifkan baris yang diinginkan, komentari yang lain) → salin → **Run**
-4. Hasil query terakhir harus `0` di semua kolom
-5. Buka URL Vercel sekali (`/api/health`) atau **Redeploy** → app auto-seed sesuai mode (OPSI B: hanya admin)
-6. Selesai — fokus **Madiun, Jawa Timur**, marker peta hanya di area Madiun
-
-Setelah reset, isi ulang nomor WA semua akun (sekali jalan) di SQL console Turso:
-
-```sql
-UPDATE users SET phone = '083847721511';
-```
+Dashboard admin → menu **Pesan Terkirim**: `sent` = nyata, `simulated` = demo (outbox), `failed` = gagal + alasan. Tanpa SMTP, kode lupa sandi tetap muncul di outbox admin.
 
 ---
 
-## 📲 Notifikasi Nyata (WhatsApp & Email)
-
-### 1. WhatsApp — CallMeBot (gratis)
-
-1. Buka **https://www.callmebot.com** → lihat nomor bot saat ini (contoh: `+34 611 01 16 37`)
-2. **Simpan nomor itu** di kontak HP Anda
-3. Dari WhatsApp HP Anda, kirim pesan: `I allow callmebot to send me messages`
-4. Tunggu balasan: `API Activated... Your APIKEY is 123456` → catat APIKEY-nya
-5. Isi env `CALLMEBOT_APIKEY=123456` (lokal: `.env` · online: Vercel → Environment Variables → Redeploy)
-
-> Semua akun demo sudah bernomor `083847721511` — notifikasi WA masuk ke HP Anda.
-
-### 2. Email — Gmail App Password
-
-1. Buka **https://myaccount.google.com** → **Keamanan**
-2. Aktifkan **Verifikasi 2 Langkah** (wajib sekali)
-3. Cari **App passwords** → buat baru, nama bebas (mis. `Food Rescue`) → dapat password 16 digit
-4. Isi env:
-
-   | Key | Value |
-   |-----|-------|
-   | `SMTP_HOST` | `smtp.gmail.com` |
-   | `SMTP_PORT` | `587` |
-   | `SMTP_USER` | `naylaaurellia910@gmail.com` |
-   | `SMTP_PASS` | app password 16 digit |
-   | `MAIL_FROM` | `Food Rescue AI <naylaaurellia910@gmail.com>` |
-   | `NOTIFY_EMAIL` | `naylaaurellia910@gmail.com` |
-
-5. Redeploy (Vercel) atau restart `npm start` (lokal)
-
-### 3. Cek status
-
-Dashboard admin → kartu **Pesan outbox** menampilkan `WA aktif` / `Email aktif` bila env sudah terisi.
-Menu **Pesan Terkirim** menampilkan status tiap pesan (`sent` = nyata, `simulated` = demo, `failed` = gagal + alasan).
-
----
-
-## 🗺️ Peta GIS
-
-Menu sidebar **Peta GIS** memakai **Leaflet + OpenStreetMap** (gratis, tanpa API key):
-- Fokus peta: **Madiun saja** (Kota Madiun + kecamatan Kab. Madiun: Caruban · Mejayan · Balerejo · Dagangan · Dolopo · Geger · Saradan · Kartoharjo · Taman · Wungu · Sawahan)
-- Lokasi dropdown = alamat akun demo = titik marker di peta (sama semua)
-- Marker: Donor (biru), Penerima (merah), Kurir (oranye), Surplus (hijau)
-- Polyline putus-putus: rute pengantaran hasil AI Matching
-
-Saat registrasi/input, pilih lokasi dari dropdown (otomatis isi lat/lng):
-
-| Wilayah | Latitude | Longitude |
-|---------|----------|-----------|
-| Kota Madiun | -7.62 | 111.53 |
-| Caruban | -7.55 | 111.64 |
-| Mejayan | -7.55 | 111.45 |
-| Balerejo | -7.55 | 111.56 |
-| Kartoharjo | -7.60 | 111.48 |
-| Taman | -7.65 | 111.52 |
-
----
-
-## Troubleshooting
+## 8. Troubleshooting
 
 | Masalah | Solusi |
 |---------|--------|
-| App crash start di Vercel | `JWT_SECRET` belum di-set / <32 char — isi di Environment Variables → Redeploy |
-| 500 di Vercel | Cek env `TURSO_*`, `ADMIN_EMAIL`/`ADMIN_PASSWORD` (DB kosong) |
-| Login admin tidak bisa | DB sudah terisi — akun demo tidak ada; pakai admin dari seed / reset Turso (OPSI B) + set `ADMIN_*` |
-| Lupa sandi tidak masuk email | Set `SMTP_*` — tanpa itu kode hanya muncul di **Pesan Terkirim** (outbox, butuh login admin) |
+| App crash start di produksi | `JWT_SECRET` belum di-set / <32 char — isi lalu redeploy |
+| Gagal koneksi PostgreSQL | Cek `DATABASE_URL`, container `docker compose up -d` (lokal), port 5433 |
+| Login admin tidak bisa | DB sudah terisi — pakai admin seed / reset (bagian 6) lalu set `ADMIN_*` |
+| Lupa sandi tidak masuk email | Set `SMTP_*` — tanpa itu kode hanya muncul di **Pesan Terkirim** (butuh login admin) |
+| AI Routing lambat / gagal | Cek `npm run start:ai` & `AI_MATCHING_URL` — otomatis fallback ke mesin JS in-process |
+| Rute OSRM timeout | Normal saat luring → otomatis fallback haversine (`routing.fallback` di `/api/health`) |
 | Tabel tidak ada | Biarkan — app auto-create saat boot |
-| Reset data demo | Turso dashboard → SQL, atau ikuti opsi di `server/reset-turso.sql` |
 | Foto terlalu besar | Limit upload 1 MB; opsional `CLOUDINARY_URL` |
-| Database lokal korup | Hapus `data/food_rescue.db*` lalu `npm start` (auto-seed) |
+| Database lokal korup | Hapus `data/food_rescue.db*` lalu seed ulang |
 
 ---
 
-## Struktur Deploy
+## 9. Struktur Deploy
 
 ```
 food-rescue-ai/
-├── api/index.js        ← entry Vercel (export Express app)
-├── vercel.json         ← config build + route
-├── server/app.js       ← Express app (shared lokal & Vercel)
-├── server/db.js        ← auto: Turso (cloud) / SQLite (lokal)
-├── public/             ← SPA frontend
-└── data/               ← SQLite lokal (tidak di-deploy)
+├── api/index.js          ← entry Vercel (export Express app)
+├── vercel.json           ← config build + route Vercel
+├── railway.json          ← Nixpacks + healthcheck Railway
+├── render.yaml           ← Render web service
+├── nixpacks.toml         ← build Nixpacks generik
+├── docker-compose.yml    ← PostgreSQL + PostGIS (lokal)
+├── .github/workflows/    ← ci.yml (e2e + auto-deploy), uptime.yml (15 menit)
+├── server/index.js       ← entry Express (lokal/Railway/Render)
+├── server/app.js         ← Express app (shared semua platform)
+├── server/db.js          ← auto: PostgreSQL → libSQL/Turso → SQLite
+├── public/               ← SPA + PWA
+└── data/                 ← SQLite lokal (tidak di-deploy)
 ```
