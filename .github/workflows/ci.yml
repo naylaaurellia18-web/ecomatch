@@ -65,3 +65,19 @@ jobs:
       - name: Token belum diatur
         if: env.RAILWAY_TOKEN == ''
         run: echo "::notice::Tambahkan secret RAILWAY_TOKEN di Settings → Secrets → Actions agar auto-deploy Railway aktif."
+
+  deploy-vercel:
+    name: Deploy ke Vercel
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+    steps:
+      - name: Trigger Vercel Deploy Hook
+        if: env.VERCEL_DEPLOY_HOOK != ''
+        run: curl -fsS -X POST "$VERCEL_DEPLOY_HOOK"
+
+      - name: Hook belum diatur
+        if: env.VERCEL_DEPLOY_HOOK == ''
+        run: echo "::notice::Tambahkan secret VERCEL_DEPLOY_HOOK (Vercel → Project → Settings → Git → Deploy Hooks) agar auto-deploy Vercel aktif."
