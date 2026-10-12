@@ -11,7 +11,7 @@
     "radius_layanan_km": 15,
     "batas_skor": 0.3,
     "generator": "scripts/evaluasi-30-skenario.js (mulberry32, bbox Kota Madiun)",
-    "mesin_ai": "server/lib/routing.js hitungRouting (kode produksi)",
+    "mesin_ai": "backend/lib/routing.js hitungRouting (kode produksi)",
     "baseline": "Greedy Jarak-Saja (filter aturan sama, urut trip terpendek, tanpa BATAS_SKOR)",
     "definisi_metrik": {
       "pct_alokasi": "alokasi / 6 sampah x 100 (dibatasi 3 kurir per skenario)",

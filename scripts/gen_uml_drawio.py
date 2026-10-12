@@ -5,8 +5,8 @@
 Sumber diagram:
   - 10 blok mermaid dari docs/arsitektur/Dokumen_Arsitektur_Sistem_EcoMatch_v2.0.md
   - 2 diagram baru hasil turunan kode backend:
-      sequence-compliance     <- server/routes/compliance.js (FR-14, FR-17)
-      activity-pengolahan-tps <- server/routes/tps.js POST /:id/log (FR-08)
+      sequence-compliance     <- backend/routes/compliance.js (FR-14, FR-17)
+      activity-pengolahan-tps <- backend/routes/tps.js POST /:id/log (FR-08)
 
 Pemakaian: python scripts/gen_uml_drawio.py
 """

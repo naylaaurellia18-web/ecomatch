@@ -5,12 +5,6 @@ backups/
 *.log
 uploads/*
 !uploads/.gitkeep
-backend/
-frontend/
-css/
-js/
-*.html
-!public/*.html
 render.yaml.bak
 .vercel
 .railway

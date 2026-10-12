@@ -4,7 +4,7 @@
  *
  * Konfigurasi bobot/radius/batas skor dibaca dari config/routing.json
  * (jenis_cocok 0,35; kapasitas 0,25; jarak 0,25; urgensi 0,15; radius 15 km;
- * batas_skor 0,3). Padanan JS dari ai_matching/routing.py — dipakai sebagai
+ * batas_skor 0,3). Padanan JS dari ai/routing.py — dipakai sebagai
  * fallback bila layanan Python (/v1/routing) tidak terjangkau (NFR-02).
  *
  * Bentuk input (disiapkan routes/routing.js):

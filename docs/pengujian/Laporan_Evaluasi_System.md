@@ -32,7 +32,7 @@ Uji pendukung: sensitivitas ambang `BATAS_SKOR` dan uji kecepatan (NFR-02: < 3 d
 | Konfigurasi final | `config/routing.json` — bobot jenis_cocok 0,35; kapasitas 0,25; jarak 0,25; urgensi 0,15 |
 | Radius layanan | 15 km (jarak sampah -> TPS, haversine) |
 | Ambang skor (`BATAS_SKOR`) | 0,3 |
-| Mesin evaluasi | `server/lib/routing.js` — `hitungRouting()` + `hitungSkor()` (kode produksi) |
+| Mesin evaluasi | `backend/lib/routing.js` — `hitungRouting()` + `hitungSkor()` (kode produksi) |
 | Baseline pembanding | Greedy Jarak-Saja: filter aturan sama, kandidat diurut trip terpendek (kurir -> sampah -> TPS), **tanpa** `BATAS_SKOR` |
 | Skenario | 30 skenario (seed 0-29), masing-masing 6 sampah, 6 TPS Pengolah, 3 kurir |
 | Generator | mulberry32 deterministik; umur sampah {1,4,8,14,18,26,40} jam; berat 5-60 kg; kapasitas TPS 50-300 kg/hari; kapasitas kurir {30,50,70,100} kg; bbox Kota Madiun |
@@ -200,7 +200,7 @@ dan database sistem sesungguhnya belum diperhitungkan tetapi tetap jauh di bawah
 | `SKPL_EcoMatch_v2.0.docx` | NFR-02 (kecepatan), NFR-09 (target 85%) |
 | `docs/arsitektur/Dokumen_Arsitektur_Sistem_EcoMatch_v2.0.md` | §2 (FR routing), §7 (stack), §9B (deliverable Fase 6) |
 | `config/routing.json` | Parameter final yang diuji |
-| `server/lib/routing.js`, `ai_matching/routing.py` | Kode produksi yang diuji |
+| `backend/lib/routing.js`, `ai/routing.py` | Kode produksi yang diuji |
 
 ---
 

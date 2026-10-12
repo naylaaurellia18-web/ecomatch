@@ -4,7 +4,7 @@
  *
  * Konfigurasi FINAL EcoMatch (config/routing.json): bobot jenis_cocok 0,35;
  * kapasitas 0,25; jarak 0,25; urgensi 0,15; radius 15 km; BATAS_SKOR 0,3.
- * Memakai kode produksi server/lib/routing.js (hitungRouting + hitungSkor),
+ * Memakai kode produksi backend/lib/routing.js (hitungRouting + hitungSkor),
  * sehingga angka laporan = perilaku sistem berjalan.
  *
  * Baseline pembanding: Greedy Jarak-Saja — filter aturan yang sama (status,
@@ -23,9 +23,9 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { hitungRouting, hitungSkor } = require('../server/lib/routing');
-const { haversineKm } = require('../server/lib/gis');
-const klasifikasiLib = require('../server/lib/klasifikasi');
+const { hitungRouting, hitungSkor } = require('../backend/lib/routing');
+const { haversineKm } = require('../backend/lib/gis');
+const klasifikasiLib = require('../backend/lib/klasifikasi');
 
 const CONFIG = klasifikasiLib.loadConfig();
 const OUT_DIR = path.join(__dirname, '..', 'docs', 'pengujian');
@@ -339,7 +339,7 @@ function main() {
       radius_layanan_km: CONFIG.radius_layanan_km,
       batas_skor: CONFIG.batas_skor,
       generator: 'scripts/evaluasi-30-skenario.js (mulberry32, bbox Kota Madiun)',
-      mesin_ai: 'server/lib/routing.js hitungRouting (kode produksi)',
+      mesin_ai: 'backend/lib/routing.js hitungRouting (kode produksi)',
       baseline: 'Greedy Jarak-Saja (filter aturan sama, urut trip terpendek, tanpa BATAS_SKOR)',
       definisi_metrik: {
         pct_alokasi: 'alokasi / 6 sampah x 100 (dibatasi 3 kurir per skenario)',

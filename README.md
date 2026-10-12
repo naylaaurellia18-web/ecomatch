@@ -10,8 +10,9 @@ Dibangun sesuai dokumen SKPL versi 2.0: **17 FR + 11 NFR**.
 
 | Yang dituju | Tautan |
 |---|---|
-| Repositori Publik (GitHub) | https://github.com/naylaaurellia18-web/food-rescue-ai |
-| Riwayat Pipeline CI/CD (GitHub Actions) | https://github.com/naylaaurellia18-web/food-rescue-ai/actions |
+| Repositori Publik (GitHub) | https://github.com/naylaaurellia18-web/ecomatch |
+| Riwayat Pipeline CI/CD (GitHub Actions) | https://github.com/naylaaurellia18-web/ecomatch/actions |
+| Arsip Food Rescue AI (versi asli sebelum rebrand) | https://github.com/naylaaurellia18-web/food-rescue-ai |
 
 > **CI/CD:** setiap push ke `main` → uji e2e + audit tab → auto-deploy backend ke Railway (service `food-rescue-ai`, butuh secret `RAILWAY_TOKEN`). Uptime monitor `GET /api/health` tiap 15 menit (`vars.PRODUCTION_URL`). Panduan lengkap: [`DEPLOY.md`](DEPLOY.md).
 
@@ -21,13 +22,13 @@ Dibangun sesuai dokumen SKPL versi 2.0: **17 FR + 11 NFR**.
 |-------|-----------|
 | Backend | Node.js 24 + Express |
 | Database | **PostgreSQL + PostGIS** (SKPL) via `DATABASE_URL` — fallback libSQL/Turso & SQLite lokal |
-| AI Routing | Mesin skoring multi-kriteria in-process (`server/lib/routing.js`) + layanan **Python FastAPI** (`ai_matching/`, timeout → fallback JS) |
+| AI Routing | Mesin skoring multi-kriteria in-process (`backend/lib/routing.js`) + layanan **Python FastAPI** (`ai/`, timeout → fallback JS) |
 | Klasifikasi | Rule-based transparan + skor keyakinan + verifikasi admin (NFR-10 ≥ 85%) |
 | Auth | JWT HS256 + bcrypt (RBAC 4 role: `donor_mbg`, `tps_pengolah`, `kurir`, `admin`) |
 | Frontend | SPA HTML/CSS/JS + **PWA** (installable di mobile) |
 | GIS | Leaflet + OpenStreetMap, **OSRM** (rute jalan) fallback haversine, jarak PostGIS `ST_Distance`/`ST_DWithin` |
 | Upload | Multer (1 MB, magic-bytes) — Cloudinary opsional / base64 demo |
-| Notifikasi | In-app + **WhatsApp Gateway** + **Mail Server** (outbox `server/lib/channels.js`) |
+| Notifikasi | In-app + **WhatsApp Gateway** + **Mail Server** (outbox `backend/lib/channels.js`) |
 
 ## Cara Menjalankan
 
@@ -79,12 +80,12 @@ Verifikasi sehat: `GET /api/health` → `{"status":"ok","service":"EcoMatch","db
 
 | FR | Endpoint / Lokasi |
 |----|-------------------|
-| FR-01 | `POST /api/auth/register` · `POST /api/auth/login` · lupa/reset sandi — RBAC `server/middleware.js` |
+| FR-01 | `POST /api/auth/register` · `POST /api/auth/login` · lupa/reset sandi — RBAC `backend/middleware.js` |
 | FR-02 | `POST /api/waste` (multipart, foto) · `GET /api/waste/mine` · `PATCH|DELETE /api/waste/:id` |
 | FR-03 | `GET|PATCH /api/tps/me` — profil TPS Pengolah |
-| FR-04 | `POST /api/routing/run` · `GET /api/routing` · `GET /api/routing/:id/explain` → `server/lib/routing.js` |
-| FR-05 | `GET /api/geo` · `GET /api/geo/nearby` → `server/lib/gis.js` (OSRM + haversine) |
-| FR-06 | `GET /api/notifications` + fanout WA/email `server/lib/channels.js` |
+| FR-04 | `POST /api/routing/run` · `GET /api/routing` · `GET /api/routing/:id/explain` → `backend/lib/routing.js` |
+| FR-05 | `GET /api/geo` · `GET /api/geo/nearby` → `backend/lib/gis.js` (OSRM + haversine) |
+| FR-06 | `GET /api/notifications` + fanout WA/email `backend/lib/channels.js` |
 | FR-07 | `POST /api/deliveries/:id/pickup` · `POST /api/deliveries/:id/deliver` (foto wajib) |
 | FR-08 | `POST /api/deliveries/:id/verify-otp` · `POST /api/deliveries/:id/resend-otp` |
 | FR-09 | `GET /api/admin/stats` — kg dialihkan, TPS aktif, cakupan |
@@ -130,7 +131,7 @@ skor = 0.35·jenis_cocok + 0.25·kapasitas + 0.25·jarak + 0.15·urgensi
 
 **Filter aturan:** TPS `aktif` saja · kategori harus diterima · radius 15 km · skor ≥ **0,30** (`BATAS_SKOR`) — TPS yang gugur diberi alasan. Setelah lulus filter: **greedy assignment** urut trip terdekat → simpan `alokasi` + 4 sub-skor + `jarak_km` + `rute_json` + penjelasan.
 
-**Mesin:** layanan Python `ai_matching/routing.py` (timeout 1,8 dtk) → bila gagal, `server/lib/routing.js` in-process. Provider rute: OSRM (`ROUTE_PROVIDER=osrm`) / haversine.
+**Mesin:** layanan Python `ai/routing.py` (timeout 1,8 dtk) → bila gagal, `backend/lib/routing.js` in-process. Provider rute: OSRM (`ROUTE_PROVIDER=osrm`) / haversine.
 
 **Hasil evaluasi 30 skenario** (banding vs baseline jarak-saja, [`docs/pengujian/`](docs/pengujian/)):
 
@@ -147,9 +148,9 @@ skor = 0.35·jenis_cocok + 0.25·kapasitas + 0.25·jarak + 0.15·urgensi
 ## Struktur Proyek
 
 ```
-food-rescue-ai/
+ecomatch/
 ├── package.json            # nama: ecomatch
-├── server/
+├── backend/
 │   ├── index.js            # entry Express
 │   ├── app.js              # middleware + /api/health
 │   ├── db.js               # PostgreSQL / libSQL / SQLite + trigger immutable
@@ -158,9 +159,9 @@ food-rescue-ai/
 │   ├── lib/                # routing, gis, klasifikasi, auth, audit, channels, ...
 │   └── routes/             # auth, waste, classify, tps, routing, geo,
 │                           # deliveries, compliance, mbg, notifications, admin
-├── ai_matching/            # layanan Python FastAPI (routing + klasifikasi)
+├── ai/                    # layanan Python FastAPI (routing + klasifikasi)
 ├── config/routing.json     # bobot, radius, BATAS_SKOR
-├── public/                 # SPA + PWA (manifest, sw, icons)
+├── frontend/              # SPA + PWA (manifest, sw, icons)
 ├── docs/                   # SKPL, arsitektur (+ UML), laporan, pengujian
 ├── scripts/                # evaluasi-30-skenario.js, gen_uml_drawio.py, backup-db.js
 ├── e2e-test.js             # uji alur lengkap (45 pemeriksaan)
@@ -190,7 +191,7 @@ food-rescue-ai/
 
 ## PWA (Mobile App)
 
-- `public/manifest.webmanifest` + `public/sw.js` + ikon di `public/icons/`
+- `frontend/manifest.webmanifest` + `frontend/sw.js` + ikon di `frontend/icons/`
 - Standalone, install dari Chrome/Safari mobile; API network-first, shell di-cache untuk offline
 - Shortcut: unggah sampah · tugas kurir · konfirmasi OTP
 

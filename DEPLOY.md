@@ -126,7 +126,7 @@ Uji end-to-end (server sedang jalan): `npm run test:e2e` · `node tab-audit.js`
 | Reset total + akun login saja | `npm run seed:local -- --force --accounts` |
 | Backup SQLite lokal / Turso | `node scripts/backup-db.js` |
 | Backup PostgreSQL | `pg_dump "$DATABASE_URL" > backup.sql` |
-| Reset Turso via SQL | [`server/reset-turso.sql`](server/reset-turso.sql) → SQL console Turso → Run → redeploy |
+| Reset Turso via SQL | [`backend/reset-turso.sql`](backend/reset-turso.sql) → SQL console Turso → Run → redeploy |
 
 > `--force` menghapus semua user lalu seed ulang — jangan jalankan di produksi tanpa `ALLOW_FORCE_SEED_PRODUCTION=1`.
 
@@ -172,7 +172,7 @@ Dashboard admin → menu **Pesan Terkirim**: `sent` = nyata, `simulated` = demo 
 ## 9. Struktur Deploy
 
 ```
-food-rescue-ai/
+ecomatch/
 ├── api/index.js          ← entry Vercel (export Express app)
 ├── vercel.json           ← config build + route Vercel
 ├── railway.json          ← Nixpacks + healthcheck Railway
@@ -180,9 +180,9 @@ food-rescue-ai/
 ├── nixpacks.toml         ← build Nixpacks generik
 ├── docker-compose.yml    ← PostgreSQL + PostGIS (lokal)
 ├── .github/workflows/    ← ci.yml (e2e + auto-deploy), uptime.yml (15 menit)
-├── server/index.js       ← entry Express (lokal/Railway/Render)
-├── server/app.js         ← Express app (shared semua platform)
-├── server/db.js          ← auto: PostgreSQL → libSQL/Turso → SQLite
-├── public/               ← SPA + PWA
+├── backend/index.js       ← entry Express (lokal/Railway/Render)
+├── backend/app.js         ← Express app (shared semua platform)
+├── backend/db.js          ← auto: PostgreSQL → libSQL/Turso → SQLite
+├── frontend/               ← SPA + PWA
 └── data/                 ← SQLite lokal (tidak di-deploy)
 ```

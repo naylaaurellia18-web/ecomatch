@@ -6,7 +6,7 @@ Endpoint:
   POST /v1/routing   -> { sampah[], tps[], kurir[], now? } -> { alokasi[], jumlah, durasi_ms }
   POST /v1/classify  -> { teks?, nama_sampah?, waktu_produksi? } -> { kategori, tingkat_pembusukan, ... }
 Backend Node memanggil /v1/routing lebih dulu; bila gagal/lewat batas waktu,
-otomatis jatuh ke mesin JavaScript di server/lib (fallback).
+otomatis jatuh ke mesin JavaScript di backend/lib (fallback).
 """
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ def health() -> dict:
     return {
         "status": "ok",
         "mesin": "python-fastapi",
-        "modul": "ai_matching.routing",
+        "modul": "ai.routing",
         "konfigurasi": "config/routing.json",
         "bobot": ROUTING_CONFIG["bobot"],
         "radius_layanan_km": ROUTING_CONFIG["radius_layanan_km"],

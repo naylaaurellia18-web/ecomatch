@@ -3,9 +3,9 @@
 -- Sumber: SKPL_EcoMatch_v2.0 (PDM 6.1–6.5) + Dokumen_Arsitektur_Sistem
 --         EcoMatch_v2.0 §4 (pemetaan FR-01..17 -> tabel) + ERD_EcoMatch.png
 -- Dipakai untuk deploy baru. Migrasi dari skema FoodRescueAI lama ada di
--- bagian §MIGRAASI di bawah (dijalankan server/db.js saat init).
+-- bagian §MIGRAASI di bawah (dijalankan backend/db.js saat init).
 -- Dialek pengembangan lokal (SQLite/libSQL) memakai padanan di
--- server/db.js -> SCHEMA_ECOMATCH_STATEMENTS.
+-- backend/db.js -> SCHEMA_ECOMATCH_STATEMENTS.
 -- ==========================================================================
 
 CREATE EXTENSION IF NOT EXISTS postgis;
@@ -261,7 +261,7 @@ SELECT 'tps_pengolah', t.id_user, t.nama_tps, u.lat, u.lng,
 FROM tps_pengolah t JOIN "user" u ON u.id_user = t.id_user
 WHERE u.lat IS NOT NULL AND u.lng IS NOT NULL AND t.aktif;
 
--- Parameter default routing/kepatuhan (dipakai ai_matching + /api/compliance)
+-- Parameter default routing/kepatuhan (dipakai ai + /api/compliance)
 INSERT INTO konfigurasi_regulasi (kode_daerah, nama_regulasi, jenis_regulasi, aturan, aktif)
 VALUES ('KOTA_MADIUN', 'Kebijakan Pengelolaan Sampah Makanan MBG Kota Madiun', 'lainnya',
         '{"bobot_routing":{"jenis_cocok":0.35,"kapasitas":0.25,"jarak":0.25,"urgensi":0.15},' ||
@@ -270,7 +270,7 @@ VALUES ('KOTA_MADIUN', 'Kebijakan Pengelolaan Sampah Makanan MBG Kota Madiun', '
 ON CONFLICT DO NOTHING;
 
 -- ==========================================================================
--- §MIGRAASI — FoodRescueAI lama -> EcoMatch (dijalankan server/db.js init)
+-- §MIGRAASI — FoodRescueAI lama -> EcoMatch (dijalankan backend/db.js init)
 -- ==========================================================================
 -- (a) Role user:
 --     UPDATE "user" SET role = CASE role
@@ -294,7 +294,7 @@ ON CONFLICT DO NOTHING;
 --     FROM "user" WHERE role = 'tps_pengolah';
 --
 -- (d) alokasi lama (id_makanan/id_kebutuhan/id_penerima) di-rebuild ke
---     alokasi baru (id_sampah/id_tps/id_kurir) — lihat server/db.js.
+--     alokasi baru (id_sampah/id_tps/id_kurir) — lihat backend/db.js.
 --
 -- (e) Setelah migrasi: DROP TABLE surplus_makanan, kebutuhan_pangan.
 -- ==========================================================================

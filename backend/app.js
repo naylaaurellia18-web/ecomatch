@@ -136,9 +136,9 @@ app.get('/api/health', async (_req, res) => {
   });
 });
 
-app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
 app.get(/^\/(?!api|uploads).*/, (_req, res) => {
-  const page = path.join(__dirname, '..', 'public', 'index.html');
+  const page = path.join(__dirname, '..', 'frontend', 'index.html');
   res.sendFile(page);
 });
 

@@ -45,11 +45,11 @@ flowchart TB
     end
 
     subgraph APP["Application Tier (Node.js + Express)"]
-        GW["API Gateway / Express<br/>server/app.js - CORS, CSP, HSTS, rate-limit"]
+        GW["API Gateway / Express<br/>backend/app.js - CORS, CSP, HSTS, rate-limit"]
         AUTH["AuthService<br/>JWT + bcrypt + RBAC (donor_mbg / tps_pengolah / kurir / admin)"]
         CLASS["Classification Service<br/>klasifikasi jenis sampah (rule-based / admin verifikasi)"]
-        ROUTE["AI Routing Engine<br/>server/lib/routing.js + config/routing.json"]
-        GIS["GIS Service<br/>server/lib/gis.js (haversine + OSRM + PostGIS)"]
+        ROUTE["AI Routing Engine<br/>backend/lib/routing.js + config/routing.json"]
+        GIS["GIS Service<br/>backend/lib/gis.js (haversine + OSRM + PostGIS)"]
         COMPLY["Compliance Service<br/>laporan kepatuhan Pemkot Madiun"]
         MOTIVE["Motivation Service<br/>poin, sertifikat, badge donor MBG"]
         NOTIF["Notification Service<br/>lib/channels.js + messenger.js"]
@@ -99,7 +99,7 @@ flowchart TB
 | **FR-01** | Autentikasi & RBAC (MBG, TPS Pengolah, Kurir, Admin) | `POST /api/auth/register` · `POST /api/auth/login` · `POST /api/auth/forgot` · `POST /api/auth/reset` | `user`, `reset_sandi` | Register pilih role `donor_mbg\|tps_pengolah\|kurir` → `status='menunggu'`; admin verifikasi | **bcryptjs**, **JWT HS256**, **RBAC** `requireRole([...])`, rate-limit |
 | **FR-02** | Unggah sampah makanan (MBG input jenis, berat, foto) | `POST /api/waste` · `GET /api/waste/mine` · `GET /api/waste/:id` · `PATCH /api/waste/:id` · `DELETE /api/waste/:id` | `sampah_makanan` | Simpan jenis_makanan, berat_kg, waktu_produksi, foto; status `tersedia` | **multer** 1 MB + magic-bytes, **Cloudinary/base64** |
 | **FR-03** | Profil TPS Pengolah (jenis olahan, kapasitas, jenis diterima) | `GET /api/tps/me` · `PATCH /api/tps/me` | `tps_pengolah` | jenis_tps, jenis_pengolahan, kapasitas_kg_hari, jenis_diterima (JSON array) | validasi `lib/validate.js`, RBAC `tps_pengolah` |
-| **FR-04** | AI Routing — cari TPS Pengolah terbaik untuk sampah MBG | `POST /api/routing/run` (admin) · `GET /api/routing` · `GET /api/routing/:id/explain` | `alokasi` (4 sub-skor + `jarak_km` + `rute_json`) | Filter TPS aktif → skor multi-kriteria (jenis_cocok, kapasitas, jarak, urgensi) → greedy | **Routing Engine** `lib/routing.js` + `config/routing.json`; mesin Python (`ai_matching`) |
+| **FR-04** | AI Routing — cari TPS Pengolah terbaik untuk sampah MBG | `POST /api/routing/run` (admin) · `GET /api/routing` · `GET /api/routing/:id/explain` | `alokasi` (4 sub-skor + `jarak_km` + `rute_json`) | Filter TPS aktif → skor multi-kriteria (jenis_cocok, kapasitas, jarak, urgensi) → greedy | **Routing Engine** `lib/routing.js` + `config/routing.json`; mesin Python (`ai`) |
 | **FR-05** | Rute GIS (MBG → TPS Pengolah) | `GET /api/geo` · `GET /api/geo/nearby` · rute di `alokasi.rute_json` | `alokasi.rute_json`, view `v_lokasi_geospasial` | `haversineKm()` + **OSRM** (rute jalan) + `buildRoute()` kurir→MBG→TPS | **Leaflet + OpenStreetMap**, **OSRM**, **PostGIS** `ST_DWithin`/`ST_Distance` |
 | **FR-06** | Notifikasi (in-app, WhatsApp, email) | `GET /api/notifications` · `PATCH /api/notifications/:id/read` | `notifikasi`, `outbox_pesan` | In-app + outbox WA/email (antre→terkirim/simulasi/gagal) | **CallMeBot** (demo) → **Fonnte** (prod), **nodemailer** |
 | **FR-07** | Foto bukti (pickup & antar) | `POST /api/deliveries/:id/pickup` · `POST /api/deliveries/:id/deliver` | `alokasi.foto_jemput`, `alokasi.foto_antar` | Wajib foto, magic-bytes, status `dijemput`→`terkirim` | multer + validasi buffer + audit |
@@ -702,11 +702,11 @@ erDiagram
 | Runtime backend | **Node.js 24** (`engines: >=20`) | NFR-02, NFR-04 |
 | Web framework | **Express 4** + helmet + cors + compression + express-rate-limit | NFR-01, NFR-04 |
 | Basis data utama | **PostgreSQL 16 + PostGIS 3.4** (Docker `food-rescue-postgis`, port 5433) | FR-17, NFR-06, NFR-09 |
-| Basis data fallback/demo | libSQL/TurSQL (`file:local.db`) — driver lintas-dialek di `server/db.js` | portabilitas (NFR-07) |
+| Basis data fallback/demo | libSQL/TurSQL (`file:local.db`) — driver lintas-dialek di `backend/db.js` | portabilitas (NFR-07) |
 | Basis data driver | `pg` (PG) + `@libsql/client` (SQLite) — transisi mulus | transisi nol waktu henti |
 | Otorisasi | **JWT HS256** (12 jam) + **bcryptjs** + RBAC `donor_mbg\|tps_pengolah\|kurir\|admin` | FR-01, NFR-01 |
-| Klasifikasi sampah | **Rule-based engine** (`ai_matching`) + verifikasi admin; opsional **TensorFlow.js vision** | FR-11, NFR-10 |
-| AI routing | `server/lib/routing.js` (JS, in-process) + **mesin Python FastAPI** `ai_matching` (`:8001`) dengan timeout & fallback | FR-04/FR-13, NFR-02 |
+| Klasifikasi sampah | **Rule-based engine** (`ai`) + verifikasi admin; opsional **TensorFlow.js vision** | FR-11, NFR-10 |
+| AI routing | `backend/lib/routing.js` (JS, in-process) + **mesin Python FastAPI** `ai` (`:8001`) dengan timeout & fallback | FR-04/FR-13, NFR-02 |
 | GIS & rute | **Leaflet + OpenStreetMap** (client), **OSRM public** (rute jalan), haversine (fallback), **PostGIS** `ST_DWithin`/`ST_Distance` | FR-05, NFR-06 |
 | Foto bukti | multer (1 MB, magic-bytes) → Cloudinary (prod) / base64 (demo) | FR-07, NFR-08 |
 | Notifikasi | **WhatsApp CallMeBot** (demo) → Fonnte/Wablas (prod) + **nodemailer** SMTP + inbox in-app via `outbox_pesan` | FR-06 |
@@ -741,7 +741,7 @@ erDiagram
 | Sequence punya fragmen **LOOP** (klasifikasi, routing) dan **ALT** (semua) + **OPT** (§5.7) | ☑ |
 | Semua nama lama (FoodRescueAI) → **EcoMatch** | ☐ → **Fase 4 & 5** (grep nama lama di repo → 0 hasil) |
 | Semua link ke folder lama `manpro & frontend` → padanan lokal `food-rescue-ai` | ☑ |
-| Stack & teknologi sesuai repo (`package.json`, `docker-compose`, `ai_matching/`) | ☑ (§7) |
+| Stack & teknologi sesuai repo (`package.json`, `docker-compose`, `ai/`) | ☑ (§7) |
 | `schema_ecomatch.sql` + `ERD_EcoMatch.png` | ☐ → **Fase 2** |
 | Detail routing engine Python + `config/routing.json` | ☐ → **Fase 3** |
 | UML vektor (.drawio/.svg) + naskah uji 30 skenario | ☑ (**Fase 6**: `docs/arsitektur/UML_EcoMatch.drawio` 12 halaman + `docs/pengujian/Laporan_Evaluasi_System.md`) |
@@ -769,8 +769,8 @@ erDiagram
 - `Dokumen_Arsitektur_Sistem_EcoMatch_v2.0.md` / `.docx` — dokumen ini
 - `SKPL_EcoMatch_v2.0.docx` — spesifikasi kebutuhan perangkat lunak (Fase 1b)
 - `schema_ecomatch.sql`, `ERD_EcoMatch.png` — Fase 2
-- `config/routing.json`, `ai_matching/` — Fase 3
-- `server/` (routes, lib), `public/` (PWA) — Fase 4 & 5
+- `config/routing.json`, `ai/` — Fase 3
+- `backend/` (routes, lib), `frontend/` (PWA) — Fase 4 & 5
 - `docs/arsitektur/UML_EcoMatch.drawio` (12 halaman), `docs/pengujian/Laporan_Evaluasi_System.md`, generator `scripts/gen_uml_drawio.py` — Fase 6
 
 **C. Nama halaman UML Fase 6** (dihasilkan `scripts/gen_uml_drawio.py` dari mermaid §1/§5/§6 + 2 diagram turunan kode backend): `arsitektur-3tier-ecomatch`, `activity-unggah-klasifikasi-mbg`, `activity-routing-mbg-tps`, `activity-serah-terima-otp`, `activity-registrasi-eco-match`, `class-backend-eco-match`, `sequence-klasifikasi-sampah`, `sequence-routing-mbg-tps`, `sequence-serah-terima-otp`, `sequence-compliance`, `activity-pengolahan-tps`, `erd-eco-match`.

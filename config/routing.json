@@ -1,5 +1,5 @@
 {
-  "_keterangan": "Konfigurasi mesin AI Routing EcoMatch (FR-04/FR-13). Bobot final: jenis_cocok 0,35; kapasitas 0,25; jarak 0,25; urgensi 0,15 (Dokumen Arsitektur §5, laporan bagian 2.3). Kode mengambil nilai dari file ini, bukan hard-coded. Dipakai ai_matching/routing.py, ai_matching/klasifikasi.py, dan server/lib/routing.js (Fase 4).",
+  "_keterangan": "Konfigurasi mesin AI Routing EcoMatch (FR-04/FR-13). Bobot final: jenis_cocok 0,35; kapasitas 0,25; jarak 0,25; urgensi 0,15 (Dokumen Arsitektur §5, laporan bagian 2.3). Kode mengambil nilai dari file ini, bukan hard-coded. Dipakai ai/routing.py, ai/klasifikasi.py, dan backend/lib/routing.js (Fase 4).",
   "versi": "1.0",
   "bobot": {
     "jenis_cocok": 0.35,

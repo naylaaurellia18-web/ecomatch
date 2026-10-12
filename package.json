@@ -2,20 +2,20 @@
   "name": "ecomatch",
   "version": "1.0.0",
   "description": "EcoMatch — AI Routing Sampah Makanan MBG ke TPS Pengolah (Kota Madiun), PWA + WhatsApp/Email gateway",
-  "main": "server/index.js",
+  "main": "backend/index.js",
   "type": "commonjs",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "start": "node server/index.js",
-    "start:local": "node --env-file-if-exists=.env server/index.js",
-    "dev": "node --env-file-if-exists=.env --watch server/index.js",
-    "seed": "node server/seed.js",
-    "seed:local": "node --env-file-if-exists=.env server/seed.js",
-    "seed:accounts": "node server/seed.js --force --accounts",
-    "clean": "node server/seed.js --clean",
-    "start:ai": "python -m uvicorn main:app --host 127.0.0.1 --port 8001 --app-dir ai_matching",
+    "start": "node backend/index.js",
+    "start:local": "node --env-file-if-exists=.env backend/index.js",
+    "dev": "node --env-file-if-exists=.env --watch backend/index.js",
+    "seed": "node backend/seed.js",
+    "seed:local": "node --env-file-if-exists=.env backend/seed.js",
+    "seed:accounts": "node backend/seed.js --force --accounts",
+    "clean": "node backend/seed.js --clean",
+    "start:ai": "python -m uvicorn main:app --host 127.0.0.1 --port 8001 --app-dir ai",
     "test:e2e": "node e2e-test.js"
   },
   "dependencies": {

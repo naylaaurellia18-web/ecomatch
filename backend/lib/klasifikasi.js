@@ -1,6 +1,6 @@
 /**
  * Klasifikasi rule-based sampah makanan EcoMatch (FR-11, NFR-10) — padanan JS
- * dari ai_matching/klasifikasi.py. Kata kunci & ambang diambil dari
+ * dari ai/klasifikasi.py. Kata kunci & ambang diambil dari
  * config/routing.json (bukan hard-coded).
  *
  * keyakinan = n/(n+1) dengan n = jumlah kata kunci yang cocok; bila di bawah

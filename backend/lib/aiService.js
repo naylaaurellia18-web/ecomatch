@@ -3,8 +3,8 @@
  * "Python (modul AI Routing)". Endpoint: POST /v1/routing dan POST /v1/classify.
  *
  * Bila layanan tidak terjangkau / timeout (default 1,8 dtk, NFR-02) / respons
- * rusak -> mengembalikan null dan pemanggil (server/lib/routing.js,
- * server/lib/klasifikasi.js) jatuh ke mesin JavaScript lokal (fallback).
+ * rusak -> mengembalikan null dan pemanggil (backend/lib/routing.js,
+ * backend/lib/klasifikasi.js) jatuh ke mesin JavaScript lokal (fallback).
  */
 
 const AI_BASE = (process.env.AI_MATCHING_URL || 'http://127.0.0.1:8001').replace(/\/$/, '');
