@@ -12,6 +12,7 @@ Dibangun sesuai dokumen SKPL versi 2.0: **17 FR + 11 NFR**.
 |---|---|
 | Repositori Publik (GitHub) | https://github.com/naylaaurellia18-web/ecomatch |
 | Riwayat Pipeline CI/CD (GitHub Actions) | https://github.com/naylaaurellia18-web/ecomatch/actions |
+| Aplikasi Live (Vercel) | https://ecomatch-blond.vercel.app |
 | Arsip Food Rescue AI (versi asli sebelum rebrand) | https://github.com/naylaaurellia18-web/food-rescue-ai |
 
 > **CI/CD:** setiap push ke `main` → uji e2e + audit tab → auto-deploy backend ke Railway (service `food-rescue-ai`, butuh secret `RAILWAY_TOKEN`). Uptime monitor `GET /api/health` tiap 15 menit (`vars.PRODUCTION_URL`). Panduan lengkap: [`DEPLOY.md`](DEPLOY.md).

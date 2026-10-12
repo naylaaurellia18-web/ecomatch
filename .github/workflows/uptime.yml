@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Ping Vercel
         run: |
-          URL="${{ vars.PRODUCTION_URL || 'https://food-rescue-ai-blond.vercel.app' }}"
+          URL="${{ vars.PRODUCTION_URL || 'https://ecomatch-blond.vercel.app' }}"
           echo "GET $URL/api/health"
           code=$(curl -sS -o /tmp/health.json -w '%{http_code}' --max-time 30 "$URL/api/health" || echo 000)
           cat /tmp/health.json || true
