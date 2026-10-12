@@ -8173,8 +8173,8 @@
     }
   ],
   "kecepatan": {
-    "skenario_kecil_ms": 0.288,
-    "skenario_besar_detik": 0.207,
+    "skenario_kecil_ms": 0.3,
+    "skenario_besar_detik": 0.16,
     "spesifikasi_kecil": "6 sampah, 6 TPS, 3 kurir",
     "spesifikasi_besar": "50 sampah, 50 TPS, 20 kurir",
     "sla_detik": 3
