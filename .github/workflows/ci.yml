@@ -40,32 +40,6 @@ jobs:
           node tab-audit.js
           kill "$(cat server.pid)" || true
 
-  deploy-railway:
-    name: Deploy Backend ke Railway
-    needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    env:
-      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-
-      - name: Railway up
-        if: env.RAILWAY_TOKEN != ''
-        run: |
-          npm install -g @railway/cli
-          railway up --service food-rescue-ai --detach
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
-      - name: Token belum diatur
-        if: env.RAILWAY_TOKEN == ''
-        run: echo "::notice::Tambahkan secret RAILWAY_TOKEN di Settings → Secrets → Actions agar auto-deploy Railway aktif."
-
   deploy-vercel:
     name: Deploy ke Vercel
     needs: test
