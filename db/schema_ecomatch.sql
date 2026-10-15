@@ -2,7 +2,7 @@
 -- EcoMatch — SKEMA DATABASE FINAL (PostgreSQL + PostGIS)
 -- Sumber: SKPL_EcoMatch_v2.0 (PDM 6.1–6.5) + Dokumen_Arsitektur_Sistem
 --         EcoMatch_v2.0 §4 (pemetaan FR-01..17 -> tabel) + ERD_EcoMatch.png
--- Dipakai untuk deploy baru. Migrasi dari skema FoodRescueAI lama ada di
+-- Dipakai untuk deploy baru. Migrasi dari skema versi lama ada di
 -- bagian §MIGRAASI di bawah (dijalankan backend/db.js saat init).
 -- Dialek pengembangan lokal (SQLite/libSQL) memakai padanan di
 -- backend/db.js -> SCHEMA_ECOMATCH_STATEMENTS.
@@ -270,7 +270,7 @@ VALUES ('KOTA_MADIUN', 'Kebijakan Pengelolaan Sampah Makanan MBG Kota Madiun', '
 ON CONFLICT DO NOTHING;
 
 -- ==========================================================================
--- §MIGRAASI — FoodRescueAI lama -> EcoMatch (dijalankan backend/db.js init)
+-- §MIGRAASI — versi lama -> EcoMatch (dijalankan backend/db.js init)
 -- ==========================================================================
 -- (a) Role user:
 --     UPDATE "user" SET role = CASE role

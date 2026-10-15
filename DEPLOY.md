@@ -9,7 +9,7 @@
 | **Render** | alternatif backend | `render.yaml` (Node free plan, healthcheck `/api/health`) |
 | **Vercel** | fullstack serverless | `vercel.json` + `api/index.js` + database Turso/libSQL |
 
-**Prioritas database:** `DATABASE_URL` (PostgreSQL + PostGIS) → `TURSO_DATABASE_URL` (libSQL) → SQLite lokal `data/food_rescue.db`.
+**Prioritas database:** `DATABASE_URL` (PostgreSQL + PostGIS) → `TURSO_DATABASE_URL` (libSQL) → SQLite lokal `data/ecomatch.db`.
 
 ---
 
@@ -58,7 +58,7 @@ Uji end-to-end (server sedang jalan): `npm run test:e2e` · `node tab-audit.js`
 
 | Key | Fungsi |
 |-----|--------|
-| `DATABASE_URL` | PostgreSQL + PostGIS (contoh Docker: `postgresql://postgres:foodrescue@127.0.0.1:5433/food_rescue`) |
+| `DATABASE_URL` | PostgreSQL + PostGIS (contoh Docker: `postgresql://postgres:ecomatch@127.0.0.1:5433/ecomatch`) |
 | `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | libSQL cloud (opsional) |
 | `AI_MATCHING_URL` | layanan Python (`http://127.0.0.1:8001`) — kosong/gagal → mesin JS |
 | `ROUTE_PROVIDER` | `osrm` (default) atau `haversine` |
@@ -165,7 +165,7 @@ Dashboard admin → menu **Pesan Terkirim**: `sent` = nyata, `simulated` = demo 
 | Rute OSRM timeout | Normal saat luring → otomatis fallback haversine (`routing.fallback` di `/api/health`) |
 | Tabel tidak ada | Biarkan — app auto-create saat boot |
 | Foto terlalu besar | Limit upload 1 MB; opsional `CLOUDINARY_URL` |
-| Database lokal korup | Hapus `data/food_rescue.db*` lalu seed ulang |
+| Database lokal korup | Hapus `data/ecomatch.db*` lalu seed ulang |
 
 ---
 

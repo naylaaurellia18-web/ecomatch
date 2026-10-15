@@ -1,4 +1,4 @@
-const CACHE = 'ecomatch-v1';
+const CACHE = 'ecomatch-v2';
 const PRECACHE = [
   '/',
   '/index.html',
@@ -42,17 +42,20 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(request).then((cached) => {
-      const network = fetch(request)
-        .then((res) => {
-          if (res && res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE).then((cache) => cache.put(request, copy));
-          }
-          return res;
+    fetch(request)
+      .then((res) => {
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((cache) => cache.put(request, copy));
+        }
+        return res;
+      })
+      .catch(() =>
+        caches.match(request).then((cached) => {
+          if (cached) return cached;
+          if (request.mode === 'navigate') return caches.match('/index.html');
+          return Response.error();
         })
-        .catch(() => cached);
-      return cached || network;
-    })
+      )
   );
 });

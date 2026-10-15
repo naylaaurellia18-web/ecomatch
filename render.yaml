@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: food-rescue-ai
+    name: ecomatch
     runtime: node
     plan: free
     buildCommand: npm install

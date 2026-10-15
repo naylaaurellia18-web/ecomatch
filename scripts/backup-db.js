@@ -34,7 +34,7 @@ function stamp() {
 
 async function dumpSqliteLocal() {
   const { DatabaseSync } = require('node:sqlite');
-  const dbPath = path.join(__dirname, '..', 'data', 'food_rescue.db');
+  const dbPath = path.join(__dirname, '..', 'data', 'ecomatch.db');
   if (!fs.existsSync(dbPath)) throw new Error(`DB lokal tidak ada: ${dbPath}`);
   const db = new DatabaseSync(dbPath, { readOnly: true });
   const dump = {};
@@ -94,7 +94,7 @@ function dumpToSql(dump) {
   console.log('Backup OK:', base + '.json');
   console.log(counts);
   if (cloud) console.log('Sumber: Turso/libSQL (env)');
-  else console.log('Sumber: SQLite lokal data/food_rescue.db');
+  else console.log('Sumber: SQLite lokal data/ecomatch.db');
 })().catch((e) => {
   console.error('Backup gagal:', e.message);
   process.exit(1);

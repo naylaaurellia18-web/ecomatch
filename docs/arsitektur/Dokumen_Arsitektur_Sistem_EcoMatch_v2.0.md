@@ -1,7 +1,7 @@
 # DOKUMEN ARSITEKTUR SISTEM — EcoMatch
 ### Platform AI Routing Sampah Makanan MBG ke TPS Pengolah (Studi Kasus: Kota Madiun)
-**Tagline:** *"AI pilih TPS, sampah terolah."* · **Versi:** 2.0 (refactor dari Dokumen Arsitektur Sistem FoodRescueAI v1.1)
-**Dasar:** SKPL EcoMatch (17 FR + 11 NFR) · **Kode:** `C:\Users\nuy07\food-rescue-ai`
+**Tagline:** *"AI pilih TPS, sampah terolah."* · **Versi:** 2.0 (refactor dari Dokumen Arsitektur Sistem versi lama v1.1)
+**Dasar:** SKPL EcoMatch (17 FR + 11 NFR) · **Kode:** `C:\Users\nuy07\ecomatch`
 
 ---
 
@@ -701,7 +701,7 @@ erDiagram
 |-------|-----------|----------------------------------|
 | Runtime backend | **Node.js 24** (`engines: >=20`) | NFR-02, NFR-04 |
 | Web framework | **Express 4** + helmet + cors + compression + express-rate-limit | NFR-01, NFR-04 |
-| Basis data utama | **PostgreSQL 16 + PostGIS 3.4** (Docker `food-rescue-postgis`, port 5433) | FR-17, NFR-06, NFR-09 |
+| Basis data utama | **PostgreSQL 16 + PostGIS 3.4** (Docker `ecomatch-postgis`, port 5433) | FR-17, NFR-06, NFR-09 |
 | Basis data fallback/demo | libSQL/TurSQL (`file:local.db`) — driver lintas-dialek di `backend/db.js` | portabilitas (NFR-07) |
 | Basis data driver | `pg` (PG) + `@libsql/client` (SQLite) — transisi mulus | transisi nol waktu henti |
 | Otorisasi | **JWT HS256** (12 jam) + **bcryptjs** + RBAC `donor_mbg\|tps_pengolah\|kurir\|admin` | FR-01, NFR-01 |
@@ -718,7 +718,7 @@ erDiagram
 
 ### 7.1 Mengetahui dan keputusan perubahan (basis v1.1 → v2.0)
 
-| # | v1.1 (FoodRescueAI) | v2.0 (EcoMatch) | Keputusan |
+| # | v1.1 (versi lama) | v2.0 (EcoMatch) | Keputusan |
 |---|---------------------|------------------|-----------|
 | 1 | Donor → penerima surplus makanan (manusia), TPS `lokasi_makanan` | Donor **MBG** → **TPS Pengolah** yang masih bisa menerima & mengolah; TPS biasa dilarang terima sampah organik | K-11 |
 | 2 | Rekomendasi `penyaluran` surplus + impact metrics | **Klasifikasi + AI Routing** sampah ke TPS terbaik (jenis, kapasitas, jarak, urgensi) | FR-11, FR-13 |
@@ -739,8 +739,8 @@ erDiagram
 | Keputusan K-11 … K-15 | ☑ (§4) |
 | Diagram: 3 activity (routing, OTP, registrasi), 1 class, 3 sequence (klasifikasi, routing, OTP), ERD | ☑ (§5, §6) |
 | Sequence punya fragmen **LOOP** (klasifikasi, routing) dan **ALT** (semua) + **OPT** (§5.7) | ☑ |
-| Semua nama lama (FoodRescueAI) → **EcoMatch** | ☐ → **Fase 4 & 5** (grep nama lama di repo → 0 hasil) |
-| Semua link ke folder lama `manpro & frontend` → padanan lokal `food-rescue-ai` | ☑ |
+| Semua nama lama → **EcoMatch** | ☑ (grep nama lama di repo → 0 hasil) |
+| Semua link ke folder lama `manpro & frontend` → padanan lokal `ecomatch` | ☑ |
 | Stack & teknologi sesuai repo (`package.json`, `docker-compose`, `ai/`) | ☑ (§7) |
 | `schema_ecomatch.sql` + `ERD_EcoMatch.png` | ☐ → **Fase 2** |
 | Detail routing engine Python + `config/routing.json` | ☐ → **Fase 3** |
@@ -777,4 +777,4 @@ erDiagram
 
 ---
 
-*Dokumen Arsitektur Sistem EcoMatch v2.0 — disusun ulang dari Dokumen Arsitektur Backend FoodRescueAI v1.1 (`Arsitektur_Backend_FoodRescueAI.md`) sebagai bagian dari Fase 1 refactor total ke proyek **EcoMatch — AI Routing Sampah Makanan MBG ke TPS Pengolah (Kota Madiun)**.*
+*Dokumen Arsitektur Sistem EcoMatch v2.0 — disusun ulang dari Dokumen Arsitektur Backend versi lama v1.1 sebagai bagian dari Fase 1 refactor total ke proyek **EcoMatch — AI Routing Sampah Makanan MBG ke TPS Pengolah (Kota Madiun)**.*

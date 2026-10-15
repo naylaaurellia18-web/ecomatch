@@ -1,6 +1,6 @@
 const API = '';
-let token = localStorage.getItem('frai_token') || '';
-let me = JSON.parse(localStorage.getItem('frai_user') || 'null');
+let token = localStorage.getItem('ecomatch_token') || '';
+let me = JSON.parse(localStorage.getItem('ecomatch_user') || 'null');
 let currentTab = '';
 let gisMap = null;
 let gisLayer = null;
@@ -167,12 +167,12 @@ function icon(name, size = 16) {
 }
 
 function getTheme() {
-  return localStorage.getItem('frai_theme') === 'dark' ? 'dark' : 'light';
+  return localStorage.getItem('ecomatch_theme') === 'dark' ? 'dark' : 'light';
 }
 
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('frai_theme', theme);
+  localStorage.setItem('ecomatch_theme', theme);
   const isDark = theme === 'dark';
   const trackHtml = `
     <span class="switch-track" aria-hidden="true">
@@ -448,8 +448,8 @@ function bindSopToggle(root = document) {
 
 function logout() {
   try {
-    localStorage.removeItem('frai_token');
-    localStorage.removeItem('frai_user');
+  localStorage.removeItem('ecomatch_token');
+  localStorage.removeItem('ecomatch_user');
   } catch (_) {}
   token = '';
   me = null;
@@ -540,12 +540,12 @@ function setTab(t) {
 }
 
 function openSidebar() {
-  document.getElementById('sidebar').classList.add('open');
-  document.getElementById('sidebarOverlay').classList.add('show');
+  document.getElementById('nav')?.classList.add('open');
+  document.getElementById('sidebarOverlay')?.classList.add('show');
 }
 function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebarOverlay').classList.remove('show');
+  document.getElementById('nav')?.classList.remove('open');
+  document.getElementById('sidebarOverlay')?.classList.remove('show');
 }
 function destroyMap() {
   if (gisMap) {
@@ -631,6 +631,9 @@ async function renderView() {
   } catch (e) {
     view.innerHTML = `<div class="empty"><div class="empty-title">Terjadi kesalahan</div>${esc(e.message)}</div>`;
   }
+  view.classList.remove('view-enter');
+  void view.offsetWidth;
+  view.classList.add('view-enter');
 }
 
 function formDataToObject(fd) {
@@ -1018,8 +1021,8 @@ function bindAuth() {
       });
       token = res.token;
       me = res.user;
-      localStorage.setItem('frai_token', token);
-      localStorage.setItem('frai_user', JSON.stringify(me));
+  localStorage.setItem('ecomatch_token', token);
+  localStorage.setItem('ecomatch_user', JSON.stringify(me));
       if (me.status === 'menunggu') toast('Akun belum diverifikasi admin', 'error');
       else toast(`Selamat datang, ${me.nama}`);
       currentTab = '';

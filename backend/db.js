@@ -3,7 +3,7 @@ const fs = require('node:fs');
 
 /**
  * Skema database mengikuti SKPL_EcoMatch_v2.0 (PDM Tabel 6.1–6.5) — refactoring
- * FoodRescueAI -> EcoMatch. Nama tabel/kolom/enum inti = nama SKPL; sisanya
+ * versi lama -> EcoMatch. Nama tabel/kolom/enum inti = nama SKPL; sisanya
  * ekstensi (dokumentasikan di README). Skema final PostgreSQL (deploy baru):
  * db/schema_ecomatch.sql.
  *
@@ -13,7 +13,7 @@ const fs = require('node:fs');
  * SQL di routes ditulis gaya SQLite; penerjemahan ke PostgreSQL (? -> $n, datetime('now'),
  * tabel "user", tipe INTEGER/REAL, RETURNING id) dilakukan sekali di lapisan driver ini.
  *
- * Migrasi cutover (Fase 4): cutoverEcoMatch() mengubah skema FoodRescueAI lama
+ * Migrasi cutover (Fase 4): cutoverEcoMatch() mengubah skema versi lama
  * (role donor/penerima, tabel surplus_makanan/kebutuhan_pangan, alokasi lama)
  * menjadi skema EcoMatch (role donor_mbg/tps_pengolah, sampah_makanan,
  * tps_pengolah, alokasi final). Idempoten — dilewati bila sudah skema final.
@@ -597,7 +597,7 @@ async function sqlTableDdl(name) {
 }
 
 // ---------------------------------------------------------------------------
-// Migrasi cutover FoodRescueAI -> EcoMatch (Fase 4) — idempoten per tahap
+// Migrasi cutover skema lama -> EcoMatch (Fase 4) — idempoten per tahap
 // ---------------------------------------------------------------------------
 async function cutoverPg() {
   const client = await pgPool.connect();
@@ -942,7 +942,7 @@ async function init() {
     const { DatabaseSync } = require('node:sqlite');
     const dataDir = path.join(__dirname, '..', 'data');
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-    localDb = new DatabaseSync(path.join(dataDir, 'food_rescue.db'));
+    localDb = new DatabaseSync(path.join(dataDir, 'ecomatch.db'));
     localDb.exec('PRAGMA foreign_keys = ON;');
     localDb.exec('PRAGMA journal_mode = WAL;');
     const runOne = async (sql) => ({ rows: localDb.prepare(sql).all(), rowsAffected: 0 });

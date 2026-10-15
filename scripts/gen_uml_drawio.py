@@ -16,8 +16,8 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-DOC = r'C:\Users\nuy07\food-rescue-ai\docs\arsitektur\Dokumen_Arsitektur_Sistem_EcoMatch_v2.0.md'
-OUT = r'C:\Users\nuy07\food-rescue-ai\docs\arsitektur\UML_EcoMatch.drawio'
+DOC = r'C:\Users\nuy07\ecomatch\docs\arsitektur\Dokumen_Arsitektur_Sistem_EcoMatch_v2.0.md'
+OUT = r'C:\Users\nuy07\ecomatch\docs\arsitektur\UML_EcoMatch.drawio'
 
 SRC_COMPLIANCE = '''sequenceDiagram
     autonumber
