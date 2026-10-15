@@ -7,9 +7,17 @@
       "config": {
         "includeFiles": ["frontend/**"]
       }
+    },
+    {
+      "src": "api/ai.py",
+      "use": "@vercel/python",
+      "config": {
+        "includeFiles": ["ai/**", "config/**", "requirements.txt"]
+      }
     }
   ],
   "routes": [
+    { "src": "/api/ai(.*)", "dest": "/api/ai.py" },
     { "src": "/(.*)", "dest": "/api/index.js" }
   ]
 }

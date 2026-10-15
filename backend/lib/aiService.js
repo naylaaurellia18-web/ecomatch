@@ -7,7 +7,15 @@
  * backend/lib/klasifikasi.js) jatuh ke mesin JavaScript lokal (fallback).
  */
 
-const AI_BASE = (process.env.AI_MATCHING_URL || 'http://127.0.0.1:8001').replace(/\/$/, '');
+function defaultAiBase() {
+  // Di Vercel: panggil fungsi Python serverless pada project yang sama (/api/ai).
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/api/ai`;
+  }
+  return 'http://127.0.0.1:8001';
+}
+
+const AI_BASE = (process.env.AI_MATCHING_URL || defaultAiBase()).replace(/\/$/, '');
 const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 1800);
 
 const status = {
