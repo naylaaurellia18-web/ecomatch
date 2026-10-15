@@ -400,6 +400,49 @@ function wasteForm(berat = '18.5', foto = png) {
   await login(pending2.email, 'baru456');
   console.log('✓ Lupa sandi: kode dari outbox → reset → login sandi baru OK');
 
+  // --- Ganti kata sandi sendiri (pengguna login) - FR baru
+  const cpEmail = `ganti${Date.now()}@ecomatch.id`;
+  await api('/api/auth/register', {
+    method: 'POST',
+    body: { nama: 'Tes Ganti Sandi', email: cpEmail, password: 'awal123', role: 'donor_mbg' },
+  });
+  const usersCp = await api('/api/admin/users', { token: admin });
+  const cpUser = usersCp.find((u) => u.email === cpEmail);
+  if (cpUser) {
+    await api(`/api/admin/users/${cpUser.id_user}/status`, {
+      method: 'PATCH',
+      token: admin,
+      body: { status: 'aktif' },
+    });
+  }
+  const cpToken = await login(cpEmail, 'awal123');
+  await expectError('Ganti sandi: kata sandi lama salah ditolak', 400, () =>
+    api('/api/auth/password', {
+      method: 'POST',
+      token: cpToken,
+      body: { password_lama: 'salahxxx', password_baru: 'baru789' },
+    })
+  );
+  await expectError('Ganti sandi: kata sandi baru terlalu pendek', 400, () =>
+    api('/api/auth/password', {
+      method: 'POST',
+      token: cpToken,
+      body: { password_lama: 'awal123', password_baru: '123' },
+    })
+  );
+  await expectError('Ganti sandi: butuh login (tanpa token)', 401, () =>
+    api('/api/auth/password', { method: 'POST', body: { password_lama: 'awal123', password_baru: 'baru789' } })
+  );
+  const cpRes = await api('/api/auth/password', {
+    method: 'POST',
+    token: cpToken,
+    body: { password_lama: 'awal123', password_baru: 'baru789' },
+  });
+  if (!/berhasil/i.test(cpRes.message || '')) throw new Error('Respons ganti sandi tidak sesuai');
+  await login(cpEmail, 'baru789');
+  await expectError('Ganti sandi: sandi lama tak berlaku lagi', 401, () => login(cpEmail, 'awal123'));
+  console.log('✓ Ganti sandi sendiri: verifikasi sandi lama → ubah → login sandi baru');
+
   // --- Rate limit login
   const rlEmail = `rl${Date.now()}@x.id`;
   let rateLimited = false;

@@ -213,6 +213,34 @@ router.post('/reset-password', async (req, res, next) => {
   }
 });
 
+// Ganti kata sandi sendiri (pengguna login) — verifikasi kata sandi lama
+router.post('/password', authenticate, async (req, res, next) => {
+  try {
+    const { password_lama, password_baru } = req.body || {};
+    if (!password_lama || !password_baru) {
+      return res.status(400).json({ error: 'Kata sandi lama dan kata sandi baru wajib diisi' });
+    }
+    if (String(password_baru).length < 6 || String(password_baru).length > 128) {
+      return res.status(400).json({ error: 'Kata sandi baru minimal 6, maksimal 128 karakter' });
+    }
+
+    const user = await db.get('SELECT id_user, password FROM user WHERE id_user = ?', [req.user.id]);
+    if (!user) return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
+    if (!verifyPassword(password_lama, user.password)) {
+      return res.status(400).json({ error: 'Kata sandi lama salah' });
+    }
+    if (verifyPassword(password_baru, user.password)) {
+      return res.status(400).json({ error: 'Kata sandi baru tidak boleh sama dengan kata sandi lama' });
+    }
+
+    await db.run('UPDATE user SET password = ? WHERE id_user = ?', [hashPassword(password_baru), user.id_user]);
+    await audit(user.id_user, 'PASSWORD_CHANGE', 'user', user.id_user);
+    res.json({ message: 'Kata sandi berhasil diubah' });
+  } catch (e) {
+    next(e);
+  }
+});
+
 router.get('/me', authenticate, async (req, res, next) => {
   try {
     const user = await db.get(

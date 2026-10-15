@@ -27,6 +27,7 @@ const tabs = {
     ['Pesan Terkirim', '/api/admin/outbox'],
     ['Catatan Audit', '/api/admin/logs'],
     ['Notifikasi', '/api/notifications'],
+    ['Ganti Sandi', '/api/auth/me'],
     ['Regulasi', '/api/admin/regulations'],
     ['Kepatuhan', '/api/compliance/summary'],
   ],
@@ -36,6 +37,7 @@ const tabs = {
     ['Poin & Insentif', '/api/mbg/motivation'],
     ['Peta GIS', '/api/geo'],
     ['Notifikasi', '/api/notifications'],
+    ['Ganti Sandi', '/api/auth/me'],
   ],
   recipient: [
     ['Profil TPS', '/api/tps/me'],
@@ -43,11 +45,13 @@ const tabs = {
     ['Konfirmasi OTP', '/api/routing'],
     ['Peta GIS', '/api/geo'],
     ['Notifikasi', '/api/notifications'],
+    ['Ganti Sandi', '/api/auth/me'],
   ],
   courier: [
     ['Tugas Kurir', '/api/routing'],
     ['Peta GIS', '/api/geo'],
     ['Notifikasi', '/api/notifications'],
+    ['Ganti Sandi', '/api/auth/me'],
   ],
 };
 

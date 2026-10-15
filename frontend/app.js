@@ -469,6 +469,7 @@ const NAV = {
     ['outbox', 'message', 'Pesan Terkirim'],
     ['logs', 'file', 'Catatan Audit'],
     ['notif', 'bell', 'Notifikasi'],
+    ['akun', 'key', 'Ganti Sandi'],
   ],
   donor_mbg: [
     ['donor', 'package', 'Catat Sampah'],
@@ -477,17 +478,20 @@ const NAV = {
     ['donor-points', 'award', 'Poin & Insentif'],
     ['gis', 'map', 'Peta GIS'],
     ['notif', 'bell', 'Notifikasi'],
+    ['akun', 'key', 'Ganti Sandi'],
   ],
   tps_pengolah: [
     ['recipient', 'heart', 'Profil TPS'],
     ['recipient-matches', 'key', 'Konfirmasi OTP'],
     ['gis', 'map', 'Peta GIS'],
     ['notif', 'bell', 'Notifikasi'],
+    ['akun', 'key', 'Ganti Sandi'],
   ],
   kurir: [
     ['courier', 'truck', 'Tugas Kurir'],
     ['gis', 'map', 'Peta GIS'],
     ['notif', 'bell', 'Notifikasi'],
+    ['akun', 'key', 'Ganti Sandi'],
   ],
 };
 
@@ -506,6 +510,7 @@ const TAB_TITLES = {
   recipient: 'Profil TPS',
   'recipient-matches': 'Konfirmasi OTP',
   courier: 'Tugas Kurir',
+  akun: 'Ganti Kata Sandi',
 };
 
 function renderNav() {
@@ -614,6 +619,7 @@ async function renderView() {
       recipient: renderTpsProfile,
       'recipient-matches': renderRecipientMatches,
       courier: renderCourier,
+      akun: renderAkun,
     };
     const fn = renderers[currentTab];
     view.innerHTML = fn ? await fn() : '<div class="empty">Halaman tidak ditemukan</div>';
@@ -645,6 +651,13 @@ function bindView() {
     f.addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const fd = new FormData(f);
+      if (fd.has('konfirmasi_sandi')) {
+        if (fd.get('konfirmasi_sandi') !== fd.get('password_baru')) {
+          toast('Konfirmasi kata sandi baru tidak cocok', 'error');
+          return;
+        }
+        fd.delete('konfirmasi_sandi');
+      }
       if (fd.has('location')) {
         if (!fd.get('lat')) fd.delete('lat');
         if (!fd.get('lng')) fd.delete('lng');
@@ -1727,6 +1740,37 @@ async function renderCourier() {
       </tbody>
     </table>
     </div>`}
+  </div>`;
+}
+
+async function renderAkun() {
+  const nama = me?.nama || '';
+  const email = me?.email || '';
+  return `
+  ${pageHead('Keamanan Akun', 'Ubah kata sandi akun Anda — kata sandi lama diverifikasi lebih dulu')}
+  <div class="card">
+    <div class="card-head"><h2>Ganti kata sandi</h2></div>
+    <form data-action="1" data-endpoint="/api/auth/password">
+      <label>Kata sandi saat ini</label>
+      <input name="password_lama" type="password" required autocomplete="current-password" />
+      <div class="grid grid-2">
+        <div>
+          <label>Kata sandi baru</label>
+          <input name="password_baru" type="password" minlength="6" required autocomplete="new-password" placeholder="minimal 6 karakter" />
+        </div>
+        <div>
+          <label>Ulangi kata sandi baru</label>
+          <input name="konfirmasi_sandi" type="password" minlength="6" required autocomplete="new-password" placeholder="ulangi kata sandi baru" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn" type="submit">${icon('key', 15)} Simpan kata sandi</button>
+      </div>
+    </form>
+  </div>
+  <div class="card">
+    <div class="card-head"><h2>Info akun</h2></div>
+    <p class="muted" style="font-size:13px">Masuk sebagai <b>${esc(nama)}</b> — ${esc(email)}</p>
   </div>`;
 }
 
