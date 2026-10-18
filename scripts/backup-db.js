@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- * Backup database — lokal (SQLite) atau Turso/libSQL (via env).
+ * Backup database — PostgreSQL (produksi), Turso/libSQL, atau SQLite lokal.
  *
  * Lokal:   node scripts/backup-db.js
+ * Postgres: DATABASE_URL=postgresql://... node scripts/backup-db.js
  * Turso:   TURSO_DATABASE_URL=... TURSO_AUTH_TOKEN=... node scripts/backup-db.js
  *
  * Output: backups/ecomatch-<timestamp>.json (+ .sql ringkas untuk restore manual)
@@ -49,6 +50,24 @@ async function dumpSqliteLocal() {
   return dump;
 }
 
+async function dumpPg() {
+  const { Pool } = require('pg');
+  const url = process.env.DATABASE_URL || process.env.PG_DATABASE_URL;
+  if (!url) throw new Error('DATABASE_URL belum di-set');
+  const pool = new Pool({ connectionString: url, max: 2 });
+  const dump = {};
+  for (const t of TABLES) {
+    try {
+      const r = await pool.query(`SELECT * FROM "${t}"`);
+      dump[t] = r.rows;
+    } catch {
+      dump[t] = [];
+    }
+  }
+  await pool.end();
+  return dump;
+}
+
 async function dumpCloud() {
   const { createClient } = require('@libsql/client');
   const url = process.env.TURSO_DATABASE_URL || process.env.LIBSQL_DATABASE_URL;
@@ -76,7 +95,7 @@ function dumpToSql(dump) {
     const cols = Object.keys(rows[0]);
     for (const row of rows) {
       lines.push(
-        `INSERT INTO ${table} (${cols.join(', ')}) VALUES (${cols.map((c) => esc(row[c])).join(', ')});`
+        `INSERT INTO "${table}" (${cols.join(', ')}) VALUES (${cols.map((c) => esc(row[c])).join(', ')});`
       );
     }
   }
@@ -85,15 +104,17 @@ function dumpToSql(dump) {
 
 (async () => {
   fs.mkdirSync(OUT_DIR, { recursive: true });
+  const pg = Boolean(process.env.DATABASE_URL || process.env.PG_DATABASE_URL);
   const cloud = Boolean(process.env.TURSO_DATABASE_URL || process.env.LIBSQL_DATABASE_URL);
-  const dump = cloud ? await dumpCloud() : await dumpSqliteLocal();
+  const dump = pg ? await dumpPg() : cloud ? await dumpCloud() : await dumpSqliteLocal();
   const base = path.join(OUT_DIR, `ecomatch-${stamp()}`);
   fs.writeFileSync(base + '.json', JSON.stringify(dump, null, 2));
   fs.writeFileSync(base + '.sql', dumpToSql(dump));
   const counts = Object.fromEntries(Object.entries(dump).map(([k, v]) => [k, v.length]));
   console.log('Backup OK:', base + '.json');
   console.log(counts);
-  if (cloud) console.log('Sumber: Turso/libSQL (env)');
+  if (pg) console.log('Sumber: PostgreSQL (DATABASE_URL)');
+  else if (cloud) console.log('Sumber: Turso/libSQL (env)');
   else console.log('Sumber: SQLite lokal data/ecomatch.db');
 })().catch((e) => {
   console.error('Backup gagal:', e.message);

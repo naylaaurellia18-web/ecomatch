@@ -28,8 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.schedule == '17 2 * * *' || github.event_name == 'workflow_dispatch'
     env:
-      TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
-      TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,15 +37,15 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Dump database
-        if: env.TURSO_DATABASE_URL != ''
+        if: env.DATABASE_URL != ''
         run: node scripts/backup-db.js
       - name: Simpan artifact
-        if: env.TURSO_DATABASE_URL != ''
+        if: env.DATABASE_URL != ''
         uses: actions/upload-artifact@v4
         with:
           name: db-backup
           path: backups/
           retention-days: 14
-      - name: Belum ada secret Turso
-        if: env.TURSO_DATABASE_URL == ''
-        run: echo "::notice::Tambahkan secrets TURSO_DATABASE_URL & TURSO_AUTH_TOKEN agar backup harian aktif."
+      - name: Belum ada secret DATABASE_URL
+        if: env.DATABASE_URL == ''
+        run: echo "::notice::Tambahkan secret DATABASE_URL (PostgreSQL/Neon) agar backup harian aktif."

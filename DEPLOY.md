@@ -5,7 +5,7 @@
 | Opsi | Cocok untuk | Konfigurasi |
 |------|-------------|-------------|
 | **Lokal (dev/demo)** | pengembangan & demo TA | `docker-compose.yml` (PostGIS :5433) + `npm run start:local` |
-| **Vercel (produksi)** | fullstack serverless — live sekarang | `vercel.json` + `api/index.js` + `api/ai.py` + database Turso/libSQL |
+| **Vercel (produksi)** | fullstack serverless — live sekarang | `vercel.json` + `api/index.js` + `api/ai.py` + database PostgreSQL + PostGIS (Neon) |
 | **PostgreSQL + PostGIS** | sesuai SKPL (standalone/managed) | `DATABASE_URL` (Docker lokal atau Postgres terkelola) |
 
 **Prioritas database:** `DATABASE_URL` (PostgreSQL + PostGIS) → `TURSO_DATABASE_URL` (libSQL) → SQLite lokal `data/ecomatch.db`.
@@ -77,24 +77,23 @@ Uji end-to-end (server sedang jalan): `npm run test:e2e` · `node tab-audit.js`
 
 ---
 
-## 3. Deploy ke Vercel (produksi)
+## 3. Deploy ke Vercel (produksi) — PostgreSQL + PostGIS (Neon)
 
-1. Buat database **Turso** (https://app.turso.tech): `turso db create ecomatch` → catat URL + auth token
+1. Buat database **PostgreSQL + PostGIS** gratis di **Neon** (https://neon.tech): **Create project** → catat **pooled connection string** (host berisi `-pooler`, akhiri `?sslmode=require`)
 2. Buka **https://vercel.com** → Add New → Project → import repo (deteksi `vercel.json`)
 3. Isi environment variables:
 
    | Key | Nilai |
    |-----|--------|
-   | `TURSO_DATABASE_URL` | URL Turso |
-   | `TURSO_AUTH_TOKEN` | token Turso |
+   | `DATABASE_URL` | pooled connection string Neon (`?sslmode=require`) |
    | `JWT_SECRET` | **wajib ≥32 karakter acak** |
    | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | admin pertama (saat DB kosong) |
 
-4. **Build & Deploy** → dapat URL `https://<nama>-xxx.vercel.app`
-5. Verifikasi: `GET /api/health` → `db.dialek = "libsql"`
+4. **Build & Deploy** → URL `https://<nama>-xxx.vercel.app`; saat boot pertama `db.js` otomatis menjalankan `CREATE EXTENSION IF NOT EXISTS postgis`
+5. Verifikasi: `GET /api/health` → `db.dialek = "postgresql"`, `db.postgis = true`
 6. **Auto-deploy:** setiap push ke `main` (setelah uji e2e lulus di `ci.yml`) memicu Vercel Deploy Hook (secret `VERCEL_DEPLOY_HOOK`).
 
-> Catatan: mode Turso/SQLite adalah fallback tanpa ekstensi PostGIS — fitur geospasial memakai fallback haversine. Untuk fungsi penuh (SKPL: PostgreSQL + PostGIS), set `DATABASE_URL` ke PostgreSQL ber-PostGIS (Docker lokal atau Postgres terkelola); `db.js` akan otomatis menjalankan `CREATE EXTENSION IF NOT EXISTS postgis`.
+> Fallback: bila `DATABASE_URL` kosong, app memakai Turso/libSQL (`TURSO_*`) atau SQLite lokal — namun PostGIS & query spasial hanya aktif di mode PostgreSQL.
 
 ---
 
@@ -105,7 +104,7 @@ Uji end-to-end (server sedang jalan): `npm run test:e2e` · `node tab-audit.js`
 | Bersihkan data transaksi, akun tetap | `npm run clean` |
 | Reset total + akun demo | `npm run seed:local -- --force --full` |
 | Reset total + akun login saja | `npm run seed:local -- --force --accounts` |
-| Backup SQLite lokal / Turso | `node scripts/backup-db.js` |
+| Backup SQLite lokal / Turso / PostgreSQL | `node scripts/backup-db.js` |
 | Backup PostgreSQL | `pg_dump "$DATABASE_URL" > backup.sql` |
 | Reset Turso via SQL | [`backend/reset-turso.sql`](backend/reset-turso.sql) → SQL console Turso → Run → redeploy |
 
