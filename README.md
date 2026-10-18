@@ -176,7 +176,7 @@ ecomatch/
 | E2E | `npm run test:e2e` | 45 pemeriksaan: auth→waste→routing→deliveries→OTP→pengolahan→compliance |
 | Audit tab | `node tab-audit.js` | 23 pemeriksaan API per tab & peran |
 | Evaluasi | `node scripts/evaluasi-30-skenario.js` | 30 skenario vs baseline + sensitivitas + kecepatan |
-| CI | `.github/workflows/ci.yml` | seed → server → e2e + audit → auto-deploy Railway |
+| CI | `.github/workflows/ci.yml` | seed → server → e2e + audit → auto-deploy Vercel |
 | Uptime | `.github/workflows/uptime.yml` | `GET /api/health` tiap 15 menit |
 
 ## Keamanan (Ringkas)
@@ -204,4 +204,4 @@ ecomatch/
 | [`docs/arsitektur/UML_EcoMatch.drawio`](docs/arsitektur/UML_EcoMatch.drawio) | 12 diagram (activity, sequence, class, ERD, arsitektur) — buka di draw.io |
 | [`docs/Laporan_Project_EcoMatch_v1.0.docx`](docs/Laporan_Project_EcoMatch_v1.0.docx) | Laporan project (docx) — Bab 1–4, evaluasi 30 skenario |
 | [`docs/pengujian/Laporan_Evaluasi_System.md`](docs/pengujian/Laporan_Evaluasi_System.md) | Naskah uji sistem + hasil 30 skenario |
-| [`DEPLOY.md`](DEPLOY.md) | Panduan deploy (lokal/Railway/Render/Vercel) |
+| [`DEPLOY.md`](DEPLOY.md) | Panduan deploy (lokal/PostgreSQL/Vercel) |

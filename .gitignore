@@ -5,9 +5,6 @@ backups/
 *.log
 uploads/*
 !uploads/.gitkeep
-render.yaml.bak
-.vercel
-.railway
 
 server.pid
 __pycache__/

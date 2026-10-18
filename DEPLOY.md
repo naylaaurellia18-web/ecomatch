@@ -5,9 +5,8 @@
 | Opsi | Cocok untuk | Konfigurasi |
 |------|-------------|-------------|
 | **Lokal (dev/demo)** | pengembangan & demo TA | `docker-compose.yml` (PostGIS :5433) + `npm run start:local` |
-| **Railway** | backend produksi (rekomendasi) | `railway.json` (Nixpacks, healthcheck `/api/health`) + auto-deploy `ci.yml` |
-| **Render** | alternatif backend | `render.yaml` (Node free plan, healthcheck `/api/health`) |
-| **Vercel** | fullstack serverless | `vercel.json` + `api/index.js` + database Turso/libSQL |
+| **Vercel (produksi)** | fullstack serverless — live sekarang | `vercel.json` + `api/index.js` + `api/ai.py` + database Turso/libSQL |
+| **PostgreSQL + PostGIS** | sesuai SKPL (standalone/managed) | `DATABASE_URL` (Docker lokal atau Postgres terkelola) |
 
 **Prioritas database:** `DATABASE_URL` (PostgreSQL + PostGIS) → `TURSO_DATABASE_URL` (libSQL) → SQLite lokal `data/ecomatch.db`.
 
@@ -78,26 +77,7 @@ Uji end-to-end (server sedang jalan): `npm run test:e2e` · `node tab-audit.js`
 
 ---
 
-## 3. Deploy ke Railway (rekomendasi produksi)
-
-1. Buka **https://railway.app** → import repo GitHub
-2. Railway otomatis mendeteksi `railway.json` (Nixpacks, `npm ci`, start `npm start`, healthcheck `/api/health`)
-3. Tambah plugin **PostgreSQL** Railway → salin `DATABASE_URL` ke environment service
-4. Set environment variables wajib (bagian 2): `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`
-5. Deploy → URL `https://<project>.up.railway.app`
-6. **Auto-deploy:** tambah secret `RAILWAY_TOKEN` di repo → Settings → Secrets and variables → Actions → setiap push ke `main` (setelah uji e2e lulus) di-deploy otomatis oleh `ci.yml`
-
----
-
-## 4. Deploy ke Render (alternatif)
-
-1. Buka **https://render.com** → New → Web Service → import repo
-2. Render membaca `render.yaml` (build `npm install`, start `npm start`, healthcheck `/api/health`)
-3. Tambah environment: `JWT_SECRET`, `DATABASE_URL` (Postgres addon Render / eksternal), `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `NODE_ENV=production`
-
----
-
-## 5. Deploy ke Vercel (serverless + Turso)
+## 3. Deploy ke Vercel (produksi)
 
 1. Buat database **Turso** (https://app.turso.tech): `turso db create ecomatch` → catat URL + auth token
 2. Buka **https://vercel.com** → Add New → Project → import repo (deteksi `vercel.json`)
@@ -112,12 +92,13 @@ Uji end-to-end (server sedang jalan): `npm run test:e2e` · `node tab-audit.js`
 
 4. **Build & Deploy** → dapat URL `https://<nama>-xxx.vercel.app`
 5. Verifikasi: `GET /api/health` → `db.dialek = "libsql"`
+6. **Auto-deploy:** setiap push ke `main` (setelah uji e2e lulus di `ci.yml`) memicu Vercel Deploy Hook (secret `VERCEL_DEPLOY_HOOK`).
 
-> Catatan: mode Turso/SQLite adalah fallback tanpa ekstensi PostGIS — fitur geospasial memakai fallback haversine. Untuk fungsi penuh (SKPL: PostgreSQL + PostGIS), pakai Railway/Render/lokal.
+> Catatan: mode Turso/SQLite adalah fallback tanpa ekstensi PostGIS — fitur geospasial memakai fallback haversine. Untuk fungsi penuh (SKPL: PostgreSQL + PostGIS), set `DATABASE_URL` ke PostgreSQL ber-PostGIS (Docker lokal atau Postgres terkelola); `db.js` akan otomatis menjalankan `CREATE EXTENSION IF NOT EXISTS postgis`.
 
 ---
 
-## 6. Reset & Backup Data
+## 4. Reset & Backup Data
 
 | Aksi | Perintah |
 |------|----------|
@@ -132,7 +113,7 @@ Uji end-to-end (server sedang jalan): `npm run test:e2e` · `node tab-audit.js`
 
 ---
 
-## 7. Notifikasi Nyata (WhatsApp & Email)
+## 5. Notifikasi Nyata (WhatsApp & Email)
 
 ### WhatsApp — CallMeBot (demo, gratis)
 
@@ -153,13 +134,13 @@ Dashboard admin → menu **Pesan Terkirim**: `sent` = nyata, `simulated` = demo 
 
 ---
 
-## 8. Troubleshooting
+## 6. Troubleshooting
 
 | Masalah | Solusi |
 |---------|--------|
 | App crash start di produksi | `JWT_SECRET` belum di-set / <32 char — isi lalu redeploy |
 | Gagal koneksi PostgreSQL | Cek `DATABASE_URL`, container `docker compose up -d` (lokal), port 5433 |
-| Login admin tidak bisa | DB sudah terisi — pakai admin seed / reset (bagian 6) lalu set `ADMIN_*` |
+| Login admin tidak bisa | DB sudah terisi — pakai admin seed / reset (bagian 4) lalu set `ADMIN_*` |
 | Lupa sandi tidak masuk email | Set `SMTP_*` — tanpa itu kode hanya muncul di **Pesan Terkirim** (butuh login admin) |
 | AI Routing lambat / gagal | Cek `npm run start:ai` & `AI_MATCHING_URL` — otomatis fallback ke mesin JS in-process |
 | Rute OSRM timeout | Normal saat luring → otomatis fallback haversine (`routing.fallback` di `/api/health`) |
@@ -169,18 +150,16 @@ Dashboard admin → menu **Pesan Terkirim**: `sent` = nyata, `simulated` = demo 
 
 ---
 
-## 9. Struktur Deploy
+## 7. Struktur Deploy
 
 ```
 ecomatch/
 ├── api/index.js          ← entry Vercel (export Express app)
+├── api/ai.py             ← Vercel Python Function (AI matching)
 ├── vercel.json           ← config build + route Vercel
-├── railway.json          ← Nixpacks + healthcheck Railway
-├── render.yaml           ← Render web service
-├── nixpacks.toml         ← build Nixpacks generik
 ├── docker-compose.yml    ← PostgreSQL + PostGIS (lokal)
-├── .github/workflows/    ← ci.yml (e2e + auto-deploy), uptime.yml (15 menit)
-├── backend/index.js       ← entry Express (lokal/Railway/Render)
+├── .github/workflows/    ← ci.yml (e2e + auto-deploy Vercel), uptime.yml (15 menit)
+├── backend/index.js       ← entry Express (lokal/standalone)
 ├── backend/app.js         ← Express app (shared semua platform)
 ├── backend/db.js          ← auto: PostgreSQL → libSQL/Turso → SQLite
 ├── frontend/               ← SPA + PWA

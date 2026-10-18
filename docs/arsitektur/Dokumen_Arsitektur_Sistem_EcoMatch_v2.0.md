@@ -130,7 +130,7 @@ Request → trust proxy → security headers (CSP/HSTS/nosniff) → CORS allowli
 |------|-----------|--------------------------|----------------------|
 | **NFR-01** | Keamanan: autentikasi, enkripsi password, RBAC | Stateless token + hash satu-arah + guard per-role per-route | `bcryptjs`, `jsonwebtoken` (exp 12 jam), `authenticate/requireRole/requireActive`, parameterized query |
 | **NFR-02** | Performa: respons & AI Routing < 3 detik | Routing **in-process** (fallback JS) + layanan Python lokal dengan timeout; query terindeks | `lib/routing.js`, `lib/aiService.js` (timeout 1.8 dtk → fallback), index unik alokasi |
-| **NFR-03** | Ketersediaan 24/7, uptime ≥ 99% | Healthcheck, auto-restart, monitoring berkala, deploy managed | `GET /api/health`, GitHub Actions monitor 15 menit, `nixpacks.toml`/`railway.json`, backup DB |
+| **NFR-03** | Ketersediaan 24/7, uptime ≥ 99% | Healthcheck, auto-restart, monitoring berkala, deploy managed | `GET /api/health`, GitHub Actions monitor 15 menit, `vercel.json`, backup DB |
 | **NFR-04** | Skalabilitas 5.000 pengguna aktif | **Tanpa state sesi** (JWT) → horizontal scale; PostgreSQL + PostGIS; rate-limit | JWT stateless, `DATABASE_URL` (PostgreSQL), rate-limit per IP+email |
 | **NFR-05** | Usability: minim langkah input, ramah kurir dasar | API tunggal per aksi, pesan error JSON konsisten, PWA offline-first | Response `{message/error}` seragam, SW + manifest PWA, form lokasi terpandu |
 | **NFR-06** | Akurasi jarak/rute ≥ 95% | Pisahkan **perhitungan jarak** dari **visualisasi peta**; adapter GIS bisa ditukar | `lib/gis.js`: **OSRM** (rute jalan) dengan fallback haversine; jarak lurus tetap untuk skor awal |
@@ -714,7 +714,7 @@ erDiagram
 | Audit | tabel `log_audit` + **trigger immutable** (PG `RAISE EXCEPTION` / SQLite `RAISE(ABORT)`) | NFR-08 |
 | Konfigurasi regulasi | JSON per `kode_daerah`, default `KOTA_MADIUN` | FR-16, NFR-11 |
 | Client | **PWA** (vanilla JS): `manifest.webmanifest` + service worker + cache offline | NFR-05, NFR-07 |
-| Deploy & operasi | nixpacks.toml / railway.json, GitHub Actions health monitor 15 menit, backup DB harian | NFR-03 |
+| Deploy & operasi | vercel.json, GitHub Actions health monitor 15 menit, backup DB harian | NFR-03 |
 
 ### 7.1 Mengetahui dan keputusan perubahan (basis v1.1 → v2.0)
 

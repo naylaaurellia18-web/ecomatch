@@ -6,7 +6,7 @@ const DEV_SECRET = 'ecomatch-dev-secret-change-in-production';
 const JWT_EXPIRES = '12h';
 
 function isProduction() {
-  return process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT === 'production';
+  return process.env.NODE_ENV === 'production';
 }
 
 function assertJwtSecret() {
@@ -18,7 +18,7 @@ function assertJwtSecret() {
     throw new Error(
       'JWT_SECRET wajib di-set di produksi: string acak minimal 32 karakter. ' +
         'Buat dengan: node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'hex\'))" ' +
-        'lalu simpan di Environment Variables (Vercel/Railway).'
+        'lalu simpan di Environment Variables (Vercel).'
     );
   }
   return secret;
