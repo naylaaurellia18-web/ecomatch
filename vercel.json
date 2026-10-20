@@ -9,18 +9,34 @@
       "src": "api/index.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["frontend/**"]
+        "includeFiles": ["frontend/index.html"],
+        "regions": ["sin1"]
       }
     },
     {
       "src": "api/ai.py",
       "use": "@vercel/python",
       "config": {
-        "includeFiles": ["ai/**", "config/**", "requirements.txt"]
+        "includeFiles": ["ai/**", "config/**", "requirements.txt"],
+        "regions": ["sin1"]
       }
     }
   ],
   "routes": [
+    { "src": "/styles/app.css", "dest": "/frontend/styles/app.css" },
+    { "src": "/styles/(.*)", "dest": "/frontend/styles/$1" },
+    { "src": "/icons/(.*)", "dest": "/frontend/icons/$1" },
+    { "src": "/theme.js", "dest": "/frontend/theme.js" },
+    { "src": "/sw.js", "dest": "/frontend/sw.js" },
+    { "src": "/manifest.webmanifest", "dest": "/frontend/manifest.webmanifest" },
+    { "src": "/offline.html", "dest": "/frontend/offline.html" },
+    { "src": "/privacy.html", "dest": "/frontend/privacy.html" },
+    { "src": "/syarat.html", "dest": "/frontend/syarat.html" },
+    { "src": "/app-legacy.html", "dest": "/frontend/app-legacy.html" },
+    { "src": "/app.js", "dest": "/frontend/app.js" },
+    { "src": "/styles.css", "dest": "/frontend/styles.css" },
+    { "src": "/index.html", "dest": "/frontend/index.html" },
+    { "src": "/", "dest": "/frontend/index.html" },
     { "src": "/api/ai(.*)", "dest": "/api/ai.py" },
     { "src": "/core/(.*)", "dest": "/frontend/core/$1" },
     { "src": "/components/(.*)", "dest": "/frontend/components/$1" },
