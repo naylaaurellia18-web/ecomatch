@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#2E7D32" />
+  <title>Offline · EcoMatch</title>
+  <style>
+    :root {
+      --primary: #2E7D32; --primary-700: #1b5e20; --surface: #F1F8E9;
+      --text: #1B2B1F; --muted: #5C6B60; --line: rgba(46, 125, 50, .16);
+      --card: #fff; --r-xl: 18px;
+      font-family: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100dvh; display: grid; place-items: center;
+      background: radial-gradient(900px 500px at 15% 0%, #E8F5E9, transparent 60%), var(--surface);
+      color: var(--text); padding: 24px;
+    }
+    .card {
+      width: 100%; max-width: 440px; text-align: center;
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: var(--r-xl); padding: 40px 28px;
+      box-shadow: 0 12px 32px rgba(27, 94, 32, .10);
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700;
+      background: #E8F5E9; color: var(--primary-700); border: 1px solid var(--line);
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--primary); }
+    h1 { font-size: 26px; margin: 18px 0 8px; letter-spacing: -.02em; }
+    p { color: var(--muted); line-height: 1.6; margin: 0 0 22px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 48px; padding: 12px 24px; border-radius: 14px;
+      background: var(--primary); color: #fff; border: none;
+      font: inherit; font-weight: 700; cursor: pointer; text-decoration: none;
+      transition: transform .15s ease, background .15s ease;
+    }
+    .btn:hover { background: var(--primary-700); transform: translateY(-1px); }
+    .btn-ghost {
+      background: transparent; color: var(--primary); margin-top: 10px;
+      border: 1px solid var(--line);
+    }
+    .tips { margin-top: 24px; text-align: left; color: var(--muted); font-size: 13.5px; line-height: 1.7; }
+    .tips b { color: var(--text); }
+    @media (prefers-color-scheme: dark) {
+      :root { --text: #E8F0EA; --muted: #9FB0A4; --card: #14201A; --surface: #0E1712; --line: rgba(129, 199, 132, .18); }
+      .badge { background: rgba(46, 125, 50, .18); color: #A5D6A7; }
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <span class="badge"><span class="dot"></span> Mode luring</span>
+    <h1>Sedang offline</h1>
+    <p>Koneksi internet tidak tersedia. EcoMatch akan menyambung ulang otomatis begitu jaringan kembali.</p>
+    <button class="btn" type="button" onclick="location.reload()">Coba lagi</button><br />
+    <a class="btn btn-ghost" href="/">Kembali ke beranda</a>
+    <div class="tips">
+      <b>Sementara waktu Anda masih bisa:</b><br />
+      · Melihat data yang sudah tersimpan di perangkat<br />
+      · Menyiapkan foto sampah sebelum unggah<br />
+      · Mencatat ulang riwayat tugas kurir
+    </div>
+  </main>
+</body>
+</html>

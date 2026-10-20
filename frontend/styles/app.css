@@ -140,6 +140,8 @@
 
 * { margin: 0; }
 
+[hidden] { display: none !important; }
+
 html { -webkit-text-size-adjust: 100%; }
 
 body {
@@ -177,7 +179,8 @@ body {
   to   { transform: translate3d(30px, -40px, 0) scale(1.15); }
 }
 
-img, svg, video { display: block; max-width: 100%; }
+img, video { display: block; max-width: 100%; }
+svg { display: inline-block; vertical-align: middle; max-width: 100%; }
 
 a { color: var(--primary); text-decoration: none; }
 a:hover { text-decoration: underline; }
@@ -646,7 +649,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* --------------------------------------------------------------------------
    12. SHELL APLIKASI (sidebar + topbar + bottom-nav)
    -------------------------------------------------------------------------- */
-.app-shell { display: flex; flex-direction: column; min-height: 100dvh; }
+.app-shell { display: flex; flex-direction: row; min-height: 100dvh; }
 
 /* --- Sidebar (desktop) --- */
 .sidebar {
@@ -1268,3 +1271,28 @@ button, input, select, textarea { font: inherit; color: inherit; }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* --------------------------------------------------------------------------
+   DOMAIN: SOP PENANGANAN (panduan pengemasan donor/TPS)
+   -------------------------------------------------------------------------- */
+.sop {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+  padding: var(--sp-4);
+}
+.sop-head {
+  display: flex; align-items: center; gap: var(--sp-3);
+  font-size: var(--fs-sm); font-weight: 600; margin-bottom: var(--sp-3);
+}
+.sop-head svg { color: var(--primary); flex: none; }
+.sop-warn { font-size: var(--fs-xs); color: var(--warning-ink); font-weight: 500; }
+.sop-badge { margin-left: auto; }
+.sop-grid { display: grid; gap: var(--sp-4); grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.sop-sec-title { font-weight: 700; font-size: var(--fs-sm); color: var(--primary-700); margin-bottom: 8px; }
+.sop-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; font-size: var(--fs-sm); }
+.sop-list li { display: flex; gap: 8px; align-items: flex-start; color: var(--muted); line-height: 1.5; }
+.sop-list li svg { flex: none; margin-top: 4px; color: var(--primary); }
+.sop-details summary { cursor: pointer; font-weight: 600; font-size: var(--fs-sm); padding: var(--sp-3) 0; list-style: none; }
+.sop-details summary::-webkit-details-marker { display: none; }
+.sop-compact .sop-head { margin-bottom: var(--sp-2); }
