@@ -60,6 +60,7 @@ Uji end-to-end (server sedang jalan): `npm run test:e2e` · `node tab-audit.js`
 | `DATABASE_URL` | PostgreSQL + PostGIS (contoh Docker: `postgresql://postgres:ecomatch@127.0.0.1:5433/ecomatch`) |
 | `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | libSQL cloud (opsional) |
 | `AI_MATCHING_URL` | layanan Python (`http://127.0.0.1:8001`) — kosong/gagal → mesin JS |
+| `AI_TIMEOUT_MS` | timeout panggil Python (default 1800; **pakai 3000 di Vercel** agar cold start ~1,7-2,5 dtk tidak kena abort) |
 | `ROUTE_PROVIDER` | `osrm` (default) atau `haversine` |
 | `OSRM_BASE_URL` / `OSRM_TIMEOUT_MS` | OSRM publik default / timeout (fallback haversine) |
 
