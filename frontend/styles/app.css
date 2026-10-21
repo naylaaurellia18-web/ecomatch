@@ -71,6 +71,30 @@
   --shadow-2: 0 6px 16px rgba(22, 36, 26, 0.08), 0 18px 40px rgba(22, 36, 26, 0.08);
   --shadow-focus: 0 0 0 3px rgba(46, 125, 50, 0.22);
 
+  /* --- Auth "subtle premium" (ubah di sini untuk menyetel ulang visual) --- */
+  --auth-base: #f8faf9;            /* base halaman auth */
+  --noise: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='140'%20height='140'%20viewBox='0%200%20140%20140'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.85'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3C/filter%3E%3Crect%20width='140'%20height='140'%20filter='url(%23n)'%20opacity='0.035'/%3E%3C/svg%3E");
+  --auth-mesh: /* radial 3 lapis: hijau / teal / lime (opacity 6–10%) */
+    radial-gradient(900px 620px at 12% 16%, rgba(22, 163, 74, 0.1), transparent 62%),
+    radial-gradient(760px 520px at 88% 10%, rgba(13, 148, 136, 0.08), transparent 58%),
+    radial-gradient(860px 720px at 72% 92%, rgba(163, 230, 53, 0.07), transparent 60%);
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-bd: rgba(255, 255, 255, 0.6);
+  --glass-blur: blur(18px) saturate(160%);
+  --shadow-glass:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 10px 30px -10px rgba(16, 80, 50, 0.15),
+    0 30px 60px -30px rgba(16, 80, 50, 0.2);
+  --grad-btn: linear-gradient(135deg, #16a34a, #0d9488);
+  --grad-ink: linear-gradient(135deg, #0f2e1d, #166534, #15803d);
+  --grad-ink-hero: linear-gradient(135deg, #e8f5e9, #a5d6a7 55%, #ffffff); /* variant terang utk hero gelap */
+  --glow-btn: 0 6px 18px -6px rgba(22, 163, 74, 0.55);
+  --auth-input-bg: rgba(255, 255, 255, 0.85);
+  --auth-input-bg-focus: #ffffff;
+  --auth-input-bd: rgba(15, 46, 29, 0.1);
+  --auth-input-border-focus: rgba(22, 163, 74, 0.55);
+  --auth-input-ring: rgba(22, 163, 74, 0.12);
+
   /* --- Layout --- */
   --sidebar-w: 272px;
   --topbar-h: 68px;
@@ -109,6 +133,20 @@
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.5);
   --shadow-focus: 0 0 0 3px rgba(102, 187, 106, 0.3);
+
+  --auth-base: #0c1410;
+  --glass-bg: rgba(18, 28, 22, 0.72);
+  --glass-bd: rgba(255, 255, 255, 0.1);
+  --grad-ink: linear-gradient(135deg, #e8f5e9, #a5d6a7 55%, #ffffff); /* kontras di kartu gelap */
+  --shadow-glass:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 10px 30px -10px rgba(0, 0, 0, 0.5),
+    0 30px 60px -30px rgba(0, 0, 0, 0.6);
+  --auth-input-bg: rgba(255, 255, 255, 0.06);
+  --auth-input-bg-focus: rgba(255, 255, 255, 0.1);
+  --auth-input-bd: rgba(255, 255, 255, 0.1);
+  --auth-input-border-focus: rgba(102, 187, 106, 0.55);
+  --auth-input-ring: rgba(102, 187, 106, 0.16);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -130,6 +168,19 @@
     --success-soft: #17301b;
     --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.5);
+    --auth-base: #0c1410;
+    --glass-bg: rgba(18, 28, 22, 0.72);
+    --glass-bd: rgba(255, 255, 255, 0.1);
+    --grad-ink: linear-gradient(135deg, #e8f5e9, #a5d6a7 55%, #ffffff);
+    --shadow-glass:
+      0 1px 0 rgba(255, 255, 255, 0.06) inset,
+      0 10px 30px -10px rgba(0, 0, 0, 0.5),
+      0 30px 60px -30px rgba(0, 0, 0, 0.6);
+    --auth-input-bg: rgba(255, 255, 255, 0.06);
+    --auth-input-bg-focus: rgba(255, 255, 255, 0.1);
+    --auth-input-bd: rgba(255, 255, 255, 0.1);
+    --auth-input-border-focus: rgba(102, 187, 106, 0.55);
+    --auth-input-ring: rgba(102, 187, 106, 0.16);
   }
 }
 
@@ -1102,13 +1153,28 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 /* --------------------------------------------------------------------------
-   21. AUTH (split screen login/register)
+   21. AUTH (split screen login/register) — "Subtle Premium"
+   Efek SAMAR: mesh radial ~6–10% + noise 3,5% + glass + glow berlapis.
+   Semua warna/efek disetel lewat variabel blok :root bagian "Auth".
    -------------------------------------------------------------------------- */
+
+/* Latar: mesh 3 lapis + noise SVG (fixed, di bawah konten via z-index) */
 .auth {
   display: grid;
   grid-template-columns: 1fr;
   min-height: 100dvh;
+  position: relative;
+  background: var(--auth-base);
 }
+.auth::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--noise) repeat, var(--auth-mesh), var(--auth-base);
+}
+.auth > * { position: relative; z-index: 1; } /* konten selalu di atas noise */
 @media (min-width: 1024px) { .auth { grid-template-columns: 1.05fr 1fr; } }
 
 .auth-hero {
@@ -1119,21 +1185,76 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding: var(--sp-10) var(--sp-8);
   color: #fff;
   background:
+    radial-gradient(700px 520px at 92% 80%, rgba(163, 230, 53, 0.14), transparent 60%),
     radial-gradient(1200px 600px at 10% 10%, rgba(255, 255, 255, 0.16), transparent 60%),
     linear-gradient(150deg, #2e7d32 0%, #1b5e20 55%, #0d3b14 100%);
   overflow: hidden;
 }
 @media (min-width: 1024px) { .auth-hero { display: flex; } }
 
-.auth-hero h1 { font-size: var(--fs-3xl); max-width: 16ch; }
-.auth-hero .hero-tag { display: inline-flex; align-items: center; gap: var(--sp-2); font-weight: 700; }
-.auth-points { list-style: none; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
-.auth-points li { display: flex; gap: var(--sp-3); align-items: flex-start; font-size: var(--fs-md); }
+/* Grain halus di atas warna hero, di bawah teks */
+.auth-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--noise) repeat;
+}
+
+.auth-hero h1 {
+  font-size: var(--fs-3xl);
+  max-width: 16ch;
+  letter-spacing: -0.02em;
+}
+/* Gradient text — variant terang agar kontras tetap >= 4.5:1 di hero gelap */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .auth-hero h1 {
+    background: var(--grad-ink-hero);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Chip brand hero — kaca tipis */
+.auth-hero .hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: fit-content;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.auth-points { list-style: none; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.auth-points li {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: flex-start;
+  font-size: var(--fs-md);
+  padding: 10px 12px;
+  border-radius: 12px;
+  transition: transform var(--dur) var(--ease), background var(--dur) var(--ease),
+              box-shadow var(--dur) var(--ease);
+}
+.auth-points li:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 20px -12px rgba(0, 0, 0, 0.45);
+}
 .auth-points .tick {
-  width: 22px; height: 22px; flex: none;
-  display: grid; place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  display: grid;
+  place-items: center;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 14px -6px rgba(165, 214, 167, 0.55);
 }
 
 .auth-panel {
@@ -1141,15 +1262,45 @@ button, input, select, textarea { font: inherit; color: inherit; }
   align-items: center;
   justify-content: center;
   padding: var(--sp-6) var(--sp-4) var(--sp-10);
+  background: radial-gradient(620px 420px at 50% 0%, rgba(46, 125, 50, 0.05), transparent 70%);
 }
+
+/* Kartu glass: bg 72% + blur 18px saturate 160% + shadow berlapis */
 .auth-card {
+  position: relative;
   width: 100%;
   max-width: 440px;
   padding: var(--sp-8);
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--r-xl);
-  box-shadow: var(--shadow-2);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-bd);
+  border-radius: 20px;
+  box-shadow: var(--shadow-glass);
+}
+
+/* Badge "AI Routing" — gradient hijau/teal 12% + border 25% + glow */
+.auth-card .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--r-full);
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.12), rgba(13, 148, 136, 0.12));
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  box-shadow: 0 6px 20px -6px rgba(22, 163, 74, 0.3);
+  color: var(--primary-700);
+}
+
+/* Heading kartu: gradient tinta hijau */
+.auth-card h1 { letter-spacing: -0.02em; }
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .auth-card h1 {
+    background: var(--grad-ink);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
 }
 
 .auth-tabs {
@@ -1159,7 +1310,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding: 4px;
   margin-bottom: var(--sp-6);
   background: var(--card-2);
+  border: 1px solid rgba(15, 46, 29, 0.05);
   border-radius: var(--r-md);
+  box-shadow: inset 0 1px 2px rgba(16, 80, 50, 0.06);
 }
 .auth-tab {
   padding: 9px;
@@ -1172,26 +1325,99 @@ button, input, select, textarea { font: inherit; color: inherit; }
   cursor: pointer;
   transition: all var(--dur) var(--ease);
 }
-.auth-tab.active { background: var(--card); color: var(--primary); box-shadow: var(--shadow-1); }
+.auth-tab:hover:not(.active) { color: var(--text); }
+.auth-tab:active { transform: scale(0.98); }
+.auth-tab.active {
+  background: var(--card);
+  color: var(--primary);
+  box-shadow: var(--shadow-1), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+/* Tombol primary: gradient + glow + lift halus (180ms) */
+.auth .btn-primary {
+  background: var(--grad-btn);
+  border-color: transparent;
+  box-shadow: var(--glow-btn), 0 1px 0 rgba(255, 255, 255, 0.35) inset;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+              filter var(--dur) var(--ease);
+}
+.auth .btn-primary:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow: 0 12px 26px -8px rgba(22, 163, 74, 0.6), 0 1px 0 rgba(255, 255, 255, 0.4) inset;
+}
+.auth .btn-primary:active { transform: translateY(0); filter: brightness(0.98); }
+.auth .btn-primary:disabled { transform: none; filter: none; box-shadow: none; }
+
+/* Input: bg putih 85%, radius 12, fokus bg putih + border hijau 55% + ring 4px */
+.auth .input,
+.auth .select,
+.auth .textarea {
+  background: var(--auth-input-bg);
+  border: 1px solid var(--auth-input-bd);
+  border-radius: 12px;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
+              box-shadow var(--dur) var(--ease);
+}
+.auth .input:focus,
+.auth .select:focus,
+.auth .textarea:focus {
+  background: var(--auth-input-bg-focus);
+  border-color: var(--auth-input-border-focus);
+  box-shadow: 0 0 0 4px var(--auth-input-ring);
+}
+.auth .input:focus-visible,
+.auth .select:focus-visible,
+.auth .textarea:focus-visible { outline: none; }
 
 /* Kartu pemilihan peran (register) */
 .role-cards { display: grid; gap: var(--sp-3); }
 .role-card {
   position: relative;
-  display: flex; gap: var(--sp-3); align-items: flex-start;
+  display: flex;
+  gap: var(--sp-3);
+  align-items: flex-start;
   padding: var(--sp-4);
   border: 1px solid var(--line-strong);
   border-radius: var(--r-md);
   cursor: pointer;
   transition: all var(--dur) var(--ease);
 }
-.role-card:hover { border-color: var(--primary); background: var(--primary-soft); }
+.role-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  box-shadow: var(--shadow-1);
+}
 .role-card input { position: absolute; opacity: 0; }
 .role-card:has(input:checked) { border-color: var(--primary); background: var(--primary-soft); box-shadow: var(--shadow-focus); }
 .role-card b { display: block; }
 .role-card small { color: var(--muted); font-size: var(--fs-xs); }
 
-.auth-legal { margin-top: var(--sp-5); text-align: center; font-size: var(--fs-xs); color: var(--muted); }
+/* Ikon peran: glow radial tipis di belakangnya */
+.role-card > svg {
+  flex: none;
+  box-sizing: content-box;
+  padding: 7px;
+  border-radius: 10px;
+  color: var(--primary);
+  background: radial-gradient(circle at 50% 45%, rgba(22, 163, 74, 0.18), rgba(22, 163, 74, 0.05) 70%, transparent);
+}
+
+/* Ikon sukses daftar: glow halus */
+.auth .kpi-icon {
+  box-shadow: 0 10px 26px -10px rgba(22, 163, 74, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.auth-legal { position: relative; margin-top: var(--sp-5); text-align: center; font-size: var(--fs-xs); color: var(--muted); }
+/* Pemisah gradient horizontal di atas link legal */
+.auth-legal::before {
+  content: '';
+  display: block;
+  height: 1px;
+  margin-bottom: var(--sp-4);
+  background: linear-gradient(90deg, transparent, rgba(46, 125, 50, 0.2), transparent);
+}
 .demo-note {
   margin-top: var(--sp-3);
   padding: 10px 12px;
@@ -1200,6 +1426,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
   border: 1px solid rgba(2, 119, 189, 0.2);
   color: var(--info);
   font-size: var(--fs-xs);
+}
+
+/* Mobile: 1 kolom (default), card full-width, padding aman */
+@media (max-width: 640px) {
+  .auth-panel { padding: var(--sp-5) var(--sp-3) var(--sp-8); }
+  .auth-card { padding: var(--sp-6) var(--sp-5); }
 }
 
 /* --------------------------------------------------------------------------
@@ -1270,6 +1502,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+  /* Matikan efek angkat/skala pada halaman auth */
+  .auth .btn-primary:hover,
+  .auth .auth-points li:hover,
+  .auth .role-card:hover,
+  .auth-tab:active { transform: none; }
 }
 
 /* --------------------------------------------------------------------------
