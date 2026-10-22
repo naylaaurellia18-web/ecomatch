@@ -95,6 +95,33 @@
   --auth-input-border-focus: rgba(22, 163, 74, 0.55);
   --auth-input-ring: rgba(22, 163, 74, 0.12);
 
+  /* --- Brand tonal (fondasi warna, "hijau hidup" tone-on-tone) --- */
+  --brand-950: #04160c;
+  --brand-900: #0a2a18;
+  --brand-800: #10432a;
+  --brand-700: #166534;   /* teks utama hijau */
+  --brand-600: #15803d;   /* aksen / label */
+  --brand-500: #16a34a;   /* aksen utama */
+  --brand-400: #4ade80;   /* highlight */
+  --brand-300: #86efac;   /* glow / ilustrasi */
+  --brand-100: #dcfce7;   /* background tint */
+  --teal-600: #0d9488;    /* pasangan gradient */
+  --lime-500: #84cc16;    /* micro-accent */
+
+  /* --- Pasangan font auth: display serif + UI + mono --- */
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-ui: 'Inter Tight', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Skala tipografi (px eksplisit, sesuai brief) */
+  --t-display-xl: 3.75rem;  /* 60px */
+  --t-display-l: 2.75rem;   /* 44px */
+  --t-heading: 1.75rem;     /* 28px */
+  --t-subheading: 1.25rem;  /* 20px */
+  --t-body-l: 1.0625rem;    /* 17px */
+  --t-body: 0.9375rem;      /* 15px */
+  --t-caption: 0.8125rem;   /* 13px */
+  --t-mono: 0.875rem;       /* 14px */
+
   /* --- Layout --- */
   --sidebar-w: 272px;
   --topbar-h: 68px;
@@ -1153,9 +1180,17 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 /* --------------------------------------------------------------------------
-   21. AUTH (split screen login/register) — "Subtle Premium"
-   Efek SAMAR: mesh radial ~6–10% + noise 3,5% + glass + glow berlapis.
-   Semua warna/efek disetel lewat variabel blok :root bagian "Auth".
+   21. AUTH (split screen login/register) — "CALM GREEN-TECH PREMIUM"
+   Fondasi dulu: tipografi Fraunces + Inter Tight, skala 4px, split 7:5,
+   hierarki headline→kartu→sub→list. Efek (mesh/glass/glow) menyusul di
+   lapisan terakhir — semua SAMAR (6–12%).
+   Referensi per elemen:
+   - headline  → Linear (tracking ketat, berat disengaja)
+   - kartu     → Vercel login (glass subtle)
+   - button    → Stripe CTA (gradient tipis, bukan neon)
+   - list      → Retool (icon wrapper 40px, gap 24px)
+   - palet     → Stripe Climate (tone-on-tone)
+   - background→ Vercel (mesh samar)
    -------------------------------------------------------------------------- */
 
 /* Latar: mesh 3 lapis + noise SVG (fixed, di bawah konten via z-index) */
@@ -1164,6 +1199,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   grid-template-columns: 1fr;
   min-height: 100dvh;
   position: relative;
+  font-family: var(--font-ui);
   background: var(--auth-base);
 }
 .auth::before {
@@ -1175,19 +1211,20 @@ button, input, select, textarea { font: inherit; color: inherit; }
   background: var(--noise) repeat, var(--auth-mesh), var(--auth-base);
 }
 .auth > * { position: relative; z-index: 1; } /* konten selalu di atas noise */
-@media (min-width: 1024px) { .auth { grid-template-columns: 1.05fr 1fr; } }
+/* Split 7:5 — teks lega, form fokus (bukan 50:50 monoton) */
+@media (min-width: 1024px) { .auth { grid-template-columns: 7fr 5fr; } }
 
 .auth-hero {
   position: relative;
   display: none;
   flex-direction: column;
   justify-content: space-between;
-  padding: var(--sp-10) var(--sp-8);
+  padding: var(--sp-12) var(--sp-10); /* 48/40 — generous breathing room */
   color: #fff;
   background:
     radial-gradient(700px 520px at 92% 80%, rgba(163, 230, 53, 0.14), transparent 60%),
     radial-gradient(1200px 600px at 10% 10%, rgba(255, 255, 255, 0.16), transparent 60%),
-    linear-gradient(150deg, #2e7d32 0%, #1b5e20 55%, #0d3b14 100%);
+    linear-gradient(150deg, var(--brand-700) 0%, var(--brand-900) 55%, var(--brand-950) 100%);
   overflow: hidden;
 }
 @media (min-width: 1024px) { .auth-hero { display: flex; } }
@@ -1202,11 +1239,16 @@ button, input, select, textarea { font: inherit; color: inherit; }
   background: var(--noise) repeat;
 }
 
+/* === FASE 1 — Tipografi display (Fraunces 500, tracking ketat) === */
 .auth-hero h1 {
-  font-size: var(--fs-3xl);
-  max-width: 16ch;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--t-display-xl); /* 60px */
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  max-width: 14ch;
 }
+@media (max-width: 1023px) { .auth-hero h1 { font-size: var(--t-display-l); } } /* 44px mobile */
 /* Gradient text — variant terang agar kontras tetap >= 4.5:1 di hero gelap */
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .auth-hero h1 {
@@ -1216,6 +1258,28 @@ button, input, select, textarea { font: inherit; color: inherit; }
     color: transparent;
   }
 }
+/* Sub-headline hero: body-l, ink-muted terang, max-width 480px */
+.auth-hero .stack > div > p {
+  font-size: var(--t-body-l); /* 17px */
+  line-height: 1.6;
+  max-width: 480px; /* bukan ch — sesuai brief */
+  color: rgba(255, 255, 255, 0.78); /* muted, bukan pure white 85% */
+}
+/* Glow tunggal SAMAR di belakang headline (brand-500 8%, blur besar) */
+.auth-hero .stack > div:first-child { position: relative; }
+.auth-hero .stack > div:first-child::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  left: -60px;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(22, 163, 74, 0.08), transparent 70%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: -1;
+}
 
 /* Chip brand hero — kaca tipis */
 .auth-hero .hero-tag {
@@ -1223,54 +1287,89 @@ button, input, select, textarea { font: inherit; color: inherit; }
   align-items: center;
   gap: var(--sp-2);
   width: fit-content;
-  font-weight: 700;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: var(--t-caption);
+  letter-spacing: 0.01em;
   padding: 7px 14px;
   border-radius: var(--r-full);
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+/* Eyebrow hero: caption 13px, tracking positif */
+.auth-hero .eyebrow {
+  font-family: var(--font-ui);
+  font-size: var(--t-caption); /* 13px */
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
 }
 
-.auth-points { list-style: none; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+/* === FASE 6 — Fitur list: wrapper ikon 40px, teks 15px medium, gap 24px === */
+.auth-points {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6); /* 24px */
+}
 .auth-points li {
   display: flex;
-  gap: var(--sp-3);
-  align-items: flex-start;
-  font-size: var(--fs-md);
-  padding: 10px 12px;
+  gap: var(--sp-4); /* 16px */
+  align-items: center;
+  font-size: var(--t-body); /* 15px */
+  font-weight: 500;
+  padding: var(--sp-2) var(--sp-3); /* 8/12 — halus, bukan block besar */
   border-radius: 12px;
   transition: transform var(--dur) var(--ease), background var(--dur) var(--ease),
               box-shadow var(--dur) var(--ease);
 }
 .auth-points li:hover {
   transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 20px -12px rgba(0, 0, 0, 0.45);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 20px -12px rgba(0, 0, 0, 0.4);
 }
+/* Icon wrapper: 40×40, radius 10, bg tint + border brand 15% */
 .auth-points .tick {
-  width: 22px;
-  height: 22px;
+  width: 40px; /* bukan 22px — sesuai brief Retool-style */
+  height: 40px;
   flex: none;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 14px -6px rgba(165, 214, 167, 0.55);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.15); /* brand-400 15% */
+  color: var(--brand-300); /* glow icon */
+  box-shadow: 0 0 0 0 transparent, inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.auth-points .tick svg { width: 18px; height: 18px; stroke-width: 1.75; } /* stroke 1.75 via CSS */
+
+/* Footer hero: caption */
+.auth-hero > .t-sm {
+  font-size: var(--t-caption);
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.6);
 }
 
+/* === FASE 3 — Panel kanan: floating card, aksen vertikal === */
 .auth-panel {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--sp-6) var(--sp-4) var(--sp-10);
-  background: radial-gradient(620px 420px at 50% 0%, rgba(46, 125, 50, 0.05), transparent 70%);
+  background: radial-gradient(620px 420px at 50% 0%, rgba(22, 163, 74, 0.04), transparent 70%);
+}
+@media (min-width: 1024px) {
+  .auth-panel { padding: var(--sp-8) var(--sp-8) var(--sp-12); }
+  .auth-card { transform: translateY(-40px); } /* floating offset */
 }
 
-/* Kartu glass: bg 72% + blur 18px saturate 160% + shadow berlapis */
+/* Kartu glass: bg 72% + blur 18px saturate 160% + shadow BERLAPIS */
 .auth-card {
   position: relative;
   width: 100%;
   max-width: 440px;
-  padding: var(--sp-8);
+  padding: var(--sp-10); /* 40px desktop */
   background: var(--glass-bg);
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
@@ -1278,22 +1377,45 @@ button, input, select, textarea { font: inherit; color: inherit; }
   border-radius: 20px;
   box-shadow: var(--shadow-glass);
 }
+/* Aksen vertikal gradient di tepi kiri kartu (pseudo, DOM aman) */
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  bottom: 24px;
+  left: -1px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, var(--brand-500), var(--teal-600) 55%, transparent);
+  opacity: 0.85;
+  pointer-events: none;
+}
 
 /* Badge "AI Routing" — gradient hijau/teal 12% + border 25% + glow */
 .auth-card .eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  font-family: var(--font-ui);
+  font-size: var(--t-caption);
+  font-weight: 500;
+  letter-spacing: 0.01em;
   padding: 5px 12px;
   border-radius: var(--r-full);
   background: linear-gradient(135deg, rgba(22, 163, 74, 0.12), rgba(13, 148, 136, 0.12));
   border: 1px solid rgba(22, 163, 74, 0.25);
-  box-shadow: 0 6px 20px -6px rgba(22, 163, 74, 0.3);
-  color: var(--primary-700);
+  box-shadow: 0 6px 20px -6px rgba(22, 163, 74, 0.25);
+  color: var(--brand-700);
 }
+[data-theme='dark'] .auth-card .eyebrow { color: var(--brand-300); }
 
-/* Heading kartu: gradient tinta hijau */
-.auth-card h1 { letter-spacing: -0.02em; }
+/* Heading kartu: display serif, gradient tinta hijau */
+.auth-card h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .auth-card h1 {
     background: var(--grad-ink);
@@ -1302,7 +1424,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
     color: transparent;
   }
 }
+/* Sub kartu: body 15px muted */
+.auth-card #authSub { font-size: var(--t-body); line-height: 1.6; }
 
+/* Tabs: 15px, weight 600 */
 .auth-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1315,13 +1440,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
   box-shadow: inset 0 1px 2px rgba(16, 80, 50, 0.06);
 }
 .auth-tab {
-  padding: 9px;
+  padding: 10px; /* 40px tinggi total tab */
   border: none;
   border-radius: var(--r-sm);
   background: transparent;
   color: var(--muted);
-  font-weight: 700;
-  font-size: var(--fs-sm);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: var(--t-body); /* 15px */
   cursor: pointer;
   transition: all var(--dur) var(--ease);
 }
@@ -1329,30 +1455,31 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .auth-tab:active { transform: scale(0.98); }
 .auth-tab.active {
   background: var(--card);
-  color: var(--primary);
+  color: var(--brand-600);
   box-shadow: var(--shadow-1), inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
+[data-theme='dark'] .auth-tab.active { color: var(--brand-400); }
 
-/* Tombol primary: gradient + glow + lift halus (180ms) */
-.auth .btn-primary {
-  background: var(--grad-btn);
-  border-color: transparent;
-  box-shadow: var(--glow-btn), 0 1px 0 rgba(255, 255, 255, 0.35) inset;
-  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
-              filter var(--dur) var(--ease);
+/* === FASE 6 — Form: spacing disiplin === */
+.auth form.stack { gap: var(--sp-5); } /* 20px antar field */
+.auth .field { gap: var(--sp-2); } /* 8px label→input */
+.auth .field:last-child { margin-bottom: 0; }
+/* Label: 13px caption weight 600 */
+.auth .label {
+  font-family: var(--font-ui);
+  font-size: var(--t-caption);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text);
 }
-.auth .btn-primary:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.06);
-  box-shadow: 0 12px 26px -8px rgba(22, 163, 74, 0.6), 0 1px 0 rgba(255, 255, 255, 0.4) inset;
-}
-.auth .btn-primary:active { transform: translateY(0); filter: brightness(0.98); }
-.auth .btn-primary:disabled { transform: none; filter: none; box-shadow: none; }
-
-/* Input: bg putih 85%, radius 12, fokus bg putih + border hijau 55% + ring 4px */
+/* Input: tinggi 48px, radius 12, font 15px */
 .auth .input,
 .auth .select,
 .auth .textarea {
+  min-height: 48px; /* bukan 44 — sesuai brief */
+  padding: 12px 16px;
+  font-family: var(--font-ui);
+  font-size: var(--t-body); /* 15px */
   background: var(--auth-input-bg);
   border: 1px solid var(--auth-input-bd);
   border-radius: 12px;
@@ -1369,8 +1496,33 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .auth .input:focus-visible,
 .auth .select:focus-visible,
 .auth .textarea:focus-visible { outline: none; }
+/* Input terakhir → button: tambah 12px ekstra di atas gap 20px = 32px */
+.auth .btn-primary { margin-top: var(--sp-3); }
 
-/* Kartu pemilihan peran (register) */
+/* === FASE 4 — Button: satu-satunya gradient penuh (moment halaman) === */
+.auth .btn-primary {
+  min-height: 48px; /* tinggi 48 */
+  font-family: var(--font-ui);
+  font-size: var(--t-body); /* 15px */
+  font-weight: 600;
+  background: var(--grad-btn);
+  border-color: transparent;
+  box-shadow: var(--glow-btn), 0 1px 0 rgba(255, 255, 255, 0.35) inset;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+              filter var(--dur) var(--ease);
+}
+.auth .btn-primary:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow: 0 12px 26px -8px rgba(22, 163, 74, 0.6), 0 1px 0 rgba(255, 255, 255, 0.4) inset;
+}
+.auth .btn-primary:active { transform: translateY(0); filter: brightness(0.98); }
+.auth .btn-primary:disabled { transform: none; filter: none; box-shadow: none; }
+
+/* Link "Lupa kata sandi": caption 13px */
+.auth .link-btn { font-size: var(--t-caption); }
+
+/* === Kartu pemilihan peran (register) === */
 .role-cards { display: grid; gap: var(--sp-3); }
 .role-card {
   position: relative;
@@ -1385,53 +1537,108 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .role-card:hover {
   transform: translateY(-1px);
-  border-color: var(--primary);
-  background: var(--primary-soft);
+  border-color: var(--brand-500);
+  background: var(--brand-100);
   box-shadow: var(--shadow-1);
 }
+[data-theme='dark'] .role-card:hover { background: rgba(22, 163, 74, 0.08); }
 .role-card input { position: absolute; opacity: 0; }
-.role-card:has(input:checked) { border-color: var(--primary); background: var(--primary-soft); box-shadow: var(--shadow-focus); }
-.role-card b { display: block; }
-.role-card small { color: var(--muted); font-size: var(--fs-xs); }
-
-/* Ikon peran: glow radial tipis di belakangnya */
+.role-card:has(input:checked) {
+  border-color: var(--brand-500);
+  background: var(--brand-100);
+  box-shadow: 0 0 0 4px var(--auth-input-ring);
+}
+[data-theme='dark'] .role-card:has(input:checked) { background: rgba(22, 163, 74, 0.08); }
+.role-card b {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: var(--t-body);
+  font-weight: 600;
+}
+.role-card small {
+  color: var(--muted);
+  font-size: var(--t-caption);
+  line-height: 1.5;
+}
+/* Ikon peran: 40px wrapper radius 10, bg brand tint, stroke 1.75 */
 .role-card > svg {
   flex: none;
   box-sizing: content-box;
-  padding: 7px;
+  width: 20px;
+  height: 20px;
+  padding: 9px; /* 20+18 = 38px ≈ 40px box */
   border-radius: 10px;
-  color: var(--primary);
-  background: radial-gradient(circle at 50% 45%, rgba(22, 163, 74, 0.18), rgba(22, 163, 74, 0.05) 70%, transparent);
+  stroke-width: 1.75;
+  color: var(--brand-600);
+  background: var(--brand-100);
+  border: 1px solid rgba(22, 163, 74, 0.15);
 }
+[data-theme='dark'] .role-card > svg { background: rgba(22, 163, 74, 0.1); color: var(--brand-400); }
 
 /* Ikon sukses daftar: glow halus */
 .auth .kpi-icon {
   box-shadow: 0 10px 26px -10px rgba(22, 163, 74, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
-.auth-legal { position: relative; margin-top: var(--sp-5); text-align: center; font-size: var(--fs-xs); color: var(--muted); }
+/* Legal: caption 13px */
+.auth-legal {
+  position: relative;
+  margin-top: var(--sp-5);
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: var(--t-caption); /* 13px */
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--muted);
+}
 /* Pemisah gradient horizontal di atas link legal */
 .auth-legal::before {
   content: '';
   display: block;
   height: 1px;
   margin-bottom: var(--sp-4);
-  background: linear-gradient(90deg, transparent, rgba(46, 125, 50, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(22, 163, 74, 0.2), transparent);
 }
 .demo-note {
   margin-top: var(--sp-3);
   padding: 10px 12px;
   border-radius: var(--r-sm);
+  font-family: var(--font-ui);
+  font-size: var(--t-caption);
   background: var(--info-soft);
   border: 1px solid rgba(2, 119, 189, 0.2);
   color: var(--info);
-  font-size: var(--fs-xs);
 }
+
+/* === Input OTP & angka: mono === */
+.auth #resetKode {
+  font-family: var(--font-mono);
+  font-size: var(--t-mono); /* 14px */
+  font-weight: 500;
+  letter-spacing: 0.08em; /* legibility utk angka */
+}
+
+/* === Skeleton shimmer hijau 6% (loading state) === */
+.auth .skeleton {
+  position: relative;
+  overflow: hidden;
+}
+.auth .skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(22, 163, 74, 0.06), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 1.4s ease infinite;
+}
+@keyframes shimmer { to { transform: translateX(100%); } }
 
 /* Mobile: 1 kolom (default), card full-width, padding aman */
 @media (max-width: 640px) {
   .auth-panel { padding: var(--sp-5) var(--sp-3) var(--sp-8); }
-  .auth-card { padding: var(--sp-6) var(--sp-5); }
+  .auth-card { padding: var(--sp-6) var(--sp-5); } /* 24/20 mobile */
+  .auth-card::before { top: 16px; bottom: 16px; }
+  .auth-hero h1 { max-width: 100%; }
 }
 
 /* --------------------------------------------------------------------------
@@ -1502,11 +1709,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  /* Matikan efek angkat/skala pada halaman auth */
+  /* Matikan efek angkat/skala/floating pada halaman auth */
   .auth .btn-primary:hover,
   .auth .auth-points li:hover,
   .auth .role-card:hover,
-  .auth-tab:active { transform: none; }
+  .auth-tab:active,
+  .auth-card,
+  .auth .skeleton::after { transform: none; }
+  .auth .skeleton::after { animation: none; display: none; }
 }
 
 /* --------------------------------------------------------------------------
