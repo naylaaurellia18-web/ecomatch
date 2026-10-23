@@ -915,6 +915,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
   font-size: var(--t-body-l);
   letter-spacing: -0.01em;
 }
+/* Desktop: page-head sudah menampilkan judul — topbar title disembunyikan
+   (menghindari "Beranda" dobel). Mobile tetap (sticky context saat scroll). */
+@media (min-width: 1024px) { .topbar-title { display: none; } }
 .topbar-right { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }
 
 /* --- Konten utama --- */
