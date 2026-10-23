@@ -1304,10 +1304,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 .auth-hero {
   position: relative;
-  display: none;
+  display: flex; /* mobile: tampil compact di atas kartu */
   flex-direction: column;
-  justify-content: space-between;
-  padding: var(--sp-12) var(--sp-10); /* 48/40 — generous breathing room */
+  justify-content: flex-start;
+  gap: var(--sp-4);
+  padding: var(--sp-8) var(--sp-5) var(--sp-6);
   color: #fff;
   background:
     radial-gradient(700px 520px at 92% 80%, rgba(163, 230, 53, 0.14), transparent 60%),
@@ -1315,7 +1316,20 @@ button, input, select, textarea { font: inherit; color: inherit; }
     linear-gradient(150deg, var(--brand-700) 0%, var(--brand-900) 55%, var(--brand-950) 100%);
   overflow: hidden;
 }
-@media (min-width: 1024px) { .auth-hero { display: flex; } }
+/* Mobile compact: sembunyikan list fitur + footer hero (headline tetap ada) */
+@media (max-width: 1023px) {
+  .auth-hero .auth-points,
+  .auth-hero > .t-sm { display: none; }
+  .auth-hero h1 { font-size: 2.125rem; max-width: 18ch; } /* 34px — compact */
+}
+@media (min-width: 1024px) {
+  .auth-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 0;
+    padding: var(--sp-12) var(--sp-10); /* 48/40 — generous breathing room */
+  }
+}
 
 /* Grain halus di atas warna hero, di bawah teks */
 .auth-hero::before {
@@ -1336,7 +1350,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
   letter-spacing: -0.03em;
   max-width: 14ch;
 }
-@media (max-width: 1023px) { .auth-hero h1 { font-size: var(--t-display-l); } } /* 44px mobile */
 /* Gradient text — variant terang agar kontras tetap >= 4.5:1 di hero gelap */
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .auth-hero h1 {
