@@ -1,4 +1,4 @@
-const CACHE = 'ecomatch-v4-brand';
+const CACHE = 'ecomatch-v5-brand';
 const PRECACHE = [
   '/',
   '/index.html',
@@ -8,6 +8,13 @@ const PRECACHE = [
   '/fonts/inter-tight-latin.woff2',
   '/fonts/fraunces-latin.woff2',
   '/fonts/jetbrains-mono-latin.woff2',
+  '/vendor/leaflet/leaflet.css',
+  '/vendor/leaflet/leaflet.js',
+  '/vendor/leaflet/images/layers.png',
+  '/vendor/leaflet/images/layers-2x.png',
+  '/vendor/leaflet/images/marker-icon.png',
+  '/vendor/leaflet/images/marker-icon-2x.png',
+  '/vendor/leaflet/images/marker-shadow.png',
   '/theme.js',
   '/manifest.webmanifest',
   '/icons/icon-192.png',
