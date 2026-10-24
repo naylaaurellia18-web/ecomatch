@@ -1,9 +1,19 @@
-const CACHE = 'ecomatch-v3-green';
+const CACHE = 'ecomatch-v4-brand';
 const PRECACHE = [
   '/',
   '/index.html',
   '/offline.html',
   '/styles/app.css',
+  '/styles/fonts.css',
+  '/fonts/inter-tight-400-normal-latin.woff2',
+  '/fonts/inter-tight-500-normal-latin.woff2',
+  '/fonts/inter-tight-600-normal-latin.woff2',
+  '/fonts/inter-tight-700-normal-latin.woff2',
+  '/fonts/inter-tight-800-normal-latin.woff2',
+  '/fonts/fraunces-500-normal-latin.woff2',
+  '/fonts/fraunces-600-normal-latin.woff2',
+  '/fonts/jetbrains-mono-400-normal-latin.woff2',
+  '/fonts/jetbrains-mono-500-normal-latin.woff2',
   '/theme.js',
   '/manifest.webmanifest',
   '/icons/icon-192.png',
