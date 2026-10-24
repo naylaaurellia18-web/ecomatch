@@ -35,7 +35,7 @@ export function renderAuth() {
       <div class="hero-tag">${icon('leaf', 18)} EcoMatch</div>
       <div class="stack stack-6">
         <div>
-          <div class="eyebrow" style="color:#a5d6a7">AI Routing Sampah Makanan MBG</div>
+          <div class="eyebrow" style="color:#86efac">AI Routing Sampah Makanan MBG</div>
           <h1>Sisa makanan MBG bukan akhir — olah kembali di TPS</h1>
           <p style="color:rgba(255,255,255,.85);max-width:46ch">
             EcoMatch mengalihkan sampah makanan MBG ke TPS pengolah terdekat dengan routing AI &amp; peta GIS.

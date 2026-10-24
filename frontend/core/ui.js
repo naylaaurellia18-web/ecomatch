@@ -142,9 +142,9 @@ export function pageHead(title, desc = '', actions = '') {
 /** Empty state ilustratif (SVG). */
 export function emptyHtml(title, desc = '', action = '', kind = 'leaf') {
   const art = {
-    leaf: '<path d="M60 20C30 30 18 58 30 92c34 6 66-14 74-46-24-16-30-30-44-26Z" fill="#E8F5E9"/><path d="M40 96c8-24 24-44 52-56" stroke="#81C784" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="96" cy="88" r="7" fill="#81C784" opacity=".6"/>',
-    inbox: '<rect x="16" y="42" width="88" height="54" rx="8" fill="#E8F5E9"/><path d="M16 62h22l8 14h28l8-14h22" stroke="#81C784" stroke-width="3" fill="none" stroke-linejoin="round"/>',
-    truck: '<rect x="10" y="44" width="54" height="38" rx="6" fill="#E8F5E9"/><path d="M64 56h18l14 14v12H64z" fill="#F1F8E9"/><circle cx="32" cy="90" r="9" fill="#81C784"/><circle cx="82" cy="90" r="9" fill="#81C784"/>',
+    leaf: '<path d="M60 20C30 30 18 58 30 92c34 6 66-14 74-46-24-16-30-30-44-26Z" fill="#dcfce7"/><path d="M40 96c8-24 24-44 52-56" stroke="#86efac" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="96" cy="88" r="7" fill="#86efac" opacity=".6"/>',
+    inbox: '<rect x="16" y="42" width="88" height="54" rx="8" fill="#dcfce7"/><path d="M16 62h22l8 14h28l8-14h22" stroke="#86efac" stroke-width="3" fill="none" stroke-linejoin="round"/>',
+    truck: '<rect x="10" y="44" width="54" height="38" rx="6" fill="#dcfce7"/><path d="M64 56h18l14 14v12H64z" fill="#f1f8e9"/><circle cx="32" cy="90" r="9" fill="#86efac"/><circle cx="82" cy="90" r="9" fill="#86efac"/>',
   }[kind] || '';
   return `<div class="empty">
     <svg viewBox="0 0 120 120" role="img" aria-label="${esc(title)}">${art}</svg>

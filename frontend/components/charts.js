@@ -1,6 +1,6 @@
 import { esc } from '../core/ui.js';
 
-const PALETTE = ['#2E7D32', '#81C784', '#FF6F00', '#0277BD', '#C62828', '#8E24AA'];
+const PALETTE = ['#15803d', '#86efac', '#FF6F00', '#0277BD', '#C62828', '#8E24AA'];
 
 /** Donut SVG: items = [{label, value}], nilai digambar sebagai irisan. */
 export function donut(items, opts = {}) {

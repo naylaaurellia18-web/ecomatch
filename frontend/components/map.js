@@ -64,7 +64,7 @@ async function loadData() {
     if (!inMadiun(l.lat, l.lng)) continue;
     if (!['tersedia', 'dialokasikan'].includes(l.status)) continue;
     L.circleMarker([l.lat, l.lng], {
-      radius: 7, color: '#fff', weight: 2, fillColor: '#2E7D32', fillOpacity: 0.95,
+      radius: 7, color: '#fff', weight: 2, fillColor: '#15803d', fillOpacity: 0.95,
     })
       .bindPopup(
         `<b>${esc(l.nama_sampah)}</b><br>${l.berat_kg} kg · ${statusTag(l.jenis_makanan)} · ${statusTag(l.status)}<br>` +
