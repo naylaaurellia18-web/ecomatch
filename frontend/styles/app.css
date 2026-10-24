@@ -951,12 +951,15 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .bottomnav-item {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 3px;
+  padding: 4px 2px;
   border: none; background: transparent;
   color: var(--muted);
-  font-size: 11px; font-weight: 600;
+  font-size: 13px; font-weight: 600; line-height: 1.15; letter-spacing: -0.01em;
+  text-align: center;
   cursor: pointer;
   transition: color var(--dur) var(--ease);
 }
+.bottomnav-item span { display: block; max-width: 100%; }
 .bottomnav-item.active { color: var(--primary); }
 .bottomnav-item.active svg { transform: translateY(-1px); }
 @media (min-width: 1024px) { .bottomnav { display: none; } }

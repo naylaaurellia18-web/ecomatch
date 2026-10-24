@@ -114,6 +114,23 @@ export function shellHtml() {
   `;
 }
 
+/** Label ringkas khusus bottom-nav (layar sempit, satu baris). */
+const BOTTOM_LABEL = {
+  dashboard: 'Beranda',
+  gis: 'Peta',
+  users: 'Pengguna',
+  matches: 'Routing',
+  outbox: 'Pesan',
+  logs: 'Audit',
+  donor: 'Catat',
+  'donor-listings': 'Stok',
+  'donor-matches': 'Routing',
+  'donor-points': 'Poin',
+  recipient: 'Profil',
+  'recipient-matches': 'OTP',
+  courier: 'Kurir',
+};
+
 /** Isi ulang menu sidebar + bottom-nav sesuai peran & tab aktif. */
 export function renderNav(user, currentTab) {
   const tabs = tabsFor(user && user.role);
@@ -142,7 +159,7 @@ export function renderNav(user, currentTab) {
         ([id, , label]) => `
         <button type="button" class="bottomnav-item ${currentTab === id ? 'active' : ''}" data-tab="${id}"
           ${currentTab === id ? 'aria-current="page"' : ''}>
-          ${icon(tabIcon(id), 20)}<span>${esc(label.length > 11 ? label.slice(0, 10) + '…' : label)}</span>
+          ${icon(tabIcon(id), 20)}<span>${esc(BOTTOM_LABEL[id] || label)}</span>
         </button>`
       )
       .join('');
