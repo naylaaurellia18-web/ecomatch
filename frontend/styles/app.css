@@ -1,17 +1,17 @@
-﻿/* =========================================================================
-   EcoMatch Â· Design System (frontend/styles/app.css)
-   Vanilla CSS â€” TANPA Tailwind/Bootstrap CDN (offline-first PWA).
+/* =========================================================================
+   EcoMatch · Design System (frontend/styles/app.css)
+   Vanilla CSS — TANPA Tailwind/Bootstrap CDN (offline-first PWA).
    Palet eco-hijau tonal: brand-600 #15803d, surface #f7faf8,
    warning #FF6F00 (urgensi busuk), danger #C62828.
    ========================================================================= */
 
 /* --------------------------------------------------------------------------
-   1. TOKENS â€” mode terang
+   1. TOKENS — mode terang
    -------------------------------------------------------------------------- */
 :root {
-  /* --- Warna inti (eco) â€” di-remap ke brand tonal --- */
-  --primary: var(--brand-600);      /* #15803d â€” aksen utama */
-  --primary-700: var(--brand-700);  /* #166534 â€” teks di atas soft */
+  /* --- Warna inti (eco) — di-remap ke brand tonal --- */
+  --primary: var(--brand-600);      /* #15803d — aksen utama */
+  --primary-700: var(--brand-700);  /* #166534 — teks di atas soft */
   --primary-600: var(--brand-700);
   --primary-400: var(--brand-400);  /* #4ade80 */
   --primary-soft: var(--brand-100); /* #dcfce7 */
@@ -70,7 +70,7 @@
   --shadow-1: 0 1px 2px rgba(22, 36, 26, 0.05), 0 2px 6px rgba(22, 36, 26, 0.04);
   --shadow-2: 0 6px 16px rgba(22, 36, 26, 0.08), 0 18px 40px rgba(22, 36, 26, 0.08);
   --shadow-focus: 0 0 0 4px rgba(22, 163, 74, 0.12); /* ring fokus tunggal (input/otp/auth) */
-  /* Skeleton: kilau hijau samar (6%) â€” satu sistem dgn auth */
+  /* Skeleton: kilau hijau samar (6%) — satu sistem dgn auth */
   --sk-sweep: rgba(22, 163, 74, 0.06);
   /* Shadow kartu interior: lapisan halus (inset highlight + soft + deep) */
   --shadow-card:
@@ -81,7 +81,7 @@
   /* --- Auth "subtle premium" (ubah di sini untuk menyetel ulang visual) --- */
   --auth-base: #f8faf9;            /* base halaman auth */
   --noise: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='140'%20height='140'%20viewBox='0%200%20140%20140'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.85'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3C/filter%3E%3Crect%20width='140'%20height='140'%20filter='url(%23n)'%20opacity='0.035'/%3E%3C/svg%3E");
-  --auth-mesh: /* radial 3 lapis: hijau / teal / lime (opacity 6â€“10%) */
+  --auth-mesh: /* radial 3 lapis: hijau / teal / lime (opacity 6–10%) */
     radial-gradient(900px 620px at 12% 16%, rgba(22, 163, 74, 0.1), transparent 62%),
     radial-gradient(760px 520px at 88% 10%, rgba(13, 148, 136, 0.08), transparent 58%),
     radial-gradient(860px 720px at 72% 92%, rgba(163, 230, 53, 0.07), transparent 60%);
@@ -140,7 +140,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   2. TOKENS â€” mode gelap
+   2. TOKENS — mode gelap
    -------------------------------------------------------------------------- */
 [data-theme='dark'] {
   --bg: #0c1410;
@@ -452,7 +452,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .btn-primary   { --btn-bg: var(--primary); --btn-fg: #fff; }
 .btn-primary:hover { --btn-bg: var(--primary-700); }
 
-/* Gradient hijauâ†’teal = "moment" halaman (CTA utama & primary) */
+/* Gradient hijau→teal = "moment" halaman (CTA utama & primary) */
 .btn-primary,
 .btn:not([class*='btn-']) {
   --btn-bg: var(--grad-btn);
@@ -835,7 +835,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .brand-name {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 1.1875rem; /* 19px â€” judul brand tegas */
+  font-size: 1.1875rem; /* 19px — judul brand tegas */
   letter-spacing: -0.01em;
 }
 .brand-tag { font-size: var(--t-caption); color: var(--muted); line-height: 1.3; font-weight: 500; }
@@ -916,7 +916,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   font-size: var(--t-body-l);
   letter-spacing: -0.01em;
 }
-/* Desktop: page-head sudah menampilkan judul â€” topbar title disembunyikan
+/* Desktop: page-head sudah menampilkan judul — topbar title disembunyikan
    (menghindari "Beranda" dobel). Mobile tetap (sticky context saat scroll). */
 @media (min-width: 1024px) { .topbar-title { display: none; } }
 .topbar-right { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }
@@ -999,7 +999,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   letter-spacing: 0.05em;
   color: var(--muted);
 }
-/* Angka skor: mono (tabular) â€” khas teknokratik */
+/* Angka skor: mono (tabular) — khas teknokratik */
 .kpi-value {
   font-family: var(--font-mono);
   font-size: 1.75rem;
@@ -1272,17 +1272,17 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 /* --------------------------------------------------------------------------
-   21. AUTH (split screen login/register) â€” "CALM GREEN-TECH PREMIUM"
+   21. AUTH (split screen login/register) — "CALM GREEN-TECH PREMIUM"
    Fondasi dulu: tipografi Fraunces + Inter Tight, skala 4px, split 7:5,
-   hierarki headlineâ†’kartuâ†’subâ†’list. Efek (mesh/glass/glow) menyusul di
-   lapisan terakhir â€” semua SAMAR (6â€“12%).
+   hierarki headline→kartu→sub→list. Efek (mesh/glass/glow) menyusul di
+   lapisan terakhir — semua SAMAR (6–12%).
    Referensi per elemen:
-   - headline  â†’ Linear (tracking ketat, berat disengaja)
-   - kartu     â†’ Vercel login (glass subtle)
-   - button    â†’ Stripe CTA (gradient tipis, bukan neon)
-   - list      â†’ Retool (icon wrapper 40px, gap 24px)
-   - palet     â†’ Stripe Climate (tone-on-tone)
-   - backgroundâ†’ Vercel (mesh samar)
+   - headline  → Linear (tracking ketat, berat disengaja)
+   - kartu     → Vercel login (glass subtle)
+   - button    → Stripe CTA (gradient tipis, bukan neon)
+   - list      → Retool (icon wrapper 40px, gap 24px)
+   - palet     → Stripe Climate (tone-on-tone)
+   - background→ Vercel (mesh samar)
    -------------------------------------------------------------------------- */
 
 /* Latar: mesh 3 lapis + noise SVG (fixed, di bawah konten via z-index) */
@@ -1303,7 +1303,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   background: var(--noise) repeat, var(--auth-mesh), var(--auth-base);
 }
 .auth > * { position: relative; z-index: 1; } /* konten selalu di atas noise */
-/* Split 7:5 â€” teks lega, form fokus (bukan 50:50 monoton) */
+/* Split 7:5 — teks lega, form fokus (bukan 50:50 monoton) */
 @media (min-width: 1024px) { .auth { grid-template-columns: 7fr 5fr; } }
 
 .auth-hero {
@@ -1324,14 +1324,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
 @media (max-width: 1023px) {
   .auth-hero .auth-points,
   .auth-hero > .t-sm { display: none; }
-  .auth-hero h1 { font-size: 2.125rem; max-width: 18ch; } /* 34px â€” compact */
+  .auth-hero h1 { font-size: 2.125rem; max-width: 18ch; } /* 34px — compact */
 }
 @media (min-width: 1024px) {
   .auth-hero {
     display: flex;
     justify-content: space-between;
     gap: 0;
-    padding: var(--sp-12) var(--sp-10); /* 48/40 â€” generous breathing room */
+    padding: var(--sp-12) var(--sp-10); /* 48/40 — generous breathing room */
   }
 }
 
@@ -1345,7 +1345,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   background: var(--noise) repeat;
 }
 
-/* === FASE 1 â€” Tipografi display (Fraunces 500, tracking ketat) === */
+/* === FASE 1 — Tipografi display (Fraunces 500, tracking ketat) === */
 .auth-hero h1 {
   font-family: var(--font-display);
   font-weight: 500;
@@ -1354,7 +1354,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   letter-spacing: -0.03em;
   max-width: 14ch;
 }
-/* Gradient text â€” variant terang agar kontras tetap >= 4.5:1 di hero gelap */
+/* Gradient text — variant terang agar kontras tetap >= 4.5:1 di hero gelap */
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .auth-hero h1 {
     background: var(--grad-ink-hero);
@@ -1367,7 +1367,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .auth-hero .stack > div > p {
   font-size: var(--t-body-l); /* 17px */
   line-height: 1.6;
-  max-width: 480px; /* bukan ch â€” sesuai brief */
+  max-width: 480px; /* bukan ch — sesuai brief */
   color: rgba(255, 255, 255, 0.78); /* muted, bukan pure white 85% */
 }
 /* Glow tunggal SAMAR di belakang headline (brand-500 8%, blur besar) */
@@ -1386,7 +1386,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   z-index: -1;
 }
 
-/* Chip brand hero â€” kaca tipis */
+/* Chip brand hero — kaca tipis */
 .auth-hero .hero-tag {
   display: inline-flex;
   align-items: center;
@@ -1410,7 +1410,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   text-transform: uppercase;
 }
 
-/* === FASE 6 â€” Fitur list: wrapper ikon 40px, teks 15px medium, gap 24px === */
+/* === FASE 6 — Fitur list: wrapper ikon 40px, teks 15px medium, gap 24px === */
 .auth-points {
   list-style: none;
   padding: 0;
@@ -1424,7 +1424,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   align-items: center;
   font-size: var(--t-body); /* 15px */
   font-weight: 500;
-  padding: var(--sp-2) var(--sp-3); /* 8/12 â€” halus, bukan block besar */
+  padding: var(--sp-2) var(--sp-3); /* 8/12 — halus, bukan block besar */
   border-radius: 12px;
   transition: transform var(--dur) var(--ease), background var(--dur) var(--ease),
               box-shadow var(--dur) var(--ease);
@@ -1434,9 +1434,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
   background: rgba(255, 255, 255, 0.06);
   box-shadow: 0 8px 20px -12px rgba(0, 0, 0, 0.4);
 }
-/* Icon wrapper: 40Ã—40, radius 10, bg tint + border brand 15% */
+/* Icon wrapper: 40×40, radius 10, bg tint + border brand 15% */
 .auth-points .tick {
-  width: 40px; /* bukan 22px â€” sesuai brief Retool-style */
+  width: 40px; /* bukan 22px — sesuai brief Retool-style */
   height: 40px;
   flex: none;
   display: grid;
@@ -1456,7 +1456,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   color: rgba(255, 255, 255, 0.6);
 }
 
-/* === FASE 3 â€” Panel kanan: floating card, aksen vertikal === */
+/* === FASE 3 — Panel kanan: floating card, aksen vertikal === */
 .auth-panel {
   display: flex;
   align-items: center;
@@ -1496,7 +1496,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   pointer-events: none;
 }
 
-/* Badge "AI Routing" â€” gradient hijau/teal 12% + border 25% + glow */
+/* Badge "AI Routing" — gradient hijau/teal 12% + border 25% + glow */
 .auth-card .eyebrow {
   display: inline-flex;
   align-items: center;
@@ -1565,9 +1565,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 [data-theme='dark'] .auth-tab.active { color: var(--brand-400); }
 
-/* === FASE 6 â€” Form: spacing disiplin === */
+/* === FASE 6 — Form: spacing disiplin === */
 .auth form.stack { gap: var(--sp-5); } /* 20px antar field */
-.auth .field { gap: var(--sp-2); } /* 8px labelâ†’input */
+.auth .field { gap: var(--sp-2); } /* 8px label→input */
 .auth .field:last-child { margin-bottom: 0; }
 /* Label: 13px caption weight 600 */
 .auth .label {
@@ -1581,7 +1581,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .auth .input,
 .auth .select,
 .auth .textarea {
-  min-height: 48px; /* bukan 44 â€” sesuai brief */
+  min-height: 48px; /* bukan 44 — sesuai brief */
   padding: 12px 16px;
   font-family: var(--font-ui);
   font-size: var(--t-body); /* 15px */
@@ -1601,10 +1601,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .auth .input:focus-visible,
 .auth .select:focus-visible,
 .auth .textarea:focus-visible { outline: none; }
-/* Input terakhir â†’ button: tambah 12px ekstra di atas gap 20px = 32px */
+/* Input terakhir → button: tambah 12px ekstra di atas gap 20px = 32px */
 .auth .btn-primary { margin-top: var(--sp-3); }
 
-/* === FASE 4 â€” Button: satu-satunya gradient penuh (moment halaman) === */
+/* === FASE 4 — Button: satu-satunya gradient penuh (moment halaman) === */
 .auth .btn-primary {
   min-height: 48px; /* tinggi 48 */
   font-family: var(--font-ui);
@@ -1671,7 +1671,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   box-sizing: content-box;
   width: 20px;
   height: 20px;
-  padding: 9px; /* 20+18 = 38px â‰ˆ 40px box */
+  padding: 9px; /* 20+18 = 38px ≈ 40px box */
   border-radius: 10px;
   stroke-width: 1.75;
   color: var(--brand-600);
