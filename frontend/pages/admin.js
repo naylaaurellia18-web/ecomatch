@@ -17,12 +17,12 @@ async function usersView() {
         ${users
           .map(
             (u) => `<tr>
-          <td><b>${esc(u.nama)}</b>${u.nama_lembaga ? `<br><span class="muted">${esc(u.nama_lembaga)}</span>` : ''}</td>
-          <td>${esc(u.email)}</td>
-          <td>${statusTag(u.role)}</td>
-          <td>${statusTag(u.status)}</td>
-          <td class="muted">${esc(u.alamat || '—')}${u.kapasitas ? `<br>kap. ${u.kapasitas} porsi` : ''}</td>
-          <td>
+          <td data-label="Nama"><b>${esc(u.nama)}</b>${u.nama_lembaga ? `<br><span class="muted">${esc(u.nama_lembaga)}</span>` : ''}</td>
+          <td data-label="Email">${esc(u.email)}</td>
+          <td data-label="Peran">${statusTag(u.role)}</td>
+          <td data-label="Status">${statusTag(u.status)}</td>
+          <td data-label="Lokasi" class="muted">${esc(u.alamat || '—')}${u.kapasitas ? `<br>kap. ${u.kapasitas} porsi` : ''}</td>
+          <td data-label="Aksi">
             <div class="cell-actions">
             ${u.status !== 'aktif' && u.role !== 'admin' ? `<button class="btn btn-sm btn-primary" data-patch="/api/admin/users/${u.id_user}/status" data-body='{"status":"aktif"}'>Verifikasi</button>` : ''}
             ${u.status !== 'ditolak' && u.role !== 'admin' ? `<button class="btn btn-sm btn-danger" data-patch="/api/admin/users/${u.id_user}/status" data-body='{"status":"ditolak"}'>Tolak</button>` : ''}
@@ -60,16 +60,16 @@ async function matchesView() {
         ${rows
           .map(
             (m) => `<tr>
-          <td class="muted">${m.id_alokasi}</td>
-          <td><b>${esc(m.nama_sampah)}</b> (${m.berat_kg} kg) ${statusTag(m.kategori || m.jenis_makanan)}<br>→ ${esc(m.nama_tps)} ${m.tingkat_pembusukan ? statusTag(m.tingkat_pembusukan) : ''}<br><span class="muted">${esc(m.nama_donor)} → ${esc(m.nama_tps)}</span></td>
-          <td>${esc(m.nama_kurir)}</td>
-          <td>
+          <td data-label="#" class="muted">${m.id_alokasi}</td>
+          <td data-label="Sampah → TPS"><b>${esc(m.nama_sampah)}</b> (${m.berat_kg} kg) ${statusTag(m.kategori || m.jenis_makanan)}<br>→ ${esc(m.nama_tps)} ${m.tingkat_pembusukan ? statusTag(m.tingkat_pembusukan) : ''}<br><span class="muted">${esc(m.nama_donor)} → ${esc(m.nama_tps)}</span></td>
+          <td data-label="Kurir">${esc(m.nama_kurir)}</td>
+          <td data-label="Skor">
             <b>${m.skor_persen}%</b>
             <div class="progress" style="margin-top:6px;min-width:120px"><span class="progress-bar" style="width:${m.skor_persen}%"></span></div>
             <span class="muted t-xs">jenis ${Number(m.skor_jenis_cocok * 100).toFixed(0)} · kap. ${Number(m.skor_kapasitas * 100).toFixed(0)} · jarak ${Number(m.skor_jarak * 100).toFixed(0)} · urg. ${Number(m.skor_urgensi * 100).toFixed(0)}</span>
           </td>
-          <td>${m.jarak_km} km</td>
-          <td>${statusTag(m.status)}</td>
+          <td data-label="Jarak">${m.jarak_km} km</td>
+          <td data-label="Status">${statusTag(m.status)}</td>
         </tr>`
           )
           .join('')}

@@ -677,6 +677,44 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .table tbody tr:last-child td { border-bottom: none; }
 .table .cell-actions { display: flex; gap: var(--sp-2); justify-content: flex-end; }
 
+/* Mobile ≤640: tabel jadi daftar kartu — label dari data-label tiap sel */
+@media (max-width: 640px) {
+  .table-wrap { overflow-x: visible; border: none; background: none; border-radius: 0; }
+  .table { display: block; font-size: 0.875rem; }
+  .table thead { display: none; }
+  .table tbody { display: block; }
+  .table tbody tr {
+    display: block;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 8px 14px;
+    margin-bottom: var(--sp-3);
+  }
+  .table tbody tr:hover { background: var(--card); }
+  .table td {
+    display: block;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    line-height: 1.55;
+  }
+  .table tbody tr td:last-child { border-bottom: none; }
+  .table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+  .table td:not([data-label])::before { content: none; margin: 0; }
+  .table .cell-actions { justify-content: stretch; }
+  .table .cell-actions .btn { flex: 1; }
+}
+
 /* --------------------------------------------------------------------------
    11. KOMPONEN: MODAL / TOAST / SKELETON / EMPTY
    -------------------------------------------------------------------------- */

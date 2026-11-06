@@ -206,14 +206,14 @@ async function donorListings() {
         ${rows
           .map(
             (l) => `<tr>
-          <td>${l.foto_url ? `<img src="${l.foto_url}" alt="" style="width:46px;height:46px;object-fit:cover;border-radius:10px;border:1px solid var(--line)" />` : '—'}</td>
-          <td><b>${esc(l.nama_sampah)}</b></td>
-          <td>${statusTag(l.jenis_makanan)}</td>
-          <td>${l.berat_kg} kg</td>
-          <td>${l.kategori ? `${statusTag(l.kategori)} <span class="muted">${statusTag(l.tingkat_pembusukan)}</span>` : '—'}</td>
-          <td class="muted">${fmtDate(l.waktu_produksi)}</td>
-          <td>${statusTag(l.status)}</td>
-          <td><div class="cell-actions">${['tersedia', 'dialokasikan'].includes(l.status) ? `<button class="btn btn-sm btn-danger" data-patch="/api/waste/${l.id_sampah}" data-body='{"status":"dibatalkan"}'>Batalkan</button>` : '—'}</div></td>
+          <td data-label="Foto">${l.foto_url ? `<img src="${l.foto_url}" alt="" style="width:46px;height:46px;object-fit:cover;border-radius:10px;border:1px solid var(--line)" />` : '—'}</td>
+          <td data-label="Nama"><b>${esc(l.nama_sampah)}</b></td>
+          <td data-label="Jenis">${statusTag(l.jenis_makanan)}</td>
+          <td data-label="Berat">${l.berat_kg} kg</td>
+          <td data-label="Klasifikasi">${l.kategori ? `${statusTag(l.kategori)} <span class="muted">${statusTag(l.tingkat_pembusukan)}</span>` : '—'}</td>
+          <td data-label="Produksi" class="muted">${fmtDate(l.waktu_produksi)}</td>
+          <td data-label="Status">${statusTag(l.status)}</td>
+          <td data-label="Aksi"><div class="cell-actions">${['tersedia', 'dialokasikan'].includes(l.status) ? `<button class="btn btn-sm btn-danger" data-patch="/api/waste/${l.id_sampah}" data-body='{"status":"dibatalkan"}'>Batalkan</button>` : '—'}</div></td>
         </tr>`
           )
           .join('')}
