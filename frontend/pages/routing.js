@@ -16,14 +16,14 @@ async function donorMatches() {
         ${rows
           .map(
             (m) => `<tr>
-          <td><b>${esc(m.nama_sampah)}</b> ${statusTag(m.kategori || m.jenis_makanan)}<br><span class="muted">${m.berat_kg} kg</span></td>
-          <td>${esc(m.nama_tps)}<br><span class="muted">${m.jarak_km} km</span></td>
-          <td>${esc(m.nama_kurir)}</td>
-          <td>
+          <td data-label="Sampah"><b>${esc(m.nama_sampah)}</b> ${statusTag(m.kategori || m.jenis_makanan)}<br><span class="muted">${m.berat_kg} kg</span></td>
+          <td data-label="TPS Pengolah">${esc(m.nama_tps)}<br><span class="muted">${m.jarak_km} km</span></td>
+          <td data-label="Kurir">${esc(m.nama_kurir)}</td>
+          <td data-label="Skor">
             <b>${m.skor_persen ?? ''}%</b>
             ${m.skor_persen != null ? `<div class="progress" style="margin-top:6px;min-width:110px"><span class="progress-bar" style="width:${m.skor_persen}%"></span></div>` : ''}
           </td>
-          <td>${statusTag(m.status)}</td>
+          <td data-label="Status">${statusTag(m.status)}</td>
         </tr>`
           )
           .join('')}

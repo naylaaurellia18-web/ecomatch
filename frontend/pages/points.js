@@ -63,11 +63,11 @@ async function pointsView() {
         ${klaimRows
           .map(
             (k) => `<tr>
-          <td class="muted">${k.id_motivasi}</td>
-          <td>${statusTag(k.jenis_insentif)}</td>
-          <td><b>${k.nilai}</b></td>
-          <td>${esc(k.periode)}</td>
-          <td class="muted">${fmtDate(k.created_at)}</td>
+<td data-label="#" class="muted">${k.id_motivasi}</td>
+<td data-label="Jenis">${statusTag(k.jenis_insentif)}</td>
+<td data-label="Nilai"><b>${k.nilai}</b></td>
+<td data-label="Periode">${esc(k.periode)}</td>
+<td data-label="Waktu" class="muted">${fmtDate(k.created_at)}</td>
         </tr>`
           )
           .join('')}

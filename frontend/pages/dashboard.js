@@ -11,7 +11,7 @@ function tableCard(title, sub, rows) {
     </div>
     <div class="table-wrap" style="border:none">
       <table class="table">
-        <tbody>${rows.map(([k, v]) => `<tr><td>${k}</td><td style="text-align:right"><b>${v}</b></td></tr>`).join('')}</tbody>
+        <tbody>${rows.map(([k, v]) => `<tr><td class="tbl-k">${k}</td><td data-label="${k}" style="text-align:right"><b>${v}</b></td></tr>`).join('')}</tbody>
       </table>
     </div>
   </div>`;
@@ -95,10 +95,10 @@ async function adminDashboard() {
               <tbody>${runs
                 .map(
                   (r) => `<tr>
-                    <td>${r.kandidat_sampah ?? '—'}/${r.kandidat_tps ?? '—'}/${r.kandidat_kurir ?? '—'}</td>
-                    <td><b>${r.dibuat ?? '—'}</b></td>
-                    <td class="muted">${esc(r.mesin || '—')}</td>
-                    <td><b>${r.durasi_ms ?? '—'}</b></td>
+                    <td data-label="Kandidat">${r.kandidat_sampah ?? '—'}/${r.kandidat_tps ?? '—'}/${r.kandidat_kurir ?? '—'}</td>
+                    <td data-label="Alokasi dibuat"><b>${r.dibuat ?? '—'}</b></td>
+                    <td data-label="Mesin" class="muted">${esc(r.mesin || '—')}</td>
+                    <td data-label="Durasi (ms)"><b>${r.durasi_ms ?? '—'}</b></td>
                   </tr>`
                 )
                 .join('')}</tbody>

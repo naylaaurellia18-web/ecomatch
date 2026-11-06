@@ -711,8 +711,13 @@ button, input, select, textarea { font: inherit; color: inherit; }
     margin-bottom: 3px;
   }
   .table td:not([data-label])::before { content: none; margin: 0; }
+  .table td.tbl-k { display: none; }
   .table .cell-actions { justify-content: stretch; }
   .table .cell-actions .btn { flex: 1; }
+
+  /* Stepper wrap di layar sempit — cegah layout viewport melebar (>390px) */
+  .stepper { flex-wrap: wrap; overflow-x: visible; }
+  .stepper .step-line { display: none; }
 }
 
 /* --------------------------------------------------------------------------

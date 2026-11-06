@@ -89,10 +89,10 @@ async function otpView() {
         ${rows
           .map(
             (m) => `<tr>
-          <td>${esc(m.nama_sampah)} <span class="muted">${m.berat_kg} kg</span></td>
-          <td>${esc(m.nama_donor)}</td>
-          <td>${esc(m.nama_kurir)}</td>
-          <td>${statusTag(m.status)}</td>
+<td data-label="Sampah">${esc(m.nama_sampah)} <span class="muted">${m.berat_kg} kg</span></td>
+<td data-label="Donor">${esc(m.nama_donor)}</td>
+<td data-label="Kurir">${esc(m.nama_kurir)}</td>
+<td data-label="Status">${statusTag(m.status)}</td>
         </tr>`
           )
           .join('')}

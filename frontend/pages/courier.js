@@ -90,12 +90,12 @@ async function courierView() {
         ${rows
           .map(
             (m) => `<tr>
-          <td class="muted">${m.id_alokasi}</td>
-          <td>${esc(m.nama_sampah)}</td>
-          <td>${esc(m.nama_tps)}</td>
-          <td><b>${m.skor_persen ?? ''}%</b></td>
-          <td>${m.jarak_km} km</td>
-          <td>${statusTag(m.status)}</td>
+<td data-label="#" class="muted">${m.id_alokasi}</td>
+<td data-label="Sampah">${esc(m.nama_sampah)}</td>
+<td data-label="TPS">${esc(m.nama_tps)}</td>
+<td data-label="Skor"><b>${m.skor_persen ?? ''}%</b></td>
+<td data-label="Jarak">${m.jarak_km} km</td>
+<td data-label="Status">${statusTag(m.status)}</td>
         </tr>`
           )
           .join('')}

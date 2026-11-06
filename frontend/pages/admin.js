@@ -93,12 +93,12 @@ async function logsView() {
         ${logs
           .map(
             (l) => `<tr>
-          <td class="muted">${l.id_log}</td>
-          <td class="muted">${fmtDate(l.created_at)}</td>
-          <td>${esc(l.nama_pengguna || 'sistem')}</td>
-          <td><span class="chip" style="cursor:default">${esc(l.aksi)}</span></td>
-          <td>${esc(l.entitas)}${l.id_entitas ? '#' + esc(l.id_entitas) : ''}</td>
-          <td class="muted" style="max-width:260px;word-break:break-all">${l.detail ? esc(l.detail) : '—'}</td>
+          <td data-label="ID" class="muted">${l.id_log}</td>
+          <td data-label="Waktu" class="muted">${fmtDate(l.created_at)}</td>
+          <td data-label="User">${esc(l.nama_pengguna || 'sistem')}</td>
+          <td data-label="Aksi"><span class="chip" style="cursor:default">${esc(l.aksi)}</span></td>
+          <td data-label="Entitas">${esc(l.entitas)}${l.id_entitas ? '#' + esc(l.id_entitas) : ''}</td>
+          <td data-label="Detail" class="muted" style="max-width:260px;word-break:break-all">${l.detail ? esc(l.detail) : '—'}</td>
         </tr>`
           )
           .join('')}
@@ -160,12 +160,12 @@ async function outboxView() {
         ${rows
           .map(
             (m) => `<tr>
-          <td class="muted">${m.id_pesan}</td>
-          <td>${m.kanal === 'whatsapp' ? icon('phone', 13) : icon('mail', 13)} ${m.kanal === 'whatsapp' ? 'WhatsApp' : 'Email'}</td>
-          <td>${esc(m.tujuan || '—')}<br><span class="muted">${esc(m.nama_pengguna || '')}</span></td>
-          <td><b>${esc(m.subjek || '—')}</b><br><span class="muted" style="max-width:280px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.isi || '')}</span></td>
-          <td>${statusTag(m.status)}${m.error ? `<br><span class="muted">${esc(m.error)}</span>` : ''}</td>
-          <td class="muted">${fmtDate(m.created_at)}</td>
+          <td data-label="#" class="muted">${m.id_pesan}</td>
+          <td data-label="Kanal">${m.kanal === 'whatsapp' ? icon('phone', 13) : icon('mail', 13)} ${m.kanal === 'whatsapp' ? 'WhatsApp' : 'Email'}</td>
+          <td data-label="Penerima">${esc(m.tujuan || '—')}<br><span class="muted">${esc(m.nama_pengguna || '')}</span></td>
+          <td data-label="Subjek"><b>${esc(m.subjek || '—')}</b><br><span class="muted" style="max-width:280px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.isi || '')}</span></td>
+          <td data-label="Status">${statusTag(m.status)}${m.error ? `<br><span class="muted">${esc(m.error)}</span>` : ''}</td>
+          <td data-label="Waktu" class="muted">${fmtDate(m.created_at)}</td>
         </tr>`
           )
           .join('')}
