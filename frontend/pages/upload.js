@@ -48,7 +48,7 @@ function donorForm() {
             <div id="dzPreview" hidden><img class="preview-img" id="dzImg" alt="Pratinjau foto sampah" />
               <div class="t-sm" id="dzName" style="margin-top:8px"></div></div>
           </div>
-          <input class="sr-only" id="wFoto" name="foto" type="file" accept="image/*" required />
+          <input class="sr-only" id="wFoto" name="foto" type="file" accept="image/*" capture="environment" required />
           <div class="err-msg" data-err-for="wFoto" hidden></div>
         </div>
       </div>

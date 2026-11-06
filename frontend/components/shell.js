@@ -129,6 +129,7 @@ const BOTTOM_LABEL = {
   recipient: 'Profil',
   'recipient-matches': 'OTP',
   courier: 'Kurir',
+  akun: 'Sandi',
 };
 
 /** Isi ulang menu sidebar + bottom-nav sesuai peran & tab aktif. */
