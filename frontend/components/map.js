@@ -96,6 +96,10 @@ export function gisHtml(counts = {}) {
   return `${pageHead('Peta GIS', 'Sebaran donor MBG, TPS pengolah, kurir &amp; rute alokasi sampah')}
   <div class="section"><div class="map-panel">
     <div class="map-canvas" id="gisMap"></div>
+    <input type="checkbox" id="legendToggle" class="legend-toggle-input" />
+    <label for="legendToggle" class="legend-toggle-btn">
+      <span class="lg-open">Legenda</span><span class="lg-close">Tutup</span>
+    </label>
     <div class="map-legend">
       <span class="legend-item"><span class="dot dot-donor"></span> Donor MBG</span>
       <span class="legend-item"><span class="dot dot-tps"></span> TPS Pengolah</span>

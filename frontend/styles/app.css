@@ -1174,6 +1174,35 @@ button, input, select, textarea { font: inherit; color: inherit; }
   font-weight: 600;
 }
 .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Toggle legenda peta — mobile: auto-hide, buka lewat tombol "Legenda" */
+.legend-toggle-input, .legend-toggle-btn { display: none; }
+@media (max-width: 640px) {
+  .legend-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    position: absolute;
+    z-index: 501;
+    left: var(--sp-3);
+    bottom: var(--sp-3);
+    min-height: 32px;
+    padding: 6px 12px;
+    border-radius: var(--r-full);
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--card) 92%, transparent);
+    backdrop-filter: blur(8px);
+    box-shadow: var(--shadow-1);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .legend-toggle-btn .lg-close { display: none; }
+  .legend-toggle-input:checked ~ .legend-toggle-btn .lg-open { display: none; }
+  .legend-toggle-input:checked ~ .legend-toggle-btn .lg-close { display: inline; }
+  .map-legend { display: none; right: var(--sp-3); bottom: calc(var(--sp-3) + 44px); }
+  .legend-toggle-input:checked ~ .map-legend { display: flex; }
+}
 .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
 .dot-donor  { background: var(--primary); }
 .dot-tps    { background: var(--info); }
