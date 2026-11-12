@@ -1,0 +1,26 @@
+name: Export DATABASE_URL (sekali jalan)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tulis secret ke file
+        env:
+          DB_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DB_URL" ]; then echo "DATABASE_URL kosong"; exit 1; fi
+          printf '%s' "$DB_URL" > dburl.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dburl
+          path: dburl.txt
+          retention-days: 1
+          if-no-files-found: error
