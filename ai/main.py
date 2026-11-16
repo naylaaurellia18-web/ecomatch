@@ -22,7 +22,7 @@ from routing import hitung_routing
 app = FastAPI(
     title="EcoMatch — Modul AI Routing",
     description=(
-        "Pemilihan TPS Pengolah + kurir untuk sampah makanan MBG dengan skor "
+        "Pemilihan Penerima + kurir untuk sampah makanan MBG dengan skor "
         "multi-kriteria (jenis_cocok 0,35; kapasitas 0,25; jarak 0,25; urgensi 0,15) "
         "plus klasifikasi rule-based — konfigurasi di config/routing.json"
     ),

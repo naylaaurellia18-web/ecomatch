@@ -25,13 +25,13 @@ async function adminDashboard() {
 
   const onboarding = isEmpty
     ? `<div class="section"><div class="card">
-        ${emptyHtml('Web masih kosong — siap diisi dari nol', 'Alur peluncuran: daftarkan donor MBG & TPS, verifikasi pengguna, lalu jalankan routing AI.')}
+        ${emptyHtml('Web masih kosong — siap diisi dari nol', 'Alur peluncuran: daftarkan donor MBG & penerima, verifikasi pengguna, lalu jalankan routing AI.')}
         <div class="stack stack-3" style="padding:0 var(--sp-5) var(--sp-5)">
           ${[
             ['1', 'Donor catat sampah makanan', 'Foto, berat kg, jenis, lokasi'],
             ['2', 'Klasifikasi & routing AI', 'Skor multi-kriteria + rute peta'],
-            ['3', 'Admin verifikasi pengguna', 'Aktifkan akun donor, TPS, kurir'],
-            ['4', 'Kurir jemput, TPS konfirmasi OTP', 'Serah terima terlacak sampai log pengolahan'],
+    ['3', 'Admin verifikasi pengguna', 'Aktifkan akun donor, penerima, kurir'],
+    ['4', 'Kurir jemput, penerima konfirmasi OTP', 'Serah terima terlacak sampai log penerimaan'],
           ]
             .map(
               ([n, t, d]) => `<div class="row" style="gap:14px;align-items:flex-start">
@@ -48,7 +48,7 @@ async function adminDashboard() {
     kpiCard({ label: 'Total pengguna', value: s.users.total, hint: `${s.users.menunggu} menunggu verifikasi`, ic: 'users' }),
     kpiCard({ label: 'Total alokasi', value: s.alokasi.total, hint: `${s.alokasi.terverifikasi} terverifikasi`, ic: 'route' }),
     kpiCard({ label: 'Kg dialihkan', value: s.dampak.kg_dialihkan, unit: 'kg', hint: 'status aktif', ic: 'leaf' }),
-    kpiCard({ label: 'Kg terverifikasi', value: s.dampak.kg_terverifikasi, unit: 'kg', hint: 'selesai di TPS', ic: 'check' }),
+    kpiCard({ label: 'Kg terverifikasi', value: s.dampak.kg_terverifikasi, unit: 'kg', hint: 'selesai di penerima', ic: 'check' }),
     kpiCard({ label: 'Rata-rata skor', value: `${s.dampak.rata_rata_skor_persen}%`, ic: 'sparkles', tone: 'info' }),
     kpiCard({ label: 'Rata-rata jarak', value: s.dampak.rata_rata_jarak_km, unit: 'km', ic: 'map', tone: 'info' }),
     kpiCard({ label: 'Klasifikasi AI', value: s.klasifikasi.total, hint: `${s.klasifikasi.perlu_verifikasi} perlu verifikasi`, ic: 'cpu', tone: 'warning' }),
@@ -60,17 +60,17 @@ async function adminDashboard() {
   const peran = donut(
     [
       { label: 'Donor MBG', value: s.users.donor_mbg },
-      { label: 'TPS', value: s.users.tps_pengolah },
+      { label: 'Penerima', value: s.users.penerima },
       { label: 'Kurir', value: s.users.kurir },
       { label: 'Admin', value: s.users.admin },
     ].filter((x) => Number(x.value) > 0),
     { center: String(s.users.total), sub: 'pengguna' }
   );
 
-  const sampahCard = tableCard('Sampah &amp; TPS', '', [
+  const sampahCard = tableCard('Sampah &amp; Penerima', '', [
     ['Sampah tersedia', `${s.sampah.tersedia} / ${s.sampah.total}`],
     ['Sampah terverifikasi', s.sampah.terverifikasi],
-    ['TPS aktif', `${s.tps.aktif} / ${s.tps.total}`],
+    ['Penerima aktif', `${s.penerima.aktif} / ${s.penerima.total}`],
     ['Klasifikasi perlu verifikasi', s.klasifikasi.perlu_verifikasi],
   ]);
 
@@ -91,11 +91,11 @@ async function adminDashboard() {
             }))
           )}<div class="table-wrap" style="margin-top:var(--sp-4);border:none">
             <table class="table">
-              <thead><tr><th>Kandidat (Sampah/TPS/Kurir)</th><th>Alokasi dibuat</th><th>Mesin</th><th>Durasi (ms)</th></tr></thead>
+              <thead><tr><th>Kandidat (Sampah/Penerima/Kurir)</th><th>Alokasi dibuat</th><th>Mesin</th><th>Durasi (ms)</th></tr></thead>
               <tbody>${runs
                 .map(
                   (r) => `<tr>
-                    <td data-label="Kandidat">${r.kandidat_sampah ?? '—'}/${r.kandidat_tps ?? '—'}/${r.kandidat_kurir ?? '—'}</td>
+                    <td data-label="Kandidat">${r.kandidat_sampah ?? '—'}/${r.kandidat_penerima ?? '—'}/${r.kandidat_kurir ?? '—'}</td>
                     <td data-label="Alokasi dibuat"><b>${r.dibuat ?? '—'}</b></td>
                     <td data-label="Mesin" class="muted">${esc(r.mesin || '—')}</td>
                     <td data-label="Durasi (ms)"><b>${r.durasi_ms ?? '—'}</b></td>
@@ -108,7 +108,7 @@ async function adminDashboard() {
 
   return `${pageHead(
     'Beranda',
-    'Ringkasan operasional pengalihan sampah makanan MBG ke TPS pengolah',
+      'Ringkasan operasional penyaluran sisa makanan MBG ke penerima',
     `<button class="btn" data-post="/api/routing/run">${icon('sparkles', 15)} Jalankan Routing AI</button>
      <button class="btn btn-outline" data-post="/api/admin/clean" data-confirm="Hapus semua data transaksi (sampah, alokasi, log pengolahan, notifikasi)? Akun login tetap ada.">Bersihkan Data</button>`
   )}

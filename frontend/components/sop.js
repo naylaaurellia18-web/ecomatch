@@ -36,8 +36,8 @@ const SOP = {
         title: 'Suhu & Rentang Aman',
         items: [
           'Zona berbahaya 5°C–60°C — makanan basah jangan lama di rentang ini',
-          'Target: dari dapur → kurir → TPS dalam ≤ 4 jam (ideal ≤ 2 jam)',
-          'Saat tiba, TPS cek bau, tekstur, dan suhu — bila ragu, olah segera',
+          'Target: dari dapur → kurir → penerima dalam ≤ 4 jam (ideal ≤ 2 jam)',
+          'Saat tiba, penerima cek bau, tekstur, dan suhu — bila ragu, salurkan segera',
         ],
       },
       {

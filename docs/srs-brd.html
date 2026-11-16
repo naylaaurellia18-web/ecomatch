@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>SRS/BRD EcoMatch - TI A</title>
+<script src="vendor/mermaid.min.js"></script>
+<style>
+  @page { size: A4; margin: 16mm 16mm 15mm; }
+  @page fp { size: A4; margin: 10mm; }
+  @page fl { size: A4 landscape; margin: 10mm; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", Arial, Helvetica, sans-serif; font-size: 10.5pt; line-height: 1.5; color: #14181f; }
+  h1, h2, h3, h4 { font-weight: 600; color: #0f2f4f; margin: 0 0 8px; }
+  h2 { font-size: 15pt; border-bottom: 2px solid #0f2f4f; padding-bottom: 4px; margin-top: 0; }
+  h3 { font-size: 12pt; margin-top: 18px; }
+  h4 { font-size: 10.5pt; margin-top: 14px; }
+  p { margin: 0 0 8px; text-align: justify; }
+  ul, ol { margin: 0 0 10px; padding-left: 22px; }
+  li { margin-bottom: 4px; text-align: justify; }
+  section { page-break-before: always; }
+  section.cont { page-break-before: auto; }
+
+  /* ---------- cover ---------- */
+  .cover { page-break-before: always; text-align: center; padding-top: 6mm; }
+  .cover .inst { font-size: 12pt; letter-spacing: .06em; font-weight: 700; color: #0f2f4f; line-height: 1.45; }
+  .cover .rule { border-top: 3px solid #0f2f4f; width: 100%; margin: 8px 0 22px; }
+  .cover .doctype { font-size: 16pt; font-weight: 700; color: #14181f; line-height: 1.4; }
+  .cover .doctype small { display: block; font-size: 11.5pt; font-weight: 400; margin-top: 4px; color: #333; }
+  .cover .untuk { margin: 14px 0 4px; font-size: 11pt; }
+  .cover .app { font-size: 22pt; font-weight: 700; color: #0f6f4f; letter-spacing: .04em; }
+  .cover .tagline { font-size: 11pt; margin-top: 6px; color: #222; }
+  .cover .box { display: inline-block; border: 1.6px solid #0f2f4f; border-radius: 8px; padding: 10px 26px; margin-top: 26px; }
+  .cover .meta { margin-top: 26px; font-size: 10.5pt; text-align: left; display: inline-block; }
+  .cover .meta div { margin-bottom: 5px; }
+  .cover .meta b { display: inline-block; min-width: 120px; }
+  .cover .authors { margin-top: 4px; font-size: 11pt; }
+  .cover .authors table { margin: 6px auto 0; border-collapse: collapse; font-size: 10.5pt; }
+  .cover .authors td { padding: 3px 14px; }
+  .cover .foot { margin-top: 34px; font-size: 10.5pt; font-weight: 600; letter-spacing: .12em; color: #0f2f4f; }
+  .cover .ver { margin-top: 6px; font-size: 9.5pt; color: #444; font-weight: 400; letter-spacing: 0; }
+
+  /* ---------- toc ---------- */
+  .toc { column-count: 1; }
+  .toc ol { list-style: none; padding: 0; margin: 0; }
+  .toc li { display: flex; align-items: baseline; margin-bottom: 6px; font-size: 10.5pt; }
+  .toc .dots { flex: 1; border-bottom: 1px dotted #999; margin: 0 6px 4px; }
+  .toc .pnum { font-weight: 600; color: #0f2f4f; }
+  .toc .lvl2 { padding-left: 18px; }
+  .toc .lvl1 { font-weight: 600; color: #0f2f4f; }
+
+  /* ---------- tables ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; margin: 6px 0 14px; }
+  th, td { border: 1px solid #9aa5b1; padding: 4px 6px; vertical-align: top; text-align: left; }
+  th { background: #e8eef5; font-weight: 600; color: #0f2f4f; }
+  tbody tr:nth-child(even) { background: #f7f9fb; }
+  .code { font-family: Consolas, "Courier New", monospace; font-weight: 600; white-space: nowrap; color: #0f2f4f; }
+  .note { font-size: 9pt; color: #555; font-style: italic; }
+
+  /* ---------- halaman gambar ---------- */
+  figure.fp { page: fp; page-break-before: always; margin: 0; display: flex; flex-direction: column; height: 267mm; }
+  figure.fp.land { page: fl; height: 190mm; }
+  .fbox { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; overflow: hidden; }
+  .fbox svg.flow { width: 100%; height: 100%; display: block; }
+  .fbox img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  figcaption { font-size: 9.5pt; text-align: center; color: #14181f; padding-top: 5px; font-weight: 600; }
+  figcaption .src { display: block; font-weight: 400; font-size: 8pt; color: #666; font-style: italic; margin-top: 1px; }
+  .node-txt, .lbl-txt { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; text-align: center; font-family: "Segoe UI", Arial, sans-serif; line-height: 1.2; overflow: hidden; }
+  .node-txt { font-size: 14px; color: #14181f; padding: 1px 5px; }
+  .node-txt.diamond { font-size: 13px; padding: 1px 14px; }
+  .lbl-txt { font-size: 12.5px; color: #14181f; -webkit-text-stroke: 3.5px #ffffff; paint-order: stroke fill; }
+
+  /* ---------- use case mermaid ---------- */
+  #usecase { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  #usecase .mermaid { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  #usecase .mermaid svg { max-width: 100% !important; max-height: 100% !important; height: auto; }
+  .sig { margin-top: 26px; display: flex; justify-content: space-between; font-size: 10pt; }
+  .sig .col { width: 45%; text-align: center; }
+  .sig .name { margin-top: 46px; font-weight: 600; text-decoration: underline; }
+  .badge { display: inline-block; background: #0f6f4f; color: #fff; border-radius: 4px; padding: 1px 8px; font-size: 9pt; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="cover">
+  <div class="inst">Universitas Sebelas Maret<br>Sekolah Vokasi<br>Program Studi D3 Teknik Informatika Kabupaten Madiun</div>
+  <div class="rule"></div>
+  <div class="doctype">DOKUMEN SRS/BRD<br>
+    <small>Software Requirements Specification &amp; Business Requirements Document</small>
+  </div>
+  <div class="untuk">untuk sistem</div>
+  <div class="app">EcoMatch</div>
+  <div class="tagline">Platform AI Routing Penyaluran Sisa Makanan MBG ke Penerima (Studi Kasus: Kota Madiun)</div>
+  <div class="box">
+    <div style="font-size:12pt;font-weight:700;color:#0f2f4f;">Kelas TI A</div>
+    <div class="authors">
+      Disusun oleh:
+      <table>
+        <tr><td>1. Nayla Aurellia Azarine</td><td>V3925012</td></tr>
+        <tr><td>2. Fida Muyasaroh</td><td>V3925007</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="meta">
+    <div><b>Mata Kuliah</b>: Manajemen Proyek Teknologi</div>
+    <div><b>Program Studi</b>: D3 Teknik Informatika Kabupaten Madiun</div>
+    <div><b>Dosen Pengampu</b>: Darmawan Lahru Riatma, S.Kom., M.MT (NIP. 1991091420200801)</div>
+    <div><b>Kelas</b>: TI A</div>
+  </div>
+  <div class="foot">MADIUN, 10 NOVEMBER 2026</div>
+  <div class="ver">Basis dokumen: SKPL_EcoMatch_v2.0 (24-08-2026) &middot; Dokumen FIX (SRS/BRD)</div>
+</section>
+
+<!-- ============================ DAFTAR ISI ============================ -->
+<section>
+  <h2>DAFTAR ISI</h2>
+  <div class="toc">
+    <ol>
+      <li>BAB I  BAGIAN BRD (Business Requirements Document)<span class="dots"></span><span class="pnum">3</span></li>
+      <li class="lvl2">1.1 Latar Belakang Bisnis (PIC Analysis)</li>
+      <li class="lvl2">1.2 Tujuan Sistem</li>
+      <li class="lvl2">1.3 Ruang Lingkup Sistem (In Scope / Out of Scope)</li>
+      <li class="lvl2">1.4 Pemangku Kepentingan &amp; Aktor Sistem</li>
+      <li class="lvl2">1.5 Proses Bisnis As-Is dan To-Be</li>
+      <li class="lvl2">1.6 Daftar Istilah Penting (Glossary)</li>
+      <li>BAB II  BAGIAN SRS (Software Requirements Specification)<span class="dots"></span><span class="pnum">6</span></li>
+      <li class="lvl2">2.1 Gambaran Umum Sistem</li>
+      <li class="lvl2">2.2 Kebutuhan Fungsional (FR-01 s.d. FR-17)</li>
+      <li class="lvl2">2.3 Kebutuhan Non-Fungsional (NFR-01 s.d. NFR-11)</li>
+      <li class="lvl2">2.4 Metode Pengembangan Sistem (SDLC)</li>
+      <li>BAB III  PEMODELAN DIAGRAM SISTEM<span class="dots"></span><span class="pnum">9</span></li>
+      <li class="lvl2">3.1 Flowchart 4 Alur Proses Bisnis (dari node UML_EcoMatch.drawio)</li>
+      <li class="lvl2">3.2 Use Case Diagram (Mermaid, baru)</li>
+      <li class="lvl2">3.3 ERD, Activity, Sequence, dan Class Diagram (PNG)</li>
+      <li>BAB IV  PENUTUP &amp; REFERENSI<span class="dots"></span><span class="pnum">27</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================ BAB I : BRD ============================ -->
+<section>
+  <h2>BAB I &mdash; BAGIAN BRD (BUSINESS REQUIREMENTS DOCUMENT)</h2>
+
+  <h3>1.1 Latar Belakang Bisnis (PIC Analysis)</h3>
+  <p>Program Makan Bergizi Gratis (MBG) di Kota Madiun menghasilkan sampah makanan setiap hari berupa nasi sisa, sayur, lauk, kulit buah, dan sisa campuran dari dapur/SPPG. Berdasarkan regulasi daerah, TPS biasa sudah tidak boleh menerima sampah organik, sehingga sisa makanan MBG harus disalurkan ke lembaga penerima yang tepat — panti asuhan/yayasan bila layak konsumsi dan peternakan bila tidak layak. Permasalahan proses bisnis saat ini dianalisis dengan kerangka PIC (Performance, Information, Economics, Control, Efficiency, Service):</p>
+  <ul>
+    <li><b>Performance</b>: penentuan penerima yang menerima sisa makanan masih manual (telepon/WhatsApp antar pengelola MBG dan pengelola panti/peternakan), sehingga pemilihan penerima tidak optimal dan sering melebihi radius layanan.</li>
+    <li><b>Information</b>: tidak ada data terpusat mengenai jenis, volume, dan kondisi (layak/tidak layak) sisa makanan MBG maupun kapasitas serta jenis tiap penerima.</li>
+    <li><b>Economics</b>: biaya penjemputan membengkak karena rute dipilih berdasarkan asumsi jarak lurus, bukan rute jalan tercepat, dan kapasitas penerima tidak dimanfaatkan optimal.</li>
+    <li><b>Control</b>: tidak ada bukti digital rantai penanganan (traceability) dari dapur MBG hingga penerima menyalurkan, sehingga laporan kepatuhan ke Pemkot Madiun sulit dipertanggungjawabkan.</li>
+    <li><b>Efficiency</b>: koordinasi manual memakan waktu lama, rawan miskomunikasi, dan sampah yang terlambat membusuk menimbulkan bau serta risiko sanitasi.</li>
+    <li><b>Service</b>: layanan penyaluran sisa makanan tidak konsisten dan tidak dapat diprediksi karena ketersediaan kapasitas penerima tidak terpantau waktu nyata.</li>
+  </ul>
+  <p>Solusi bisnis yang diusulkan adalah platform digital <b>EcoMatch</b>: sistem AI Routing yang mengklasifikasi jenis sampah dan kelayakan konsumsi, memilih penerima terbaik (layak ke panti/yayasan, tidak layak ke peternakan) berdasarkan kapasitas, jarak/rute, dan urgensi pembusukan, serta menghasilkan bukti traceability dan laporan kepatuhan regulasi daerah Kota Madiun.</p>
+
+  <h3>1.2 Tujuan Sistem</h3>
+  <ol><li>Membangun aplikasi PWA (Progressive Web App) untuk Donor MBG, Penerima, dan Kurir serta web dashboard Admin yang beroperasi 100% fungsional untuk penyaluran sisa makanan MBG.</li><li>Menjalankan proses AI Routing (klasifikasi + pemilihan penerima) dalam waktu kurang dari 3 detik per permintaan (NFR-02).</li><li>Mengalihkan minimal 85% sampah makanan MBG dari pembuangan di TPS biasa ke penerima yang tepat (panti/yayasan bila layak, peternakan bila tidak layak) pada tahap pilot Kota Madiun (sesuai NFR-09/FR-14).</li><li>Menyediakan mekanisme klasifikasi dan routing yang objektif serta otomatis berdasarkan kelayakan konsumsi, jenis sampah, kapasitas penerima, jarak/rute GIS, dan urgensi pembusukan.</li><li>Menyediakan bukti serah terima digital (foto jemput/antar dan konfirmasi OTP) beserta jejak traceability end-to-end sebagai dasar akuntabilitas dan laporan kepatuhan ke Pemkot Madiun.</li></ol>
+
+  <h3>1.3 Ruang Lingkup Sistem</h3>
+  <h4>a. Termasuk ruang lingkup (In Scope)</h4>
+  <ul><li>Fitur registrasi dan verifikasi akun Donor MBG (SPPG), Penerima, dan Kurir dengan RBAC donor_mbg, penerima, kurir, admin.</li><li>Modul klasifikasi jenis sampah makanan (rule-based + verifikasi Admin), penilaian tingkat pembusukan, dan saran kelayakan konsumsi.</li><li>Mesin AI Routing multi-kriteria untuk memilih penerima: filter kelayakan (layak ke panti/yayasan, tidak_layak ke peternakan), jenis_cocok (0.35), kapasitas (0.25), jarak (0.25), dan urgensi (0.15).</li><li>Modul pemetaan wilayah dan kalkulasi rute menggunakan GIS (Leaflet + OpenStreetMap, OSRM, dan query spasial PostGIS).</li><li>Fitur bukti serah terima (foto pickup/deliver) dan verifikasi OTP, laporan kepatuhan, modul motivasi donor MBG, serta konfigurasi regulasi daerah.</li></ul>
+  <h4>b. Tidak termasuk ruang lingkup (Out of Scope)</h4>
+  <ul><li>Penyediaan armada fisik atau kendaraan operasional penjemputan oleh pihak pengembang (disediakan relawan/mitra kurir masing-masing daerah).</li><li>Pengolahan atau pemanfaatan fisik sisa makanan (kompos, pakan ternak, eco-enzyme, dll.) yang dilakukan langsung oleh penerima di luar sistem.</li><li>Transaksi jual-beli komoditas pangan non-sampah secara komersial (B2C/B2B).</li></ul>
+
+  <h3>1.4 Pemangku Kepentingan &amp; Aktor Sistem</h3>
+  <table class=""><thead><tr><th>Aktor</th><th>Karakteristik</th><th>Hak Akses</th></tr></thead><tbody><tr><td>Donor MBG (SPPG)</td><td>Pengelola dapur MBG, melek teknologi dasar, membutuhkan bukti kepatuhan laporan ke Pemkot</td><td>Registrasi & unggah sampah (termasuk kelayakan konsumsi), melihat riwayat dan jejak traceability, mengklaim sertifikat/poin (FR-02, FR-15)</td></tr><tr><td>Penerima</td><td>Panti asuhan, yayasan, rumah dhuafa, atau peternakan di Kota Madiun; memantau kapasitas harian</td><td>Kelola profil & jenis diterima, konfirmasi OTP, catat penanganan (FR-03, FR-08, FR-12)</td></tr><tr><td>Kurir/Relawan</td><td>Individu/relawan lapangan, kemampuan teknis dasar, memiliki kendaraan</td><td>Terima tugas, lihat rute GIS, unggah foto bukti pickup/deliver (FR-05, FR-07)</td></tr><tr><td>Administrator</td><td>Tim pengelola platform (Dinas terkait/tim MBG)</td><td>Verifikasi akun & klasifikasi, jalankan AI Routing, kelola pengguna/penerima/regulasi, laporan kepatuhan (FR-09, FR-10, FR-11, FR-14, FR-16)</td></tr><tr><td>Sistem</td><td>Agen otomatis: mesin klasifikasi, AI Routing, scheduler auto-expire, agregasi laporan</td><td>Menjalankan tugas terjadwal dan menghasilkan keputusan routing/notifikasi (FR-04, FR-11, FR-17)</td></tr></tbody></table>
+
+  <h3>1.5 Proses Bisnis As-Is dan To-Be</h3>
+  <h4>a. As-Is (manual)</h4>
+  <p>Koordinasi penyaluran sampah makanan MBG dilakukan manual: pengelola MBG menepon/mengirim pesan kepada pengelola panti asuhan atau peternakan satu per satu untuk menanyakan kesediaan dan kapasitas, memilih penerima berdasarkan perkiraan jarak, lalu mencatat serah terima di buku tamu. Tidak ada klasifikasi jenis sampah maupun kelayakan konsumsi, tidak ada pemantauan kapasitas waktu nyata, dan bukti penanganan hanya berupa kertas yang sulit diaudit saat diminta laporan kepatuhan oleh Pemkot Madiun.</p>
+  <h4>b. To-Be (sistem aplikasi EcoMatch)</h4>
+  <p>Pengelola MBG cukup mengunggah data sampah makanan (termasuk kelayakan konsumsi) melalui PWA; sistem mengklasifikasi jenis dan tingkat pembusukan serta memberi saran kelayakan, menjalankan AI Routing untuk memilih penerima terbaik (layak ke panti/yayasan, tidak layak ke peternakan) beserta rute jalan tercepat, menugaskan kurir, memverifikasi serah terima dengan foto dan OTP, mencatat penanganan di penerima, sekaligus membangun jejak traceability dan laporan kepatuhan secara otomatis.</p>
+
+  <h3>1.6 Daftar Istilah Penting (Glossary)</h3>
+  <table class=""><thead><tr><th>Istilah</th><th>Definisi</th></tr></thead><tbody><tr><td>Donor MBG (SPPG)</td><td>Pengelola dapur Makan Bergizi Gratis yang menghasilkan dan mengunggah sampah makanan; wajib menyalurkan agar patuh regulasi daerah.</td></tr><tr><td>Penerima</td><td>Lembaga penerima sisa makanan MBG di Kota Madiun: panti asuhan, yayasan, atau rumah dhuafa (untuk sisa layak konsumsi), dan peternakan (untuk sisa tidak layak).</td></tr><tr><td>Kelayakan Konsumsi</td><td>Status sisa makanan: layak dikonsumsi (disalurkan ke panti/yayasan) atau tidak layak (diarahkan ke peternakan). Ditentukan donor saat unggah, dengan saran AI berbasis tingkat pembusukan yang boleh dikoreksi.</td></tr><tr><td>Kurir / Relawan</td><td>Penjemput di dapur MBG dan pengantar sampah ke penerima, wajib mengunggah foto bukti dan memverifikasi OTP.</td></tr><tr><td>Klasifikasi Sampah</td><td>Penentuan kategori sampah (nasi, sayur, lauk, kulit buah, campuran) dan tingkat pembusukan beserta skor keyakinan oleh sistem.</td></tr><tr><td>AI Routing</td><td>Algoritma pemilihan penerima terbaik dengan bobot jenis_cocok, kapasitas, jarak, dan urgensi, ditambah filter kelayakan konsumsi (FR-04/FR-13).</td></tr><tr><td>GIS (Geographic Information System)</td><td>Sistem informasi geografis untuk peta, jarak, dan rute (Leaflet, OpenStreetMap, OSRM, PostGIS).</td></tr><tr><td>Sampah Makanan (Food Waste)</td><td>Sisa makanan dari dapur MBG: nasi, sayur, lauk, kulit buah, dan campuran — dapat berstatus layak atau tidak layak konsumsi.</td></tr><tr><td>Traceability</td><td>Jejak audit end-to-end sampah dari unggahan MBG, klasifikasi, alokasi, serah terima, hingga penanganan di penerima.</td></tr><tr><td>OTP (One Time Password)</td><td>Kode verifikasi sekali pakai 6 digit dengan masa berlaku 30 menit untuk konfirmasi serah terima di penerima.</td></tr><tr><td>Konfigurasi Regulasi</td><td>Aturan daerah (larangan, kewajiban, sanksi, insentif) disimpan dalam JSON per kode daerah (FR-16/NFR-11).</td></tr><tr><td>Admin</td><td>Pengguna dengan hak akses penuh: verifikasi akun/klasifikasi, menjalankan routing, konfigurasi regulasi, dan laporan.</td></tr></tbody></table>
+</section>
+
+<!-- ============================ BAB II : SRS ============================ -->
+<section>
+  <h2>BAB II &mdash; BAGIAN SRS (SOFTWARE REQUIREMENTS SPECIFICATION)</h2>
+
+  <h3>2.1 Gambaran Umum Sistem</h3>
+  <p>EcoMatch adalah platform digital AI Routing penyaluran sisa makanan MBG ke penerima yang mengintegrasikan aplikasi PWA multi-peran (Donor MBG, Penerima, Kurir) dengan dashboard Administrator, mesin klasifikasi sampah, mesin routing multi-kriteria, serta modul kepatuhan regulasi Kota Madiun.</p>
+  <p>Melalui aplikasi PWA, pengelola MBG mengunggah sampah makanan (jenis, berat, waktu produksi, foto, kelayakan konsumsi), sistem mengklasifikasinya lalu memilih penerima terbaik berdasarkan kelayakan (layak ke panti/yayasan, tidak layak ke peternakan), kapasitas tersisa, jarak/rute, dan urgensi; kurir menjemput dan mengantar dengan bukti foto dan OTP, penerima mencatat penanganan, dan Admin memantau laporan kepatuhan.</p>
+
+  <h3>2.2 Kebutuhan Fungsional (Functional Requirements &ndash; FR)</h3>
+  <p class="note">Tabel 3.1 Kebutuhan Fungsional (FR-01 s.d. FR-17) &mdash; sumber: docs/SKPL_EcoMatch_v2.0.docx (BAB III.a).</p>
+  <table class=""><thead><tr><th>Kode</th><th>Nama Fitur</th><th>Deskripsi Kebutuhan</th><th>Aktor</th></tr></thead><tbody><tr><td><span class="code">FR-01</span></td><td><b>Autentikasi & RBAC</b></td><td>Pengguna mendaftar/masuk dengan peran donor_mbg, penerima, kurir, atau admin; akun baru berstatus menunggu sampai diverifikasi Admin.</td><td>Semua Aktor</td></tr><tr><td><span class="code">FR-02</span></td><td><b>Unggah Sampah Makanan</b></td><td>Donor MBG mengunggah jenis makanan, berat (kg), waktu produksi, foto, dan kelayakan konsumsi (layak/tidak_layak — boleh dikoreksi atas saran AI); status awal 'tersedia'.</td><td>Donor MBG</td></tr><tr><td><span class="code">FR-03</span></td><td><b>Profil Penerima</b></td><td>Penerima mengelola profil: jenis penerima (panti asuhan, yayasan, rumah dhuafa, peternakan, lainnya), kapasitas kg/hari, jenis sampah yang diterima, radius layanan, dan izin.</td><td>Penerima</td></tr><tr><td><span class="code">FR-04</span></td><td><b>AI Routing & Alokasi</b></td><td>Sistem memilih penerima + kurir terbaik untuk tiap sampah (filter aktif, kelayakan: layak hanya ke panti/yayasan, tidak_layak hanya ke peternakan; jenis diterima, kapasitas, jarak, skor) dan menyimpan alokasi beserta rute.</td><td>Sistem, Admin</td></tr><tr><td><span class="code">FR-05</span></td><td><b>Rute GIS</b></td><td>Sistem menghitung jarak (haversine/PostGIS) dan rute jalan (OSRM) Donor MBG -> Penerima; kurir melihat peta rute di Leaflet.</td><td>Sistem, Kurir</td></tr><tr><td><span class="code">FR-06</span></td><td><b>Notifikasi Multi-kanal</b></td><td>Notifikasi in-app, WhatsApp, dan email melalui outbox pesan untuk status sampah, tugas kurir, dan OTP.</td><td>Sistem</td></tr><tr><td><span class="code">FR-07</span></td><td><b>Foto Bukti Pickup & Deliver</b></td><td>Kurir wajib mengunggah foto sebelum penjemputan dan setelah pengantaran; file divalidasi magic-bytes.</td><td>Kurir</td></tr><tr><td><span class="code">FR-08</span></td><td><b>Verifikasi OTP Serah Terima</b></td><td>Penerima memasukkan OTP 6 digit (TTL 30 menit, sekali pakai, maksimal 5 percobaan/15 menit) untuk menutup transaksi.</td><td>Penerima</td></tr><tr><td><span class="code">FR-09</span></td><td><b>Dashboard Monitoring & Analitik</b></td><td>Admin memantau kg dialihkan dari pembuangan di TPS biasa, jumlah penerima aktif, cakupan wilayah, dan grafik harian/bulanan.</td><td>Admin</td></tr><tr><td><span class="code">FR-10</span></td><td><b>Manajemen Pengguna & Audit</b></td><td>Admin memverifikasi/menonaktifkan akun dan membaca log audit yang bersifat immutable.</td><td>Admin</td></tr><tr><td><span class="code">FR-11</span></td><td><b>Klasifikasi Jenis Sampah</b></td><td>Sistem mengklasifikasi kategori dan tingkat pembusukan dengan skor keyakinan + alasan, dilengkapi saran kelayakan konsumsi (layak/tidak_layak); Admin memverifikasi bila keyakinan rendah.</td><td>Sistem, Admin</td></tr><tr><td><span class="code">FR-12</span></td><td><b>Registrasi & Catatan Penanganan</b></td><td>Penerima mendaftar, mengelola profil & daftar penerima, dan mencatat catatan penanganan (input_kg, output_kg, jenis output, foto bukti).</td><td>Penerima</td></tr><tr><td><span class="code">FR-13</span></td><td><b>AI Routing Sisa Makanan ke Penerima</b></td><td>Bobot routing: jenis_cocok 0.35, kapasitas 0.25, jarak 0.25, urgensi 0.15; filter kelayakan konsumsi; radius maksimal 15 km; batas skor 0.3.</td><td>Sistem</td></tr><tr><td><span class="code">FR-14</span></td><td><b>Dashboard Kepatuhan Regulasi</b></td><td>Laporan kg dialihkan, persentase sampah tidak dibuang ke TPS biasa, dan rekap per penerima/periode siap ekspor PDF.</td><td>Admin</td></tr><tr><td><span class="code">FR-15</span></td><td><b>Modul Motivasi Donor MBG</b></td><td>Akumulasi poin per kg dialihkan, klaim sertifikat kepatuhan, dan laporan CSR untuk lembaga MBG.</td><td>Donor MBG, Admin</td></tr><tr><td><span class="code">FR-16</span></td><td><b>Konfigurasi Regulasi Daerah</b></td><td>Admin mengelola aturan larangan/kewajiban/sanksi/insentif dalam JSON per daerah (default KOTA_MADIUN).</td><td>Admin</td></tr><tr><td><span class="code">FR-17</span></td><td><b>Traceability End-to-End</b></td><td>Jejak lengkap sampah_makanan -> klasifikasi_sampah -> alokasi -> pengolahan_log untuk audit kepatuhan.</td><td>Admin, Penerima</td></tr></tbody></table>
+  <p><b>Trasebilitas pemenuhan</b>: seluruh FR-01 s.d. FR-17 dipetakan ke diagram alur, use case, ERD, activity, sequence, dan class diagram pada Bab III; serta kebutuhan non-fungsional pada tabel 3.2.</p>
+
+  <h3>2.3 Kebutuhan Non-Fungsional (Non-Functional Requirements &ndash; NFR)</h3>
+  <p class="note">Tabel 3.2 Kebutuhan Non-Fungsional (NFR-01 s.d. NFR-11) &mdash; sumber: docs/SKPL_EcoMatch_v2.0.docx (BAB III.b).</p>
+  <table class=""><thead><tr><th>Kode</th><th>Kategori</th><th>Deskripsi Kebutuhan</th></tr></thead><tbody><tr><td><span class="code">NFR-01</span></td><td><b>Keamanan</b></td><td>Autentikasi JWT (12 jam) + bcrypt + RBAC donor_mbg/penerima/kurir/admin, query parameterized, security headers (CSP/HSTS), dan rate-limit.</td></tr><tr><td><span class="code">NFR-02</span></td><td><b>Performa</b></td><td>Waktu respons API dan proses AI Routing (termasuk fallback ke mesin JavaScript) kurang dari 3 detik per permintaan.</td></tr><tr><td><span class="code">NFR-03</span></td><td><b>Ketersediaan</b></td><td>Sistem tersedia 24/7 dengan target uptime minimal 99%, healthcheck /api/health, auto-restart, monitoring berkala, dan backup basis data.</td></tr><tr><td><span class="code">NFR-04</span></td><td><b>Skalabilitas</b></td><td>Stateless (tanpa sesi server) sehingga dapat diskalakan horizontal hingga 5.000 pengguna aktif; koneksi pooling PostgreSQL.</td></tr><tr><td><span class="code">NFR-05</span></td><td><b>Usability</b></td><td>PWA responsif dengan input minimal (maksimal 5 langkah per aksi), pesan error JSON yang konsisten, dan mode luring untuk penampilan data.</td></tr><tr><td><span class="code">NFR-06</span></td><td><b>Reliabilitas Data GIS</b></td><td>Akurasi kalkulasi jarak dan rute minimal 95% dengan pemisahan perhitungan jarak (haversine/PostGIS) dan visualisasi peta (Leaflet).</td></tr><tr><td><span class="code">NFR-07</span></td><td><b>Portabilitas</b></td><td>PWA berjalan pada browser modern Android/iOS 3 tahun terakhir dan desktop, tanpa aplikasi native terpisah.</td></tr><tr><td><span class="code">NFR-08</span></td><td><b>Auditabilitas</b></td><td>Seluruh aksi penting tercatat pada log_audit yang immutable (trigger basis data), dilengkapi foto bukti dan OTP sekali pakai.</td></tr><tr><td><span class="code">NFR-09</span></td><td><b>Kepatuhan Regulasi</b></td><td>Setiap kg sisa makanan MBG terlacak dari donor hingga penerima dan output penyalurannya; laporan kepatuhan Pemkot Madiun tersedia dan dapat diekspor (traceability).</td></tr><tr><td><span class="code">NFR-10</span></td><td><b>Akurasi Klasifikasi</b></td><td>Akurasi klasifikasi jenis sampah minimal 85% melalui rule-based transparan dengan skor keyakinan dan verifikasi admin bila keyakinan rendah.</td></tr><tr><td><span class="code">NFR-11</span></td><td><b>Fleksibilitas Daerah</b></td><td>Aturan regulasi disimpan sebagai data (JSON per kode_daerah, default KOTA_MADIUN) sehingga dapat berubah tanpa perubahan kode.</td></tr></tbody></table>
+
+  <h3>2.4 Metode Pengembangan Sistem (SDLC)</h3>
+  <p>Pengembangan sistem EcoMatch menggunakan metode Agile-Scrum karena kebutuhan sistem &mdash; khususnya parameter dan bobot algoritma AI Routing &mdash; berpotensi menyesuaikan diri berdasarkan hasil uji coba/pilot bersama mitra donor dan lembaga penerima. Tahapan yang diterapkan:</p>
+  <ul>
+    <li><b>Product Backlog</b>: menyusun dan memprioritaskan seluruh kebutuhan fungsional dan non-fungsional sistem.</li>
+    <li><b>Sprint Planning</b>: membagi backlog ke dalam sprint 2 minggu dengan target fitur yang jelas (mis. modul registrasi, modul AI Routing, modul GIS).</li>
+    <li><b>Sprint Execution (Design&ndash;Development&ndash;Testing)</b>: perancangan antarmuka, implementasi backend/frontend, dan pengujian fungsional.</li>
+    <li><b>Sprint Review &amp; Retrospective</b>: evaluasi hasil sprint bersama dosen pengampu/stakeholder dan perbaikan proses.</li>
+    <li><b>Deployment &amp; Pilot Testing</b>: rilis bertahap ke lingkungan uji coba bersama mitra donor dan lembaga penerima terbatas.</li>
+  </ul>
+</section>
+
+<!-- ============================ BAB III : DIAGRAM ============================ -->
+<section>
+  <h2>BAB III &mdash; PEMODELAN DIAGRAM SISTEM</h2>
+
+  <h3>3.1 Flowchart 4 Alur Proses Bisnis</h3>
+  <p>Empat alur inti sistem dirender langsung dari node dan edge pada file <span class="code">docs/arsitektur/UML_EcoMatch.drawio</span> (halaman <i>activity-unggah-klasifikasi-mbg</i>, <i>activity-routing-mbg-tps</i>, <i>activity-serah-terima-otp</i>, dan <i>activity-registrasi-eco-match</i>). Setiap halaman berikutnya memuat satu flowchart utuh beserta keterangannya.</p>
+</section>
+<figure class="fp">
+  <div class="fbox"><svg class="flow" xmlns="http://www.w3.org/2000/svg" viewBox="24 34 462 1506" preserveAspectRatio="xMidYMid meet" role="img" aria-label="activity-unggah-klasifikasi-mbg">
+<defs><marker id="fcArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#333333"/></marker></defs>
+<path d="M255.0 110.0 L255.0 260.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M255.0 344.0 L255.0 460.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M255.0 550.0 L255.0 1260.0 L140.0 1260.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M255.0 550.0 L255.0 660.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M255.0 729.0 L255.0 860.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M255.0 950.0 L255.0 1060.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M255.0 950.0 L255.0 1260.0 L370.0 1260.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M255.0 1129.0 L255.0 1260.0 L140.0 1260.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M255.0 1129.0 L255.0 1260.0 L370.0 1260.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M370.0 1359.0 L370.0 1460.0 L255.0 1460.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><rect x="165" y="60" width="180" height="50" rx="25" ry="25" fill="#D5E8D4" stroke="#82B366" stroke-width="1.6"/><foreignObject x="165" y="60" width="180" height="50"><div class="node-txt">Mulai</div></foreignObject><rect x="165" y="260" width="180" height="84" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="165" y="260" width="180" height="84"><div class="node-txt">Dapur MBG / SPPG unggah sampah<br/>jenis, berat kg, waktu produksi, foto, kelayakan</div></foreignObject><polygon points="255,460 350,505 255,550 160,505" fill="#FFE6CC" stroke="#D79B00" stroke-width="1.6"/><foreignObject x="160" y="460" width="190" height="90"><div class="node-txt diamond">Verifikasi akun MBG<br/>oleh Admin?</div></foreignObject><rect x="50" y="1260" width="180" height="50" rx="25" ry="25" fill="#D5E8D4" stroke="#82B366" stroke-width="1.6"/><foreignObject x="50" y="1260" width="180" height="50"><div class="node-txt">Selesai - gagal</div></foreignObject><rect x="165" y="660" width="180" height="69" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="165" y="660" width="180" height="69"><div class="node-txt">Sampah 'tersedia' + klasifikasi otomatis<br/>POST /api/classify</div></foreignObject><polygon points="255,860 350,905 255,950 160,905" fill="#FFE6CC" stroke="#D79B00" stroke-width="1.6"/><foreignObject x="160" y="860" width="190" height="90"><div class="node-txt diamond">Skor keyakinan<br/>&gt;= ambang admin?</div></foreignObject><rect x="165" y="1060" width="180" height="69" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="165" y="1060" width="180" height="69"><div class="node-txt">Menunggu verifikasi admin<br/>PATCH /classify/:id/verify</div></foreignObject><rect x="280" y="1260" width="180" height="99" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="280" y="1260" width="180" height="99"><div class="node-txt">Klasifikasi tercatat<br/>kategori + tingkat pembusukan<br/>+ saran kelayakan (layak/tidak_layak)</div></foreignObject><rect x="165" y="1460" width="180" height="54" rx="27" ry="27" fill="#D5E8D4" stroke="#82B366" stroke-width="1.6"/><foreignObject x="165" y="1460" width="180" height="54"><div class="node-txt">Lanjut ke Bagian B - routing</div></foreignObject><foreignObject x="225.9" y="958.5" width="58.2" height="24.0"><div class="lbl-txt">Ditolak</div></foreignObject><foreignObject x="232.5" y="601.0" width="45.0" height="24.0"><div class="lbl-txt">Aktif</div></foreignObject><foreignObject x="235.8" y="1001.0" width="38.4" height="24.0"><div class="lbl-txt">Ragu</div></foreignObject><foreignObject x="232.5" y="1158.5" width="45.0" height="24.0"><div class="lbl-txt">Yakin</div></foreignObject><foreignObject x="225.9" y="1218.5" width="58.2" height="24.0"><div class="lbl-txt">Ditolak</div></foreignObject><foreignObject x="219.3" y="1248.0" width="71.4" height="24.0"><div class="lbl-txt">Disetujui</div></foreignObject></svg></div>
+  <figcaption>Gambar 3.1 Flowchart Alur 1: Unggah Sampah MBG → Klasifikasi → Routing (FR-02, FR-11, FR-13)<span class="src">Sumber: node diagram activity-unggah-klasifikasi-mbg pada docs/arsitektur/UML_EcoMatch.drawio</span></figcaption>
+</figure>
+<figure class="fp land">
+  <div class="fbox"><svg class="flow" xmlns="http://www.w3.org/2000/svg" viewBox="24 34 1622 951" preserveAspectRatio="xMidYMid meet" role="img" aria-label="activity-routing-mbg-tps">
+<defs><marker id="fcArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#333333"/></marker></defs>
+<path d="M745.0 85.0 L230.0 85.0 L230.0 287.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M230.0 287.0 L230.0 598.3 L630.0 598.3 L630.0 909.5" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M720.0 860.0 L720.0 760.0 L835.0 760.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M835.0 760.0 L835.0 860.0 L720.0 860.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M835.0 760.0 L835.0 860.0 L950.0 860.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M950.0 860.0 L950.0 350.0 L375.0 350.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M470.0 305.0 L520.0 305.0 L520.0 287.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M700.0 287.0 L750.0 286.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M375.0 260.0 L375.0 329.0 L1070.0 329.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M1160.0 294.5 L1210.0 294.5" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M1390.0 294.5 L1440.0 294.5 L1440.0 285.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><rect x="745" y="60" width="180" height="50" rx="25" ry="25" fill="#D5E8D4" stroke="#82B366" stroke-width="1.6"/><foreignObject x="745" y="60" width="180" height="50"><div class="node-txt">Mulai - hasil klasifikasi</div></foreignObject><rect x="50" y="260" width="180" height="54" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="50" y="260" width="180" height="54"><div class="node-txt">AI Routing POST /api/routing/run</div></foreignObject><rect x="630" y="860" width="180" height="99" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="630" y="860" width="180" height="99"><div class="node-txt">LOOP: skor tiap triplet sampah x penerima x kurir<br/>jenis_cocok 0.35, kapasitas 0.25, jarak 0.25, urgensi 0.15</div></foreignObject><polygon points="835,660 930,710 835,760 740,710" fill="#FFE6CC" stroke="#D79B00" stroke-width="1.6"/><foreignObject x="740" y="660" width="190" height="100"><div class="node-txt diamond">Skor &gt;= batas, penerima aktif, kelayakan cocok,<br/>jenis diterima cocok, kapasitas cukup?</div></foreignObject><rect x="860" y="860" width="180" height="84" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="860" y="860" width="180" height="84"><div class="node-txt">Urutkan skor + seleksi greedily<br/>1 sampah - 1 penerima - 1 kurir</div></foreignObject><polygon points="375,260 470,305 375,350 280,305" fill="#FFE6CC" stroke="#D79B00" stroke-width="1.6"/><foreignObject x="280" y="260" width="190" height="90"><div class="node-txt diamond">Alokasi terbentuk?</div></foreignObject><rect x="520" y="260" width="180" height="54" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="520" y="260" width="180" height="54"><div class="node-txt">Sampah tetap 'tersedia'<br/>+ notifikasi donor MBG</div></foreignObject><rect x="750" y="260" width="180" height="50" rx="25" ry="25" fill="#D5E8D4" stroke="#82B366" stroke-width="1.6"/><foreignObject x="750" y="260" width="180" height="50"><div class="node-txt">Selesai</div></foreignObject><rect x="980" y="260" width="180" height="69" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="980" y="260" width="180" height="69"><div class="node-txt">INSERT alokasi + rute_json<br/>sampah -&gt; 'dialokasikan'</div></foreignObject><rect x="1210" y="260" width="180" height="69" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="1210" y="260" width="180" height="69"><div class="node-txt">Notifikasi MBG, penerima, kurir<br/>+ log_audit ROUTE_WASTE</div></foreignObject><rect x="1440" y="260" width="180" height="50" rx="25" ry="25" fill="#D5E8D4" stroke="#82B366" stroke-width="1.6"/><foreignObject x="1440" y="260" width="180" height="50"><div class="node-txt">Selesai</div></foreignObject><foreignObject x="812.5" y="820.5" width="45.0" height="24.0"><div class="lbl-txt">Tidak</div></foreignObject><foreignObject x="829.9" y="856.0" width="25.2" height="24.0"><div class="lbl-txt">Ya</div></foreignObject><foreignObject x="481.5" y="301.0" width="45.0" height="24.0"><div class="lbl-txt">Tidak</div></foreignObject><foreignObject x="675.4" y="325.0" width="25.2" height="24.0"><div class="lbl-txt">Ya</div></foreignObject></svg></div>
+  <figcaption>Gambar 3.2 Flowchart Alur 2: AI Routing MBG → Penerima (FR-04, FR-05, FR-13)<span class="src">Sumber: node diagram activity-routing-mbg-tps pada docs/arsitektur/UML_EcoMatch.drawio</span></figcaption>
+</figure>
+<figure class="fp">
+  <div class="fbox"><svg class="flow" xmlns="http://www.w3.org/2000/svg" viewBox="24 34 922 1342" preserveAspectRatio="xMidYMid meet" role="img" aria-label="activity-serah-terima-otp">
+<defs><marker id="fcArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#333333"/></marker></defs>
+<path d="M395.0 85.0 L230.0 85.0 L230.0 294.5" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M230.0 294.5 L230.0 402.0 L395.0 402.0 L395.0 509.5" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M485.0 559.0 L485.0 660.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M575.0 694.5 L390.0 694.5 L390.0 1305.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M390.0 1305.0 L345.0 1305.0 L345.0 1087.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M345.0 1087.0 L390.0 1087.0 L390.0 1305.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M485.0 1260.0 L485.0 1110.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M580.0 1305.0 L625.0 1305.0 L625.0 1094.5" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M715.0 1060.0 L715.0 344.0 L370.0 344.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M460.0 302.0 L510.0 302.0 L510.0 294.5" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M690.0 294.5 L740.0 294.5 L740.0 287.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><rect x="395" y="60" width="180" height="50" rx="25" ry="25" fill="#D5E8D4" stroke="#82B366" stroke-width="1.6"/><foreignObject x="395" y="60" width="180" height="50"><div class="node-txt">Mulai</div></foreignObject><rect x="50" y="260" width="180" height="69" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="50" y="260" width="180" height="69"><div class="node-txt">Kurir terima tugas<br/>POST /pickup + foto SEBELUM</div></foreignObject><rect x="395" y="460" width="180" height="99" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="395" y="460" width="180" height="99"><div class="node-txt">Status 'dijemput'<br/>OTP 6 digit berlaku 30 menit<br/>notifikasi OTP ke Penerima</div></foreignObject><rect x="395" y="660" width="180" height="69" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="395" y="660" width="180" height="69"><div class="node-txt">POST /deliver + foto SESUDAH<br/>status 'terkirim'</div></foreignObject><polygon points="485,1260 580,1305 485,1350 390,1305" fill="#FFE6CC" stroke="#D79B00" stroke-width="1.6"/><foreignObject x="390" y="1260" width="190" height="90"><div class="node-txt diamond">Rate-limit 5 percobaan / 15 menit<br/>dan OTP benar?</div></foreignObject><rect x="165" y="1060" width="180" height="54" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="165" y="1060" width="180" height="54"><div class="node-txt">Log OTP_FAIL + pesan error</div></foreignObject><rect x="395" y="1060" width="180" height="50" rx="25" ry="25" fill="#D5E8D4" stroke="#82B366" stroke-width="1.6"/><foreignObject x="395" y="1060" width="180" height="50"><div class="node-txt">Ditolak 429</div></foreignObject><rect x="625" y="1060" width="180" height="69" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="625" y="1060" width="180" height="69"><div class="node-txt">OTP sekali pakai<br/>alokasi &amp; sampah 'terverifikasi'</div></foreignObject><rect x="280" y="260" width="180" height="84" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="280" y="260" width="180" height="84"><div class="node-txt">Penerima mencatat penanganan<br/>POST /api/penerima/:id/log (input_kg - output_kg)</div></foreignObject><rect x="510" y="260" width="180" height="69" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="510" y="260" width="180" height="69"><div class="node-txt">Notifikasi kurir &amp; MBG<br/>+ log_audit VERIFY_OTP + LOG_PENGOLAHAN</div></foreignObject><rect x="740" y="260" width="180" height="54" rx="27" ry="27" fill="#D5E8D4" stroke="#82B366" stroke-width="1.6"/><foreignObject x="740" y="260" width="180" height="54"><div class="node-txt">Transaksi selesai - immutable</div></foreignObject><foreignObject x="276.3" y="1214.5" width="137.4" height="24.0"><div class="lbl-txt">Salah / kadaluwarsa</div></foreignObject><foreignObject x="432.8" y="1181.0" width="104.4" height="24.0"><div class="lbl-txt">Melebihi limit</div></foreignObject><foreignObject x="602.5" y="1218.3" width="45.0" height="24.0"><div class="lbl-txt">Benar</div></foreignObject></svg></div>
+  <figcaption>Gambar 3.3 Flowchart Alur 3: Serah Terima, Foto Bukti & Verifikasi OTP (FR-07, FR-08, FR-12)<span class="src">Sumber: node diagram activity-serah-terima-otp pada docs/arsitektur/UML_EcoMatch.drawio</span></figcaption>
+</figure>
+<figure class="fp">
+  <div class="fbox"><svg class="flow" xmlns="http://www.w3.org/2000/svg" viewBox="24 34 702 1136" preserveAspectRatio="xMidYMid meet" role="img" aria-label="activity-registrasi-eco-match">
+<defs><marker id="fcArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#333333"/></marker></defs>
+<path d="M285.0 85.0 L285.0 586.0 L350.0 586.0 L350.0 1087.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M260.0 1060.0 L260.0 514.0 L145.0 514.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M260.0 1060.0 L260.0 544.0 L375.0 544.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M350.0 1087.0 L350.0 787.0 L515.0 787.0 L515.0 487.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M235.0 487.0 L280.0 487.0 L280.0 705.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M375.0 544.0 L375.0 660.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M515.0 487.0 L470.0 487.0 L470.0 705.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M280.0 705.0 L350.0 705.0 L350.0 1087.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M375.0 750.0 L375.0 860.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M375.0 950.0 L375.0 1060.0 L260.0 1060.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M375.0 950.0 L375.0 1060.0 L490.0 1060.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M490.0 1060.0 L490.0 350.0 L145.0 350.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M240.0 305.0 L290.0 305.0 L290.0 285.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><path d="M240.0 305.0 L520.0 305.0 L520.0 287.0" fill="none" stroke="#333333" stroke-width="1.6" marker-end="url(#fcArrow)"/><rect x="285" y="60" width="180" height="50" rx="25" ry="25" fill="#D5E8D4" stroke="#82B366" stroke-width="1.6"/><foreignObject x="285" y="60" width="180" height="50"><div class="node-txt">User buka PWA</div></foreignObject><rect x="170" y="1060" width="180" height="54" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="170" y="1060" width="180" height="54"><div class="node-txt">Pilih peran: MBG | Penerima | Kurir</div></foreignObject><rect x="55" y="460" width="180" height="54" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="55" y="460" width="180" height="54"><div class="node-txt">MBG: nama SPPG, alamat, kapasitas, kontak</div></foreignObject><rect x="285" y="460" width="180" height="84" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="285" y="460" width="180" height="84"><div class="node-txt">Penerima: nama penerima, jenis penerima,<br/>kapasitas kg/hari, jenis diterima, izin</div></foreignObject><rect x="515" y="460" width="180" height="54" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="515" y="460" width="180" height="54"><div class="node-txt">Kurir: kendaraan, area layanan</div></foreignObject><polygon points="375,660 470,705 375,750 280,705" fill="#FFE6CC" stroke="#D79B00" stroke-width="1.6"/><foreignObject x="280" y="660" width="190" height="90"><div class="node-txt diamond">Validasi input<br/>email, panjang, role, koordinat?</div></foreignObject><polygon points="375,860 470,905 375,950 280,905" fill="#FFE6CC" stroke="#D79B00" stroke-width="1.6"/><foreignObject x="280" y="860" width="190" height="90"><div class="node-txt diamond">Email sudah terdaftar?</div></foreignObject><rect x="400" y="1060" width="180" height="84" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.6"/><foreignObject x="400" y="1060" width="180" height="84"><div class="node-txt">Hash bcrypt -&gt; INSERT user<br/>status 'menunggu' + JWT<br/>+ log_audit USER_REGISTER</div></foreignObject><polygon points="145,260 240,305 145,350 50,305" fill="#FFE6CC" stroke="#D79B00" stroke-width="1.6"/><foreignObject x="50" y="260" width="190" height="90"><div class="node-txt diamond">OPT: Admin verifikasi<br/>PATCH /users/:id/status</div></foreignObject><rect x="290" y="260" width="180" height="50" rx="25" ry="25" fill="#D5E8D4" stroke="#82B366" stroke-width="1.6"/><foreignObject x="290" y="260" width="180" height="50"><div class="node-txt">Login ditolak 403</div></foreignObject><rect x="520" y="260" width="180" height="54" rx="27" ry="27" fill="#D5E8D4" stroke="#82B366" stroke-width="1.6"/><foreignObject x="520" y="260" width="180" height="54"><div class="node-txt">status 'aktif' - fitur role terbuka</div></foreignObject><foreignObject x="311.0" y="802.8" width="78.0" height="24.0"><div class="lbl-txt">Gagal: 400</div></foreignObject><foreignObject x="362.4" y="770.2" width="25.2" height="24.0"><div class="lbl-txt">OK</div></foreignObject><foreignObject x="345.9" y="1031.5" width="58.2" height="24.0"><div class="lbl-txt">Ya: 409</div></foreignObject><foreignObject x="352.5" y="995.5" width="45.0" height="24.0"><div class="lbl-txt">Tidak</div></foreignObject><foreignObject x="245.9" y="301.0" width="58.2" height="24.0"><div class="lbl-txt">Ditolak</div></foreignObject><foreignObject x="366.5" y="301.0" width="45.0" height="24.0"><div class="lbl-txt">Aktif</div></foreignObject></svg></div>
+  <figcaption>Gambar 3.4 Flowchart Alur 4: Registrasi & Verifikasi Akun Multi-Role (FR-01, FR-12)<span class="src">Sumber: node diagram activity-registrasi-eco-match pada docs/arsitektur/UML_EcoMatch.drawio</span></figcaption>
+</figure>
+
+<section>
+  <h3 style="margin-top:0">3.2 Use Case Diagram (Mermaid &ndash; baru)</h3>
+  <p>Use case berikut disusun baru dengan sintaks Mermaid, memuat aktor, batas sistem, 14 use case, serta relasi <i>include</i>/<i>extend</i>.</p>
+</section>
+<figure class="fp">
+  <div class="fbox"><div id="usecase"><pre class="mermaid">
+flowchart LR
+  classDef actor fill:#DAE8FC,stroke:#6C8EBF,color:#0b2545,stroke-width:1.5px
+  classDef uc fill:#FFFFFF,stroke:#333333,color:#111111
+  DBG["Donor MBG (SPPG)"]:::actor
+  PEN["Penerima"]:::actor
+  KUR["Kurir / Relawan"]:::actor
+  ADM["Administrator"]:::actor
+  SYS["Sistem (AI)"]:::actor
+  subgraph BOUND["Sistem EcoMatch"]
+    direction TB
+    UC01["UC-01 Autentikasi dan RBAC"]:::uc
+    UC02["UC-02 Unggah Sampah Makanan"]:::uc
+    UC03["UC-03 Klasifikasi Jenis Sampah"]:::uc
+    UC04["UC-04 AI Routing dan Alokasi"]:::uc
+    UC05["UC-05 Rute GIS dan Foto Bukti"]:::uc
+    UC06["UC-06 Verifikasi OTP Serah Terima"]:::uc
+    UC07["UC-07 Catat Penanganan"]:::uc
+    UC08["UC-08 Kelola Profil Penerima"]:::uc
+    UC09["UC-09 Notifikasi Multi-kanal"]:::uc
+    UC10["UC-10 Dashboard Monitoring dan Kepatuhan"]:::uc
+    UC11["UC-11 Manajemen Pengguna dan Audit"]:::uc
+    UC12["UC-12 Modul Motivasi Donor"]:::uc
+    UC13["UC-13 Konfigurasi Regulasi Daerah"]:::uc
+    UC14["UC-14 Traceability End-to-End"]:::uc
+  end
+  DBG --> UC01
+  DBG --> UC02
+  DBG --> UC12
+  DBG --> UC14
+  PEN --> UC08
+  PEN --> UC06
+  PEN --> UC07
+  PEN --> UC14
+  KUR --> UC01
+  KUR --> UC05
+  ADM --> UC10
+  ADM --> UC11
+  ADM --> UC13
+  ADM --> UC03
+  ADM --> UC04
+  SYS --> UC03
+  SYS --> UC04
+  SYS --> UC09
+  UC02 -.->|include| UC01
+  UC02 -.->|include| UC03
+  UC04 -.->|include| UC03
+  UC04 -.->|include| UC05
+  UC06 -.->|include| UC07
+  UC06 -.->|include| UC09
+  UC10 -.->|include| UC14
+  UC03 -.->|extend| UC11
+  </pre></div></div>
+  <figcaption>Gambar 3.5 Use Case Diagram EcoMatch (Mermaid, include/extend)<span class="src">Sintaks baru: docs/tools/usecase-ecomatch.mmd &mdash; dirender oleh vendor/mermaid.min.js</span></figcaption>
+</figure>
+
+<section>
+  <h3 style="margin-top:0">3.3 ERD, Activity, Sequence, dan Class Diagram</h3>
+  <p>Seluruh diagram pada bagian ini diambil langsung dari berkas PNG di <span class="code">docs/arsitektur/</span> sesuai sumber dokumen arsitektur sistem EcoMatch v2.0.</p>
+</section>
+<figure class="fp land">
+  <div class="fbox"><img src="arsitektur/ERD_EcoMatch.png" alt="Gambar 3.6 Conceptual Data Model (ERD) Basis Data EcoMatch"></div>
+  <figcaption>Gambar 3.6 Conceptual Data Model (ERD) Basis Data EcoMatch<span class="src">Sumber: docs/arsitektur/ERD_EcoMatch.png</span></figcaption>
+</figure>
+<figure class="fp">
+  <div class="fbox"><img src="arsitektur/EcoMatch_02a_activity_klasifikasi.png" alt="Gambar 3.7 Activity Diagram: Unggah & Klasifikasi Sampah (FR-02, FR-11)"></div>
+  <figcaption>Gambar 3.7 Activity Diagram: Unggah & Klasifikasi Sampah (FR-02, FR-11)<span class="src">Sumber: docs/arsitektur/EcoMatch_02a_activity_klasifikasi.png</span></figcaption>
+</figure>
+<figure class="fp">
+  <div class="fbox"><img src="arsitektur/EcoMatch_02b_activity_routing.png" alt="Gambar 3.8 Activity Diagram: Routing MBG → Penerima (FR-04, FR-13)"></div>
+  <figcaption>Gambar 3.8 Activity Diagram: Routing MBG → Penerima (FR-04, FR-13)<span class="src">Sumber: docs/arsitektur/EcoMatch_02b_activity_routing.png</span></figcaption>
+</figure>
+<figure class="fp">
+  <div class="fbox"><img src="arsitektur/EcoMatch_03_activity_otp.png" alt="Gambar 3.9 Activity Diagram: Serah Terima OTP (FR-07, FR-08)"></div>
+  <figcaption>Gambar 3.9 Activity Diagram: Serah Terima OTP (FR-07, FR-08)<span class="src">Sumber: docs/arsitektur/EcoMatch_03_activity_otp.png</span></figcaption>
+</figure>
+<figure class="fp">
+  <div class="fbox"><img src="arsitektur/EcoMatch_04_activity_registrasi.png" alt="Gambar 3.10 Activity Diagram: Registrasi Multi-Role (FR-01, FR-12)"></div>
+  <figcaption>Gambar 3.10 Activity Diagram: Registrasi Multi-Role (FR-01, FR-12)<span class="src">Sumber: docs/arsitektur/EcoMatch_04_activity_registrasi.png</span></figcaption>
+</figure>
+<figure class="fp land">
+  <div class="fbox"><img src="arsitektur/EcoMatch_06_sequence_klasifikasi.png" alt="Gambar 3.11 Sequence Diagram: Klasifikasi Sampah (LOOP + ALT)"></div>
+  <figcaption>Gambar 3.11 Sequence Diagram: Klasifikasi Sampah (LOOP + ALT)<span class="src">Sumber: docs/arsitektur/EcoMatch_06_sequence_klasifikasi.png</span></figcaption>
+</figure>
+<figure class="fp">
+  <div class="fbox"><img src="arsitektur/EcoMatch_07_sequence_routing.png" alt="Gambar 3.12 Sequence Diagram: Routing MBG → Penerima (LOOP + ALT)"></div>
+  <figcaption>Gambar 3.12 Sequence Diagram: Routing MBG → Penerima (LOOP + ALT)<span class="src">Sumber: docs/arsitektur/EcoMatch_07_sequence_routing.png</span></figcaption>
+</figure>
+<figure class="fp">
+  <div class="fbox"><img src="arsitektur/EcoMatch_08_sequence_otp.png" alt="Gambar 3.13 Sequence Diagram: Serah Terima OTP &amp; Penanganan (ALT + OPT)"></div>
+  <figcaption>Gambar 3.13 Sequence Diagram: Serah Terima OTP &amp; Penanganan (ALT + OPT)<span class="src">Sumber: docs/arsitektur/EcoMatch_08_sequence_otp.png</span></figcaption>
+</figure>
+<figure class="fp land">
+  <div class="fbox"><img src="arsitektur/EcoMatch_05_class.png" alt="Gambar 3.14 Class Diagram Backend EcoMatch"></div>
+  <figcaption>Gambar 3.14 Class Diagram Backend EcoMatch<span class="src">Sumber: docs/arsitektur/EcoMatch_05_class.png</span></figcaption>
+</figure>
+<figure class="fp land">
+  <div class="fbox"><img src="arsitektur/EcoMatch_01_arsitektur_3tier.png" alt="Gambar 3.15 Arsitektur Sistem Three-Tier EcoMatch"></div>
+  <figcaption>Gambar 3.15 Arsitektur Sistem Three-Tier EcoMatch<span class="src">Sumber: docs/arsitektur/EcoMatch_01_arsitektur_3tier.png</span></figcaption>
+</figure>
+
+<!-- ============================ BAB IV ============================ -->
+<section>
+  <h2>BAB IV &mdash; PENUTUP &amp; REFERENSI</h2>
+  <h3>4.1 Kesimpulan</h3>
+  <p>Dokumen SRS/BRD EcoMatch ini memuat 17 kebutuhan fungsional (FR-01 s.d. FR-17) dan 11 kebutuhan non-fungsional (NFR-01 s.d. NFR-11) yang mencakup autentikasi RBAC, klasifikasi sampah, AI Routing, rute GIS, bukti serah terima, notifikasi, dashboard kepatuhan, motivasi donor, konfigurasi regulasi daerah, dan traceability end-to-end. Pemodelan sistem mencakup 4 flowchart alur bisnis (dirender dari node drawio), use case diagram baru (Mermaid), serta ERD, activity, sequence, dan class diagram dari PNG arsitektur.</p>
+  <h3>4.2 Referensi</h3>
+  <ol>
+    <li>docs/SKPL_EcoMatch_v2.0.docx &mdash; Dokumen Spesifikasi Kebutuhan Perangkat Lunak EcoMatch v2.0 (sumber FR/NFR, BRD, dan glasari).</li>
+    <li>docs/arsitektur/UML_EcoMatch.drawio &mdash; 12 halaman diagram UML/flowchart sumber render flowchart alur.</li>
+    <li>docs/arsitektur/*.png &mdash; ERD, activity, sequence, class, dan arsitektur 3-tier.</li>
+    <li>docs/arsitektur/Dokumen_Arsitektur_Sistem_EcoMatch_v2.0.md &mdash; dokumen arsitektur sistem.</li>
+    <li>Sumber eksternal: IEEE 830-1998 (SRS), PMBOK/Agile-Scrum, Leaflet/OpenStreetMap/OSRM/PostGIS.</li>
+  </ol>
+  <div class="sig">
+    <div class="col">Mengetahui,<br>Dosen Pengampu<br>Darmawan Lahru Riatma, S.Kom., M.MT<div class="name">Darmawan Lahru Riatma, S.Kom., M.MT</div><div>NIP. 1991091420200801</div></div>
+    <div class="col">Madiun, 10 November 2026<br>Penyusun,<br>Kelas TI A<div class="name">Nayla Aurellia Azarine &amp; Fida Muyasaroh</div><div>NIM. V3925012 / V3925007</div></div>
+  </div>
+</section>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, securityLevel: 'loose', theme: 'neutral',
+    fontFamily: 'Segoe UI, Arial, sans-serif', flowchart: { useMaxWidth: false, htmlLabels: true, nodeSpacing: 38, rankSpacing: 52 } });
+</script>
+</body>
+</html>

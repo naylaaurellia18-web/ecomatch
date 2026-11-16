@@ -1,0 +1,13 @@
+mobile/
+docs/
+backups/
+data/
+uploads/
+.git/
+.vercel/
+node_modules/
+server.log
+server.err.log
+e2e-test.js
+tab-audit.js
+docker-compose.yml

@@ -8,7 +8,7 @@ const { storageMode } = require('./lib/storage');
 const authRoutes = require('./routes/auth');
 const wasteRoutes = require('./routes/waste');
 const classifyRoutes = require('./routes/classify');
-const tpsRoutes = require('./routes/tps');
+const penerimaRoutes = require('./routes/penerima');
 const routingRoutes = require('./routes/routing');
 const deliveryRoutes = require('./routes/deliveries');
 const complianceRoutes = require('./routes/compliance');
@@ -109,7 +109,7 @@ app.use(async (_req, _res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/waste', wasteRoutes);
 app.use('/api/classify', classifyRoutes);
-app.use('/api/tps', tpsRoutes);
+app.use('/api/penerima', penerimaRoutes);
 app.use('/api/routing', routingRoutes);
 app.use('/api/deliveries', deliveryRoutes);
 app.use('/api/compliance', complianceRoutes);

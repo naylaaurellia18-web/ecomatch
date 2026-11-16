@@ -40,8 +40,8 @@ const tabs = {
     ['Ganti Sandi', '/api/auth/me'],
   ],
   recipient: [
-    ['Profil TPS', '/api/tps/me'],
-    ['Daftar TPS', '/api/tps/list'],
+    ['Profil penerima', '/api/penerima/me'],
+    ['Daftar penerima', '/api/penerima/list'],
     ['Konfirmasi OTP', '/api/routing'],
     ['Peta GIS', '/api/geo'],
     ['Notifikasi', '/api/notifications'],
@@ -58,7 +58,7 @@ const tabs = {
 const creds = {
   admin: ['admin@ecomatch.id', 'admin123'],
   donor: ['donor@ecomatch.id', 'donor123'],
-  recipient: ['tps@ecomatch.id', 'tps123'],
+  recipient: ['penerima@ecomatch.id', 'penerima123'],
   courier: ['kurir@ecomatch.id', 'kurir123'],
 };
 
@@ -84,7 +84,7 @@ const creds = {
     }
   }
 
-  // OTP status for TPS on ready alokasi
+  // OTP status for penerima on ready alokasi
   const tpsTok = await login(...creds.recipient);
   const alokasi = await req('/api/routing', { token: tpsTok });
   const ready = (Array.isArray(alokasi.data) ? alokasi.data : []).filter((m) => ['dijemput', 'terkirim'].includes(m.status));

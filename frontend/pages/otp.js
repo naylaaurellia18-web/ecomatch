@@ -69,7 +69,7 @@ async function otpView() {
   );
 
   return `${pageHead('Konfirmasi OTP', 'Masukkan kode 6 digit untuk konfirmasi serah terima sampah makanan')}
-  ${flowStripHtml(['Kurir jemput sampah', 'Kurir antar ke TPS', 'OTP muncul di sini', 'Konfirmasi terima'])}
+  ${flowStripHtml(['Kurir jemput sampah', 'Kurir antar ke penerima', 'OTP muncul di sini', 'Konfirmasi terima'])}
   <div class="section"><div class="card">
     <div class="card-head"><div><h2>Menunggu konfirmasi</h2></div></div>
     <div class="stack stack-4">

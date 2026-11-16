@@ -47,6 +47,7 @@ function wasteForm(berat = '18.5', foto = png) {
   fd.append('waktu_produksi', new Date(Date.now() - 2 * 3600000).toISOString());
   fd.append('lat', '-7.6245');
   fd.append('lng', '111.525');
+  fd.append('kelayakan', 'layak');
   fd.append('foto', new Blob([foto], { type: 'image/png' }), 'waste.png');
   return fd;
 }
@@ -83,12 +84,12 @@ function wasteForm(berat = '18.5', foto = png) {
   const admin = await login('admin@ecomatch.id', 'admin123');
   const donor = await login('donor@ecomatch.id', 'donor123');
   const donor2 = await login('donor2@ecomatch.id', 'donor123');
-  const tps = await login('tps@ecomatch.id', 'tps123');
-  const tps2 = await login('tps2@ecomatch.id', 'tps123');
+  const tps = await login('penerima@ecomatch.id', 'penerima123');
+  const tps2 = await login('peternakan@ecomatch.id', 'ternak123');
   const kurir = await login('kurir@ecomatch.id', 'kurir123');
   const kurir2 = await login('kurir2@ecomatch.id', 'kurir123');
   const pending = await login('pending@ecomatch.id', 'pending123');
-  console.log('✓ LOGIN semua aktor (admin/donor/tps/kurir/pending)');
+  console.log('✓ LOGIN semua aktor (admin/donor/penerima/kurir/pending)');
 
   // --- requireActive: akun menunggu ditolak
   await expectError('FR-01 akun menunggu diblokir', 403, () => api('/api/waste/mine', { token: pending }));
@@ -163,17 +164,17 @@ function wasteForm(berat = '18.5', foto = png) {
   if (!clsTeks.kategori) throw new Error('FR-11 klasifikasi teks kosong');
   console.log(`✓ FR-11 klasifikasi: ${cls.kategori}/${cls.tingkat_pembusukan} · verify: ${clsVerify.message}`);
 
-  // --- FR-03: profil TPS
-  const tpsMe = await api('/api/tps/me', { token: tps });
-  if (!tpsMe.nama_tps) throw new Error('FR-03 /tps/me kosong');
-  const tpsPatch = await api('/api/tps/me', {
+  // --- FR-03: profil penerima
+  const penerimaMe = await api('/api/penerima/me', { token: tps });
+  if (!penerimaMe.nama_penerima) throw new Error('FR-03 /penerima/me kosong');
+  const penerimaPatch = await api('/api/penerima/me', {
     method: 'PATCH',
     token: tps,
     body: { radius_layanan_km: 15 },
   });
-  const tpsList = await api('/api/tps/list', { token: tps });
-  if (!Array.isArray(tpsList) || !tpsList.length) throw new Error('FR-12 /tps/list kosong');
-  console.log(`✓ FR-03/FR-12 TPS: ${tpsMe.nama_tps} · sisa ${tpsMe.sisa_kapasitas_kg} kg · list ${tpsList.length}`);
+  const penerimaList = await api('/api/penerima/list', { token: tps });
+  if (!Array.isArray(penerimaList) || !penerimaList.length) throw new Error('FR-12 /penerima/list kosong');
+  console.log(`✓ FR-03/FR-12 penerima: ${penerimaMe.nama_penerima} · sisa ${penerimaMe.sisa_kapasitas_kg} kg · list ${penerimaList.length}`);
 
   // --- FR-04: routing
   const run = await api('/api/routing/run', { method: 'POST', token: admin });
@@ -201,7 +202,7 @@ function wasteForm(berat = '18.5', foto = png) {
 
   // Token pelaku sesuai alokasi
   const kurirToken = alo.id_kurir === idByEmail['kurir@ecomatch.id'] ? kurir : kurir2;
-  const tpsToken = alo.id_tps === idByEmail['tps@ecomatch.id'] ? tps : tps2;
+  const tpsToken = alo.id_penerima === idByEmail['penerima@ecomatch.id'] ? tps : tps2;
   const donorToken = alo.id_donor === idByEmail['donor@ecomatch.id'] ? donor : donor2;
 
   // --- Peran hanya melihat alokasi masing-masing
@@ -209,9 +210,9 @@ function wasteForm(berat = '18.5', foto = png) {
   if (!kurirList.some((a) => a.id_alokasi === alo.id_alokasi)) throw new Error('Alokasi kurir tidak terlihat');
   const donorList = await api('/api/routing', { token: donorToken });
   if (!donorList.some((a) => a.id_alokasi === alo.id_alokasi)) throw new Error('Alokasi donor tidak terlihat');
-  const tpsListOwn = await api('/api/routing', { token: tpsToken });
-  if (!tpsListOwn.some((a) => a.id_alokasi === alo.id_alokasi)) throw new Error('Alokasi TPS tidak terlihat');
-  console.log('✓ RBAC daftar alokasi per peran (kurir/donor/tps)');
+  const penerimaListOwn = await api('/api/routing', { token: tpsToken });
+  if (!penerimaListOwn.some((a) => a.id_alokasi === alo.id_alokasi)) throw new Error('Alokasi penerima tidak terlihat');
+  console.log('✓ RBAC daftar alokasi per peran (kurir/donor/penerima)');
 
   // --- FR-07: pickup
   const fdPickup = new FormData();
@@ -253,7 +254,7 @@ function wasteForm(berat = '18.5', foto = png) {
   });
   console.log('✓ FR-07 deliver+foto antar:', del.message);
 
-  // --- FR-08: verify OTP oleh TPS
+  // --- FR-08: verify OTP oleh penerima
   await expectError('FR-08 OTP salah ditolak', 400, () =>
     api(`/api/deliveries/${alo.id_alokasi}/verify-otp`, { method: 'POST', token: tpsToken, body: { otp: '000000' } })
   );
@@ -269,12 +270,12 @@ function wasteForm(berat = '18.5', foto = png) {
   console.log('✓ status final alokasi: terverifikasi');
 
   // --- FR-12: log pengolahan + dashboard
-  const log = await api(`/api/tps/${alo.id_tps}/log`, {
+  const log = await api(`/api/penerima/${alo.id_penerima}/log`, {
     method: 'POST',
     token: tpsToken,
     body: { id_alokasi: alo.id_alokasi, input_kg: 17.5, output_kg: 9.2, output_jenis: 'kompos' },
   });
-  const dash = await api(`/api/tps/${alo.id_tps}/dashboard`, { token: tpsToken });
+  const dash = await api(`/api/penerima/${alo.id_penerima}/dashboard`, { token: tpsToken });
   if (dash.kg_masuk < 1) throw new Error('dashboard kg_masuk kosong');
   console.log(
     `✓ FR-12 log pengolahan #${log.id_pengolahan} · dashboard: masuk=${dash.kg_masuk}kg diolah=${dash.kg_diolah}kg output=${JSON.stringify(dash.output)}`
@@ -282,9 +283,9 @@ function wasteForm(berat = '18.5', foto = png) {
 
   // --- FR-06: notifikasi + tandai dibaca
   const notif = await api('/api/notifications', { token: tpsToken });
-  if (!notif.length) throw new Error('Notifikasi TPS kosong');
+  if (!notif.length) throw new Error('Notifikasi penerima kosong');
   await api(`/api/notifications/${notif[0].id_notifikasi}/read`, { method: 'PATCH', token: tpsToken });
-  console.log(`✓ FR-06 notifikasi TPS: ${notif.length} entri · PATCH read OK`);
+  console.log(`✓ FR-06 notifikasi penerima: ${notif.length} entri · PATCH read OK`);
 
   // --- FR-15: motivasi + klaim donor
   const motiv = await api('/api/mbg/motivation', { token: donorToken });
@@ -308,14 +309,14 @@ function wasteForm(berat = '18.5', foto = png) {
   // --- FR-09: statistik admin
   const stats = await api('/api/admin/stats', { token: admin });
   if (stats.dampak.kg_dialihkan < 1) throw new Error('FR-09 kg_dialihkan kosong');
-  if (!stats.users.donor_mbg && !stats.users.tps_pengolah) throw new Error('FR-09 role kosong');
+  if (!stats.users.donor_mbg && !stats.users.penerima) throw new Error('FR-09 role kosong');
   console.log(
     '✓ FR-09 stats:',
     JSON.stringify({
       kg_dialihkan: stats.dampak.kg_dialihkan,
       kg_terverifikasi: stats.dampak.kg_terverifikasi,
       rata_rata_skor_persen: stats.dampak.rata_rata_skor_persen,
-      tps_aktif: stats.tps.aktif,
+      penerima_aktif: stats.penerima.aktif,
       klasifikasi: stats.klasifikasi.total,
       under_target: stats.kinerja.semua_di_bawah_target,
     })
@@ -360,10 +361,10 @@ function wasteForm(berat = '18.5', foto = png) {
 
   // --- FR-05: geo
   const geo = await api('/api/geo', { token: donor });
-  if (!geo.users.length || !geo.tps.length) throw new Error('FR-05 geo kosong');
+  if (!geo.users.length || !geo.penerima.length) throw new Error('FR-05 geo kosong');
   const nearby = await api('/api/geo/nearby?lat=-7.6245&lng=111.525&radius_km=25', { token: donor });
   if (!nearby.hasil.length) throw new Error('FR-05 nearby kosong');
-  console.log(`✓ FR-05 geo: users=${geo.users.length} tps=${geo.tps.length} listings=${geo.listings.length} · nearby=${nearby.hasil.length} (${nearby.mesin})`);
+  console.log(`✓ FR-05 geo: users=${geo.users.length} penerima=${geo.penerima.length} listings=${geo.listings.length} · nearby=${nearby.hasil.length} (${nearby.mesin})`);
 
   // --- FR-09: outbox + reset password
   await new Promise((r) => setTimeout(r, 400));

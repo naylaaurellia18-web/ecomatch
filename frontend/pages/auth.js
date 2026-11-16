@@ -36,9 +36,9 @@ export function renderAuth() {
       <div class="stack stack-6">
         <div>
           <div class="eyebrow" style="color:#86efac">AI Routing Sampah Makanan MBG</div>
-          <h1>Sisa makanan MBG bukan akhir — olah kembali di TPS</h1>
+          <h1>Sisa makanan MBG bukan akhir — salurkan ke yang tepat</h1>
           <p style="color:rgba(255,255,255,.85);max-width:46ch">
-            EcoMatch mengalihkan sampah makanan MBG ke TPS pengolah terdekat dengan routing AI &amp; peta GIS.
+            EcoMatch menyalurkan sampah makanan MBG ke penerima terdekat dengan routing AI &amp; peta GIS.
           </p>
         </div>
         <ul class="auth-points">
@@ -108,9 +108,9 @@ export function renderAuth() {
                 <span><b>Donor MBG</b><small>Punya sisa makanan MBG (dapur/SPPG/hotel/resto)</small></span>
               </label>
               <label class="role-card">
-                <input type="radio" name="role" value="tps_pengolah" />
+                <input type="radio" name="role" value="penerima" />
                 ${icon('recycle', 20)}
-                <span><b>TPS Pengolah</b><small>Mengelola TPS kompos/bank sampah/maggot</small></span>
+                <span><b>Penerima</b><small>Panti asuhan, yayasan, atau peternakan yang menerima sisa makanan</small></span>
               </label>
               <label class="role-card">
                 <input type="radio" name="role" value="kurir" />
@@ -140,13 +140,13 @@ export function renderAuth() {
               </div>
               <div class="field" id="orgField">
                 <label class="label" for="regLembaga">Nama Organisasi / SPPG</label>
-                <input class="input" id="regLembaga" name="nama_lembaga" placeholder="SPPG / TPS / Komunitas" />
+                <input class="input" id="regLembaga" name="nama_lembaga" placeholder="SPPG / Panti Asuhan / Peternakan" />
               </div>
             </div>
           </details>
 
           <button class="btn btn-primary btn-block" type="submit">Daftar sekarang</button>
-          <p class="t-xs muted">Akun perlu diverifikasi admin dulu — akun TPS juga perlu melengkapi profil TPS setelah disetujui.</p>
+          <p class="t-xs muted">Akun perlu diverifikasi admin dulu — akun penerima juga perlu melengkapi profil penerima setelah disetujui.</p>
         </form>
 
         <!-- LUPA SANDI -->

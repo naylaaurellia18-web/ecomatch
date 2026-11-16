@@ -1059,7 +1059,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .kpi-trend.up   { color: var(--brand-600); }
 .kpi-trend.down { color: var(--danger); }
 
-/* Angka statistik ringkas (TPS: terpakai hari ini) */
+/* Angka statistik ringkas (penerima: terpakai hari ini) */
 .meter { display: flex; flex-direction: column; gap: 6px; }
 .meter-top { display: flex; justify-content: space-between; font-size: var(--fs-sm); font-weight: 600; }
 
@@ -1887,7 +1887,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 /* --------------------------------------------------------------------------
-   DOMAIN: SOP PENANGANAN (panduan pengemasan donor/TPS)
+   DOMAIN: SOP PENANGANAN (panduan pengemasan donor/penerima)
    -------------------------------------------------------------------------- */
 .sop {
   border: 1px solid var(--line);

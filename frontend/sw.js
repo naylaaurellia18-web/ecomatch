@@ -38,7 +38,7 @@ const PRECACHE = [
   '/pages/upload.js',
   '/pages/routing.js',
   '/pages/points.js',
-  '/pages/tps.js',
+  '/pages/penerima.js',
   '/pages/otp.js',
   '/pages/courier.js',
   '/pages/gis.js',

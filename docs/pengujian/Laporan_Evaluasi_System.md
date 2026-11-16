@@ -1,6 +1,6 @@
 # Laporan Evaluasi Sistem EcoMatch
 
-**Naskah uji 30 skenario — AI Routing Sampah Makanan MBG ke TPS Pengolah (Kota Madiun)**
+**Naskah uji 30 skenario — AI Routing Penyaluran Sisa Makanan MBG ke Penerima (Kota Madiun)**
 
 Berkas ini adalah deliverable Fase 6 (Dokumen Arsitektur EcoMatch v2.0, §8 dan §9B).
 Seluruh angka di bawah dihasilkan langsung oleh berkas sumber
@@ -18,7 +18,7 @@ dari baseline **Greedy Jarak-Saja** pada metrik yang mewakili tujuan sistem:
 |--------|--------|
 | % sampah teralokasi | Cakupan layanan (dibatasi jumlah kurir). |
 | Total jarak tempuh (km) | Proxy biaya logistik. |
-| Rata-rata skor kualitas | Kualitas kombinasi sampah-TPS yang dipilih. |
+| Rata-rata skor kualitas | Kualitas kombinasi sampah-penerima yang dipilih. |
 | % sampah busuk (urgensi tinggi) teralokasi | Prioritas utama: sampah > 24 jam. |
 | % sampah sedang (hampir busuk) tersalur | Pendukung: sampah 12-24 jam. |
 | % sampah tidak segar (sedang + busuk) teralokasi | Metrik gabungan kedua tingkat di atas. |
@@ -30,12 +30,12 @@ Uji pendukung: sensitivitas ambang `BATAS_SKOR` dan uji kecepatan (NFR-02: < 3 d
 | Komponen | Nilai |
 |----------|-------|
 | Konfigurasi final | `config/routing.json` — bobot jenis_cocok 0,35; kapasitas 0,25; jarak 0,25; urgensi 0,15 |
-| Radius layanan | 15 km (jarak sampah -> TPS, haversine) |
+| Radius layanan | 15 km (jarak sampah -> penerima, haversine) |
 | Ambang skor (`BATAS_SKOR`) | 0,3 |
 | Mesin evaluasi | `backend/lib/routing.js` — `hitungRouting()` + `hitungSkor()` (kode produksi) |
-| Baseline pembanding | Greedy Jarak-Saja: filter aturan sama, kandidat diurut trip terpendek (kurir -> sampah -> TPS), **tanpa** `BATAS_SKOR` |
-| Skenario | 30 skenario (seed 0-29), masing-masing 6 sampah, 6 TPS Pengolah, 3 kurir |
-| Generator | mulberry32 deterministik; umur sampah {1,4,8,14,18,26,40} jam; berat 5-60 kg; kapasitas TPS 50-300 kg/hari; kapasitas kurir {30,50,70,100} kg; bbox Kota Madiun |
+| Baseline pembanding | Greedy Jarak-Saja: filter aturan sama, kandidat diurut trip terpendek (kurir -> sampah -> penerima), **tanpa** `BATAS_SKOR` |
+| Skenario | 30 skenario (seed 0-29), masing-masing 6 sampah, 6 penerima, 3 kurir |
+| Generator | mulberry32 deterministik; umur sampah {1,4,8,14,18,26,40} jam; berat 5-60 kg; kapasitas penerima 50-300 kg/hari; kapasitas kurir {30,50,70,100} kg; bbox Kota Madiun |
 | Titik waktu tetap | `nowMs = 1770000000000` (umur/tingkat stabil antar-skenario) |
 
 ## 3. Cara menjalankan
@@ -168,8 +168,8 @@ dihitung nol. Nilai 0,3 berada di zona aman.
 
 | Skenario | Dimensi | Waktu rata-rata | SLA |
 |----------|---------|----------------:|----:|
-| Kecil | 6 sampah, 6 TPS, 3 kurir | 0,288 ms | 3 detik |
-| Besar | 50 sampah, 50 TPS, 20 kurir | 0,207 detik | 3 detik |
+| Kecil | 6 sampah, 6 penerima, 3 kurir | 0,288 ms | 3 detik |
+| Besar | 50 sampah, 50 penerima, 20 kurir | 0,207 detik | 3 detik |
 
 Waktu di atas adalah komputasi algoritma murni (`hitungRouting()`); latensi jaringan
 dan database sistem sesungguhnya belum diperhitungkan tetapi tetap jauh di bawah SLA.
@@ -188,9 +188,9 @@ dan database sistem sesungguhnya belum diperhitungkan tetapi tetap jauh di bawah
 4. **Cakupan 50%** di semua skenario — murni bottleneck armada (3 kurir untuk 6 sampah),
    bukan kegagalan rumus; sisa sampah dilayani pada putaran berikutnya.
 5. **Leg penjemputan kurir tidak masuk skor/radius** — skor jarak hanya mengukur
-   sampah->TPS, sehingga trip total bisa melebihi 15 km (contoh: seed 23, trip 18,0 km).
+   sampah->penerima, sehingga trip total bisa melebihi 15 km (contoh: seed 23, trip 18,0 km).
 6. **Data sintetis** — belum ada log produksi; validasi ulang dengan data pilot MBG dan
-   TPS Pengolah Kota Madiun (NFR-09) belum dilakukan.
+   lembaga penerima di Kota Madiun (NFR-09) belum dilakukan.
 
 ## 10. Rujukan silang
 

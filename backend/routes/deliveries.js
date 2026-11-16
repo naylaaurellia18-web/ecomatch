@@ -24,13 +24,13 @@ router.use(authenticate, requireActive);
 async function getAlokasi(id) {
   return db.get(
     `SELECT a.*, s.nama_sampah, s.jenis_makanan, s.berat_kg, s.status AS status_sampah, s.id_donor,
-            t.nama_tps, tp.telepon AS telepon_tps, tp.alamat AS alamat_tps, tp.lat AS lat_tps, tp.lng AS lng_tps,
+            t.nama_penerima, tp.telepon AS telepon_penerima, tp.alamat AS alamat_penerima, tp.lat AS lat_penerima, tp.lng AS lng_penerima,
             dn.nama AS nama_donor, dn.telepon AS telepon_donor, dn.alamat AS alamat_donor,
             dn.lat AS lat_donor, dn.lng AS lng_donor
        FROM alokasi a
        JOIN sampah_makanan s ON s.id_sampah = a.id_sampah
-       JOIN tps_pengolah t ON t.id_user = a.id_tps
-       JOIN user tp ON tp.id_user = a.id_tps
+       JOIN penerima t ON t.id_user = a.id_penerima
+       JOIN user tp ON tp.id_user = a.id_penerima
        JOIN user dn ON dn.id_user = s.id_donor
       WHERE a.id_alokasi = ?`,
     [id]
@@ -45,15 +45,15 @@ function assertCourier(req, alo) {
   }
 }
 
-function assertTps(req, alo) {
-  if (req.user.role !== 'admin' && alo.id_tps !== req.user.id) {
-    const err = new Error('Hanya TPS penerima');
+function assertPenerima(req, alo) {
+  if (req.user.role !== 'admin' && alo.id_penerima !== req.user.id) {
+    const err = new Error('Hanya penerima yang boleh');
     err.status = 403;
     throw err;
   }
 }
 
-// FR-07: kurir menjemput sampah (foto wajib) + OTP ke TPS
+// FR-07: kurir menjemput sampah (foto wajib) + OTP ke penerima
 router.post('/:id/pickup', upload.single('foto_jemput'), requireRole('kurir', 'admin'), async (req, res, next) => {
   try {
     const alo = await getAlokasi(req.params.id);
@@ -81,26 +81,26 @@ router.post('/:id/pickup', upload.single('foto_jemput'), requireRole('kurir', 'a
     ]);
 
     await notify(
-      alo.id_tps,
-      'Kurir Menuju TPS Anda',
-      `Kurir menjemput "${alo.nama_sampah}" (${alo.berat_kg} kg) untuk ${alo.nama_tps}. OTP konfirmasi: ${code} (berlaku 30 menit).`,
+      alo.id_penerima,
+      'Kurir Menuju ke Penerima',
+      `Kurir menjemput "${alo.nama_sampah}" (${alo.berat_kg} kg) untuk ${alo.nama_penerima}. OTP konfirmasi: ${code} (berlaku 30 menit).`,
       alo.id_alokasi
     );
     await notify(
       alo.id_donor,
       'Sampah Dijemput Kurir',
-      `"${alo.nama_sampah}" sedang dalam perjalanan ke ${alo.nama_tps}.`,
+      `"${alo.nama_sampah}" sedang dalam perjalanan ke ${alo.nama_penerima}.`,
       alo.id_alokasi
     );
-    await audit(req.user.id, 'PICKUP', 'alokasi', alo.id_alokasi, { id_sampah: alo.id_sampah, id_tps: alo.id_tps });
+    await audit(req.user.id, 'PICKUP', 'alokasi', alo.id_alokasi, { id_sampah: alo.id_sampah, id_penerima: alo.id_penerima });
 
-    res.json({ message: 'Penjemputan tercatat, OTP dikirim ke TPS penerima', otp_hint: 'OTP tampil di notifikasi TPS (demo)' });
+    res.json({ message: 'Penjemputan tercatat, OTP dikirim ke penerima', otp_hint: 'OTP tampil di notifikasi penerima (demo)' });
   } catch (e) {
     next(e);
   }
 });
 
-// FR-07: kurir mengantar sampai ke TPS (foto wajib)
+// FR-07: kurir mengantar sampai ke penerima (foto wajib)
 router.post('/:id/deliver', upload.single('foto_antar'), requireRole('kurir', 'admin'), async (req, res, next) => {
   try {
     const alo = await getAlokasi(req.params.id);
@@ -119,24 +119,24 @@ router.post('/:id/deliver', upload.single('foto_antar'), requireRole('kurir', 'a
     );
     await db.run(`UPDATE sampah_makanan SET status = 'terkirim' WHERE id_sampah = ?`, [alo.id_sampah]);
     await notify(
-      alo.id_tps,
-      'Sampah Sampai di TPS',
+      alo.id_penerima,
+      'Sampah Sampai di Penerima',
       `"${alo.nama_sampah}" (${alo.berat_kg} kg) telah tiba. Konfirmasi serah terima dengan OTP.`,
       alo.id_alokasi
     );
     await audit(req.user.id, 'DELIVER', 'alokasi', alo.id_alokasi, { id_sampah: alo.id_sampah });
-    res.json({ message: 'Status diperbarui: sampai di TPS, menunggu konfirmasi OTP penerima' });
+    res.json({ message: 'Status diperbarui: sampai di penerima, menunggu konfirmasi OTP' });
   } catch (e) {
     next(e);
   }
 });
 
-// FR-08: TPS mengonfirmasi serah terima via OTP
-router.post('/:id/verify-otp', requireRole('tps_pengolah', 'admin'), async (req, res, next) => {
+// FR-08: penerima mengonfirmasi serah terima via OTP
+router.post('/:id/verify-otp', requireRole('penerima', 'admin'), async (req, res, next) => {
   try {
     const alo = await getAlokasi(req.params.id);
     if (!alo) return res.status(404).json({ error: 'Alokasi tidak ditemukan' });
-    assertTps(req, alo);
+    assertPenerima(req, alo);
     if (!['dijemput', 'terkirim'].includes(alo.status)) {
       return res.status(400).json({ error: 'Alokasi belum siap dikonfirmasi' });
     }
@@ -179,7 +179,7 @@ router.post('/:id/verify-otp', requireRole('tps_pengolah', 'admin'), async (req,
     await notify(
       alo.id_donor,
       'Pengalihan Sampah Selesai',
-      `"${alo.nama_sampah}" telah diterima ${alo.nama_tps}.`,
+      `"${alo.nama_sampah}" telah diterima ${alo.nama_penerima}.`,
       alo.id_alokasi
     );
     await audit(req.user.id, 'VERIFY_OTP', 'alokasi', alo.id_alokasi, { id_sampah: alo.id_sampah });
@@ -191,11 +191,11 @@ router.post('/:id/verify-otp', requireRole('tps_pengolah', 'admin'), async (req,
 });
 
 // FR-08: kirim ulang OTP (rate-limited)
-router.post('/:id/resend-otp', requireRole('tps_pengolah', 'admin'), async (req, res, next) => {
+router.post('/:id/resend-otp', requireRole('penerima', 'admin'), async (req, res, next) => {
   try {
     const alo = await getAlokasi(req.params.id);
     if (!alo) return res.status(404).json({ error: 'Alokasi tidak ditemukan' });
-    assertTps(req, alo);
+    assertPenerima(req, alo);
     if (!['dijemput', 'terkirim'].includes(alo.status)) {
       return res.status(400).json({ error: 'Alokasi belum siap dikonfirmasi' });
     }
@@ -213,23 +213,23 @@ router.post('/:id/resend-otp', requireRole('tps_pengolah', 'admin'), async (req,
       expiresAt,
     ]);
     await notify(
-      alo.id_tps,
+      alo.id_penerima,
       'OTP Baru Dikirim',
       `OTP konfirmasi alokasi #${alo.id_alokasi}: ${code} (berlaku 30 menit).`,
       alo.id_alokasi
     );
     await audit(req.user.id, 'OTP_RESEND', 'alokasi', alo.id_alokasi);
-    res.json({ message: 'OTP baru dikirim ke notifikasi TPS' });
+    res.json({ message: 'OTP baru dikirim ke notifikasi penerima' });
   } catch (e) {
     next(e);
   }
 });
 
-router.get('/:id/otp-status', requireRole('tps_pengolah', 'admin'), async (req, res, next) => {
+router.get('/:id/otp-status', requireRole('penerima', 'admin'), async (req, res, next) => {
   try {
     const alo = await getAlokasi(req.params.id);
     if (!alo) return res.status(404).json({ error: 'Alokasi tidak ditemukan' });
-    assertTps(req, alo);
+    assertPenerima(req, alo);
     const row = await db.get(
       `SELECT kode, kedaluwarsa_pada, digunakan_pada FROM kode_otp
         WHERE id_alokasi = ? ORDER BY created_at DESC, id_kode_otp DESC LIMIT 1`,
@@ -242,17 +242,17 @@ router.get('/:id/otp-status', requireRole('tps_pengolah', 'admin'), async (req, 
 });
 
 // Daftar pengantaran sesuai peran
-router.get('/', requireRole('admin', 'kurir', 'donor_mbg', 'tps_pengolah'), async (req, res, next) => {
+router.get('/', requireRole('admin', 'kurir', 'donor_mbg', 'penerima'), async (req, res, next) => {
   try {
     let rows;
     if (req.user.role === 'admin') {
       rows = await db.all(
         `SELECT a.id_alokasi, a.status, a.waktu_alokasi, a.updated_at, a.foto_jemput, a.foto_antar,
                 s.id_sampah, s.nama_sampah, s.berat_kg, s.jenis_makanan,
-                t.nama_tps, dn.nama AS nama_donor, c.nama AS nama_kurir, a.id_kurir, a.id_tps, s.id_donor
+                t.nama_penerima, dn.nama AS nama_donor, c.nama AS nama_kurir, a.id_kurir, a.id_penerima, s.id_donor
            FROM alokasi a
            JOIN sampah_makanan s ON s.id_sampah = a.id_sampah
-           JOIN tps_pengolah t ON t.id_user = a.id_tps
+           JOIN penerima t ON t.id_user = a.id_penerima
            JOIN user dn ON dn.id_user = s.id_donor
            JOIN user c ON c.id_user = a.id_kurir
           ORDER BY a.updated_at DESC LIMIT 200`
@@ -261,12 +261,12 @@ router.get('/', requireRole('admin', 'kurir', 'donor_mbg', 'tps_pengolah'), asyn
       rows = await db.all(
         `SELECT a.id_alokasi, a.status, a.waktu_alokasi, a.updated_at, a.foto_jemput, a.foto_antar,
                 s.id_sampah, s.nama_sampah, s.berat_kg, s.jenis_makanan,
-                t.nama_tps, dn.nama AS nama_donor, c.nama AS nama_kurir, a.id_kurir, a.id_tps, s.id_donor,
-                dn.lat AS lat_donor, dn.lng AS lng_donor, tp.lat AS lat_tps, tp.lng AS lng_tps
+                t.nama_penerima, dn.nama AS nama_donor, c.nama AS nama_kurir, a.id_kurir, a.id_penerima, s.id_donor,
+                dn.lat AS lat_donor, dn.lng AS lng_donor, tp.lat AS lat_penerima, tp.lng AS lng_penerima
            FROM alokasi a
            JOIN sampah_makanan s ON s.id_sampah = a.id_sampah
-           JOIN tps_pengolah t ON t.id_user = a.id_tps
-           JOIN user tp ON tp.id_user = a.id_tps
+           JOIN penerima t ON t.id_user = a.id_penerima
+           JOIN user tp ON tp.id_user = a.id_penerima
            JOIN user dn ON dn.id_user = s.id_donor
            JOIN user c ON c.id_user = a.id_kurir
           WHERE a.id_kurir = ?
@@ -277,10 +277,10 @@ router.get('/', requireRole('admin', 'kurir', 'donor_mbg', 'tps_pengolah'), asyn
       rows = await db.all(
         `SELECT a.id_alokasi, a.status, a.waktu_alokasi, a.updated_at, a.foto_jemput, a.foto_antar,
                 s.id_sampah, s.nama_sampah, s.berat_kg, s.jenis_makanan,
-                t.nama_tps, dn.nama AS nama_donor, c.nama AS nama_kurir, a.id_kurir, a.id_tps, s.id_donor
+                t.nama_penerima, dn.nama AS nama_donor, c.nama AS nama_kurir, a.id_kurir, a.id_penerima, s.id_donor
            FROM alokasi a
            JOIN sampah_makanan s ON s.id_sampah = a.id_sampah
-           JOIN tps_pengolah t ON t.id_user = a.id_tps
+           JOIN penerima t ON t.id_user = a.id_penerima
            JOIN user dn ON dn.id_user = s.id_donor
            JOIN user c ON c.id_user = a.id_kurir
           WHERE s.id_donor = ?
@@ -291,13 +291,13 @@ router.get('/', requireRole('admin', 'kurir', 'donor_mbg', 'tps_pengolah'), asyn
       rows = await db.all(
         `SELECT a.id_alokasi, a.status, a.waktu_alokasi, a.updated_at, a.foto_jemput, a.foto_antar,
                 s.id_sampah, s.nama_sampah, s.berat_kg, s.jenis_makanan,
-                t.nama_tps, dn.nama AS nama_donor, c.nama AS nama_kurir, a.id_kurir, a.id_tps, s.id_donor
+                t.nama_penerima, dn.nama AS nama_donor, c.nama AS nama_kurir, a.id_kurir, a.id_penerima, s.id_donor
            FROM alokasi a
            JOIN sampah_makanan s ON s.id_sampah = a.id_sampah
-           JOIN tps_pengolah t ON t.id_user = a.id_tps
+           JOIN penerima t ON t.id_user = a.id_penerima
            JOIN user dn ON dn.id_user = s.id_donor
            JOIN user c ON c.id_user = a.id_kurir
-          WHERE a.id_tps = ?
+          WHERE a.id_penerima = ?
           ORDER BY a.updated_at DESC LIMIT 200`,
         [req.user.id]
       );

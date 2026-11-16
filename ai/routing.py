@@ -1,13 +1,14 @@
-"""Mesin AI Routing EcoMatch — memilih kombinasi sampah makanan MBG -> TPS Pengolah -> kurir.
+"""Mesin AI Routing EcoMatch — memilih kombinasi sampah makanan MBG -> Penerima -> kurir.
 
 FR-04/FR-13. Konfigurasi dibaca dari config/routing.json (bobot jenis_cocok 0,35;
 kapasitas 0,25; jarak 0,25; urgensi 0,15; radius 15 km; BATAS_SKOR 0,3).
 
 Bentuk input mengikuti tabel di db/schema_ecomatch.sql:
-  sampah: { id_sampah, lat, lng, berat_kg, waktu_produksi, status, kategori?, tingkat_pembusukan? }
-  tps:    { id_tps, lat, lng, jenis_diterima[], kapasitas_kg_hari, sisa_kapasitas_kg?, aktif }
+  sampah: { id_sampah, lat, lng, berat_kg, waktu_produksi, status, kategori?, tingkat_pembusukan?, kelayakan? }
+  tps:    { id_penerima, lat, lng, jenis_penerima, jenis_diterima[], kapasitas_kg_hari, sisa_kapasitas_kg?, aktif }
   kurir:  { id_kurir, lat, lng, kapasitas }
 Posisi donor diambil dari kolom lat/lng objek sampah (join dari tabel user).
+Filter kelayakan: sampah tidak_layak hanya ke peternakan; layak hanya ke non-peternakan.
 """
 from __future__ import annotations
 
@@ -81,7 +82,7 @@ def parse_jenis_diterima(value) -> list[str]:
 
 
 def skor_jenis_cocok(kategori: str, diterima: list[str]) -> float | None:
-    """None = gugur (jenis tidak diterima TPS)."""
+    """None = gugur (jenis tidak diterima penerima)."""
     if not diterima:
         return None
     if kategori in diterima:
@@ -132,8 +133,8 @@ def _tingkat_sampah(s: dict, now_ms: float) -> str:
 
 
 def hitung_skor(s: dict, t: dict, k: dict, now_ms: float, config=None) -> dict:
-    """Skor satu kombinasi (sampah, TPS, kurir). Mengembalikan {"gugur": alasan}
-    bila kandidat gugur di filter aturan (status/jarak/jenis/kapasitas)."""
+    """Skor satu kombinasi (sampah, penerima, kurir). Mengembalikan {"gugur": alasan}
+    bila kandidat gugur di filter aturan (status/kelayakan/jarak/jenis/kapasitas)."""
     cfg = config or CONFIG
     berat = float(s.get("berat_kg") or 0)
     if berat <= 0:
@@ -141,7 +142,14 @@ def hitung_skor(s: dict, t: dict, k: dict, now_ms: float, config=None) -> dict:
     if s.get("status", "tersedia") != "tersedia":
         return {"gugur": "status"}
     if not (t.get("aktif", True)):
-        return {"gugur": "tps_nonaktif"}
+        return {"gugur": "penerima_nonaktif"}
+
+    kelayakan = s.get("kelayakan") or "layak"
+    jenis_pen = str(t.get("jenis_penerima") or "")
+    if kelayakan == "tidak_layak" and jenis_pen != "peternakan":
+        return {"gugur": "kelayakan"}
+    if kelayakan == "layak" and jenis_pen == "peternakan":
+        return {"gugur": "kelayakan"}
 
     km = haversine_km(s.get("lat"), s.get("lng"), t.get("lat"), t.get("lng"))
     if km is None or km > float(cfg["radius_layanan_km"]):
@@ -192,8 +200,8 @@ def hitung_routing(
     now_ms: float | None = None,
     config=None,
 ) -> dict:
-    """Greedy assignment: kandidat diurutkan skor tertinggi; satu sampah satu TPS,
-    kapasitas TPS dipotong saat dipilih, satu kurir satu perjalanan per putaran."""
+    """Greedy assignment: kandidat diurutkan skor tertinggi; satu sampah satu penerima,
+    kapasitas penerima dipotong saat dipilih, satu kurir satu perjalanan per putaran."""
     cfg = config or CONFIG
     now = now_ms if now_ms is not None else time.time() * 1000
     radius = float(cfg["radius_layanan_km"])
@@ -204,14 +212,14 @@ def hitung_routing(
         sisa = t.get("sisa_kapasitas_kg")
         if sisa is None:
             sisa = t.get("kapasitas_kg_hari") or 0
-        sisa_tps_map[t.get("id_tps") or t.get("id_user")] = float(sisa)
+        sisa_tps_map[t.get("id_penerima") or t.get("id_user")] = float(sisa)
 
     kandidat: list[dict] = []
-    gugur = {"status": 0, "jarak": 0, "jenis": 0, "kapasitas": 0, "skor": 0}
+    gugur = {"status": 0, "kelayakan": 0, "jarak": 0, "jenis": 0, "kapasitas": 0, "skor": 0}
 
     for s in sampah_list:
         for t in tps_list:
-            tid = t.get("id_tps") or t.get("id_user")
+            tid = t.get("id_penerima") or t.get("id_user")
             t2 = dict(t)
             t2["sisa_kapasitas_kg"] = sisa_tps_map.get(tid, 0)
             for k in kurir_list:
@@ -225,7 +233,7 @@ def hitung_routing(
                 kandidat.append(
                     {
                         "id_sampah": s.get("id_sampah"),
-                        "id_tps": tid,
+                        "id_penerima": tid,
                         "id_kurir": k.get("id_kurir", k.get("id_user")),
                         "skor_matching": hasil["skor_matching"],
                         "skor_jenis_cocok": hasil["skor_jenis_cocok"],
@@ -248,16 +256,16 @@ def hitung_routing(
             continue
         if c["id_kurir"] in dipakai_kurir:
             continue
-        if sisa_tps_map.get(c["id_tps"], 0) <= 0:
+        if sisa_tps_map.get(c["id_penerima"], 0) <= 0:
             continue
         berat = 0.0
         for s in sampah_list:
             if s.get("id_sampah") == c["id_sampah"]:
                 berat = float(s.get("berat_kg") or 0)
                 break
-        if berat > sisa_tps_map.get(c["id_tps"], 0):
+        if berat > sisa_tps_map.get(c["id_penerima"], 0):
             continue
-        sisa_tps_map[c["id_tps"]] = sisa_tps_map.get(c["id_tps"], 0) - berat
+        sisa_tps_map[c["id_penerima"]] = sisa_tps_map.get(c["id_penerima"], 0) - berat
         dipakai_sampah.add(c["id_sampah"])
         dipakai_kurir.add(c["id_kurir"])
         alokasi.append(c)
@@ -269,5 +277,5 @@ def hitung_routing(
         "rata_rata_skor": rata2,
         "kandidat": len(kandidat),
         "kandidat_gugur": gugur,
-        "sisa_kapasitas_tps": {str(k): round(v, 2) for k, v in sisa_tps_map.items()},
+        "sisa_kapasitas_penerima": {str(k): round(v, 2) for k, v in sisa_tps_map.items()},
     }

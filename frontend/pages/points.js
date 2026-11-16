@@ -13,7 +13,7 @@ async function pointsView() {
   const cert = klaimRows.find((k) => k.jenis_insentif === 'sertifikat');
 
   return `${pageHead('Poin &amp; Insentif', 'Poin kepatuhan dari kg sampah terverifikasi + klaim insentif (FR-15)')}
-  ${flowStripHtml(['Catat sampah', 'Sampah terverifikasi di TPS', 'Poin bertambah', 'Klaim insentif'])}
+  ${flowStripHtml(['Catat sampah', 'Sampah terverifikasi di penerima', 'Poin bertambah', 'Klaim insentif'])}
   ${kpiGrid([
     kpiCard({ label: 'Kg dialihkan', value: m.kg_dialihkan, unit: 'kg', hint: 'status aktif', ic: 'leaf' }),
     kpiCard({ label: 'Kg terverifikasi', value: m.kg_terverifikasi, unit: 'kg', hint: `target klaim ${target} kg`, ic: 'check' }),

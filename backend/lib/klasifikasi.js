@@ -87,6 +87,13 @@ function tingkatPembusukan(waktuProduksi, nowMs = Date.now(), cfg = loadConfig()
   return 'busuk';
 }
 
+/** Saran kelayakan konsumsi dari tingkat pembusukan (gabungan donor + AI). */
+function saranLayak(tingkat) {
+  if (tingkat === 'busuk') return 'tidak_layak';
+  if (tingkat === 'segar' || tingkat === 'sedang') return 'layak';
+  return null;
+}
+
 /** Gabungan klasifikasi: teks -> kategori; waktu_produksi -> tingkat pembusukan. */
 function klasifikasi(payload = {}, nowMs = Date.now(), cfg = loadConfig()) {
   const teks =
@@ -110,6 +117,7 @@ function klasifikasi(payload = {}, nowMs = Date.now(), cfg = loadConfig()) {
       /* waktu_produksi tidak valid — biarkan null */
     }
   }
+  hasil.saran_layak = saranLayak(hasil.tingkat_pembusukan);
   return hasil;
 }
 
@@ -119,5 +127,6 @@ module.exports = {
   kategoriDariTeks,
   parseWaktuMs,
   tingkatPembusukan,
+  saranLayak,
   klasifikasi,
 };

@@ -51,12 +51,12 @@ router.get('/summary', async (_req, res, next) => {
             AND k.diverifikasi_oleh IS NULL AND k.skor_keyakinan < ?`,
         [await ambangKeyakinan()]
       ),
-      count('SELECT COUNT(*) AS c FROM tps_pengolah'),
+      count('SELECT COUNT(*) AS c FROM penerima'),
       sum('SELECT COALESCE(SUM(p.input_kg), 0) AS v FROM pengolahan_log p'),
     ]);
 
-    const tpsRows = await db.all('SELECT aktif FROM tps_pengolah');
-    const tpsAktif = tpsRows.filter((r) => !(r.aktif === false || r.aktif === 0 || r.aktif === '0')).length;
+    const penerimaRows = await db.all('SELECT aktif FROM penerima');
+    const tpsAktif = penerimaRows.filter((r) => !(r.aktif === false || r.aktif === 0 || r.aktif === '0')).length;
     const outputRows = await db.all(
       `SELECT p.output_jenis, COUNT(*) AS jumlah, COALESCE(SUM(p.output_kg), 0) AS total_kg
          FROM pengolahan_log p WHERE p.output_jenis IS NOT NULL GROUP BY p.output_jenis`
@@ -80,7 +80,7 @@ router.get('/summary', async (_req, res, next) => {
         dibatalkan: alokasiDibatalkan,
         persen_aktif: persenAlokasi,
       },
-      tps: { total: tpsTotal, aktif: tpsAktif, radius_layanan_km: aturan.radius_layanan_km ?? 15 },
+      penerima: { total: tpsTotal, aktif: tpsAktif, radius_layanan_km: aturan.radius_layanan_km ?? 15 },
       klasifikasi: {
         total: jumlahKlasifikasi,
         terverifikasi_admin: klasifikasiTerverifikasi,
@@ -112,11 +112,11 @@ router.get('/report', async (_req, res, next) => {
       `SELECT a.id_alokasi, a.waktu_alokasi, a.status, a.skor_matching, a.jarak_km,
               s.id_sampah, s.nama_sampah, s.berat_kg, s.jenis_makanan, s.status AS status_sampah,
               k.kategori, k.tingkat_pembusukan, k.skor_keyakinan, k.diverifikasi_oleh,
-              t.nama_tps, dn.nama AS nama_donor, c.nama AS nama_kurir,
+              t.nama_penerima, dn.nama AS nama_donor, c.nama AS nama_kurir,
               p.input_kg, p.output_kg, p.output_jenis, p.tanggal AS tanggal_pengolahan
          FROM alokasi a
          JOIN sampah_makanan s ON s.id_sampah = a.id_sampah
-         JOIN tps_pengolah t ON t.id_user = a.id_tps
+         JOIN penerima t ON t.id_user = a.id_penerima
          LEFT JOIN user dn ON dn.id_user = s.id_donor
          LEFT JOIN user c ON c.id_user = a.id_kurir
          LEFT JOIN klasifikasi_sampah k
@@ -163,11 +163,11 @@ router.get('/trace/:id', async (req, res, next) => {
       `SELECT s.*, u.nama AS nama_donor FROM sampah_makanan s JOIN user u ON u.id_user = s.id_donor WHERE s.id_sampah = ?`,
       [alo.id_sampah]
     );
-    const [klasifikasi, tps, kurir, donor, pengolahan, riwayat] = await Promise.all([
+    const [klasifikasi, penerima, kurir, donor, pengolahan, riwayat] = await Promise.all([
       db.all('SELECT * FROM klasifikasi_sampah WHERE id_sampah = ? ORDER BY id_klasifikasi DESC', [alo.id_sampah]),
       db.get(
-        `SELECT t.*, u.nama, u.telepon, u.alamat, u.lat, u.lng FROM tps_pengolah t JOIN user u ON u.id_user = t.id_user WHERE t.id_user = ?`,
-        [alo.id_tps]
+        `SELECT t.*, u.nama, u.telepon, u.alamat, u.lat, u.lng FROM penerima t JOIN user u ON u.id_user = t.id_user WHERE t.id_user = ?`,
+        [alo.id_penerima]
       ),
       db.get('SELECT id_user, nama, telepon, lat, lng FROM user WHERE id_user = ?', [alo.id_kurir]),
       db.get('SELECT id_user, nama, telepon, alamat, lat, lng FROM user WHERE id_user = ?', [sampah?.id_donor]),
@@ -185,7 +185,7 @@ router.get('/trace/:id', async (req, res, next) => {
       alokasi: { ...alo, rute: alo.rute_json ? JSON.parse(alo.rute_json) : null },
       sampah,
       klasifikasi,
-      tps,
+      penerima,
       kurir,
       donor,
       pengolahan,

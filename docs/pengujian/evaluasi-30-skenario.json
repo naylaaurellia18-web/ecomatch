@@ -15,7 +15,7 @@
     "baseline": "Greedy Jarak-Saja (filter aturan sama, urut trip terpendek, tanpa BATAS_SKOR)",
     "definisi_metrik": {
       "pct_alokasi": "alokasi / 6 sampah x 100 (dibatasi 3 kurir per skenario)",
-      "total_jarak_km": "sum haversine(kurir,sampah) + haversine(sampah,TPS)",
+      "total_jarak_km": "sum haversine(kurir,sampah) + haversine(sampah,penerima)",
       "pct_busuk": "% sampah tingkat busuk (umur > 24 jam, skor urgensi 1,0) teralokasi",
       "pct_sedang": "% sampah tingkat sedang (umur 12–24 jam) teralokasi"
     }
@@ -46,7 +46,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S4",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K0",
           "skor_matching": 0.9898,
           "skor_jenis_cocok": 1,
@@ -59,7 +59,7 @@
         },
         {
           "id_sampah": "S3",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K1",
           "skor_matching": 0.9422,
           "skor_jenis_cocok": 1,
@@ -72,7 +72,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K2",
           "skor_matching": 0.8883,
           "skor_jenis_cocok": 1,
@@ -87,7 +87,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S5",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K2",
           "skor_matching": 0.8874,
           "jarak_km": 3.94,
@@ -97,7 +97,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K1",
           "skor_matching": 0.72,
           "jarak_km": 0.71,
@@ -107,7 +107,7 @@
         },
         {
           "id_sampah": "S3",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K0",
           "skor_matching": 0.9422,
           "jarak_km": 4.24,
@@ -187,7 +187,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.646043190383352,
             "lng": 111.4530684225238,
             "jenis_diterima": [
@@ -200,7 +200,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.629973977962509,
             "lng": 111.48223891583737,
             "jenis_diterima": [
@@ -213,7 +213,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.67923942931462,
             "lng": 111.4519630515296,
             "jenis_diterima": [
@@ -225,7 +225,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.670162238471676,
             "lng": 111.4627427129075,
             "jenis_diterima": [
@@ -239,7 +239,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.578660015293862,
             "lng": 111.50270756564103,
             "jenis_diterima": [
@@ -251,7 +251,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.6545182407647365,
             "lng": 111.51032228157855,
             "jenis_diterima": [
@@ -312,7 +312,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S2",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K0",
           "skor_matching": 0.937,
           "skor_jenis_cocok": 1,
@@ -325,7 +325,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K1",
           "skor_matching": 0.931,
           "skor_jenis_cocok": 1,
@@ -338,7 +338,7 @@
         },
         {
           "id_sampah": "S3",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K2",
           "skor_matching": 0.8885,
           "skor_jenis_cocok": 1,
@@ -353,7 +353,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S5",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K1",
           "skor_matching": 0.72,
           "jarak_km": 0.89,
@@ -363,7 +363,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K2",
           "skor_matching": 0.937,
           "jarak_km": 1.17,
@@ -373,7 +373,7 @@
         },
         {
           "id_sampah": "S4",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K0",
           "skor_matching": 0.7738,
           "jarak_km": 2.19,
@@ -453,7 +453,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.660074777549598,
             "lng": 111.47203311054967,
             "jenis_diterima": [
@@ -465,7 +465,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.5674496314278805,
             "lng": 111.46100424674806,
             "jenis_diterima": [
@@ -477,7 +477,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.560545109293889,
             "lng": 111.53847484238213,
             "jenis_diterima": [
@@ -491,7 +491,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.588428602251224,
             "lng": 111.45161343298155,
             "jenis_diterima": [
@@ -505,7 +505,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.594518309023696,
             "lng": 111.49617838560371,
             "jenis_diterima": [
@@ -519,7 +519,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.661315212277695,
             "lng": 111.51509495377076,
             "jenis_diterima": [
@@ -581,7 +581,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S3",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K0",
           "skor_matching": 0.9243,
           "skor_jenis_cocok": 1,
@@ -594,7 +594,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K1",
           "skor_matching": 0.8858,
           "skor_jenis_cocok": 1,
@@ -607,7 +607,7 @@
         },
         {
           "id_sampah": "S4",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K2",
           "skor_matching": 0.8576,
           "skor_jenis_cocok": 1,
@@ -622,7 +622,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S4",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K0",
           "skor_matching": 0.8576,
           "jarak_km": 3.1,
@@ -632,7 +632,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K1",
           "skor_matching": 0.7642,
           "jarak_km": 1.05,
@@ -642,7 +642,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K2",
           "skor_matching": 0.72,
           "jarak_km": 0.44,
@@ -722,7 +722,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.575346529542003,
             "lng": 111.43008139575366,
             "jenis_diterima": [
@@ -736,7 +736,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.572473043778445,
             "lng": 111.48793699754869,
             "jenis_diterima": [
@@ -750,7 +750,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.570951773042324,
             "lng": 111.50123805473093,
             "jenis_diterima": [
@@ -762,7 +762,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.576104550845921,
             "lng": 111.54275900187902,
             "jenis_diterima": [
@@ -775,7 +775,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.643750057157594,
             "lng": 111.47488954254426,
             "jenis_diterima": [
@@ -787,7 +787,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.62861981733935,
             "lng": 111.53968904651236,
             "jenis_diterima": [
@@ -847,7 +847,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S4",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K0",
           "skor_matching": 0.9571,
           "skor_jenis_cocok": 1,
@@ -860,7 +860,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K2",
           "skor_matching": 0.9384,
           "skor_jenis_cocok": 1,
@@ -873,7 +873,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K1",
           "skor_matching": 0.7969,
           "skor_jenis_cocok": 1,
@@ -888,7 +888,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S2",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K2",
           "skor_matching": 0.853,
           "jarak_km": 3.35,
@@ -898,7 +898,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K0",
           "skor_matching": 0.8969,
           "jarak_km": 3.41,
@@ -908,7 +908,7 @@
         },
         {
           "id_sampah": "S3",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K1",
           "skor_matching": 0.5766,
           "jarak_km": 3.43,
@@ -988,7 +988,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.601613689591177,
             "lng": 111.51866841628915,
             "jenis_diterima": [
@@ -1002,7 +1002,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.619684388232417,
             "lng": 111.49457888060482,
             "jenis_diterima": [
@@ -1015,7 +1015,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.565502569191158,
             "lng": 111.52264021997108,
             "jenis_diterima": [
@@ -1028,7 +1028,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.6423091099620795,
             "lng": 111.49022810182069,
             "jenis_diterima": [
@@ -1041,7 +1041,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.579902639153879,
             "lng": 111.43794460796286,
             "jenis_diterima": [
@@ -1055,7 +1055,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.604235119265504,
             "lng": 111.54524907525396,
             "jenis_diterima": [
@@ -1116,7 +1116,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S4",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K0",
           "skor_matching": 0.94,
           "skor_jenis_cocok": 1,
@@ -1129,7 +1129,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K1",
           "skor_matching": 0.8879,
           "skor_jenis_cocok": 1,
@@ -1142,7 +1142,7 @@
         },
         {
           "id_sampah": "S3",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K2",
           "skor_matching": 0.8382,
           "skor_jenis_cocok": 1,
@@ -1157,7 +1157,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S4",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K2",
           "skor_matching": 0.94,
           "jarak_km": 0.9,
@@ -1167,7 +1167,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K1",
           "skor_matching": 0.5395,
           "jarak_km": 5.51,
@@ -1177,7 +1177,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K0",
           "skor_matching": 0.8879,
           "jarak_km": 3.92,
@@ -1257,7 +1257,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.672128830216825,
             "lng": 111.51108812649036,
             "jenis_diterima": [
@@ -1269,7 +1269,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.594370548869483,
             "lng": 111.49482601953903,
             "jenis_diterima": [
@@ -1281,7 +1281,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.642414571698755,
             "lng": 111.52975819788874,
             "jenis_diterima": [
@@ -1294,7 +1294,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.670636491859331,
             "lng": 111.48986554743257,
             "jenis_diterima": [
@@ -1308,7 +1308,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.579492733683437,
             "lng": 111.45355913745706,
             "jenis_diterima": [
@@ -1322,7 +1322,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.592919744784012,
             "lng": 111.44521293116269,
             "jenis_diterima": [
@@ -1382,7 +1382,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S1",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K0",
           "skor_matching": 0.9659,
           "skor_jenis_cocok": 1,
@@ -1395,7 +1395,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K1",
           "skor_matching": 0.9207,
           "skor_jenis_cocok": 1,
@@ -1408,7 +1408,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K2",
           "skor_matching": 0.8497,
           "skor_jenis_cocok": 1,
@@ -1423,7 +1423,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S4",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K2",
           "skor_matching": 0.8425,
           "jarak_km": 3.94,
@@ -1433,7 +1433,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K1",
           "skor_matching": 0.8497,
           "jarak_km": 6.05,
@@ -1443,7 +1443,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K0",
           "skor_matching": 0.7722,
           "jarak_km": 3.96,
@@ -1523,7 +1523,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.567000829479657,
             "lng": 111.5239069863013,
             "jenis_diterima": [
@@ -1535,7 +1535,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.578744874703697,
             "lng": 111.50922435293673,
             "jenis_diterima": [
@@ -1547,7 +1547,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.6437442260910755,
             "lng": 111.55977725233883,
             "jenis_diterima": [
@@ -1561,7 +1561,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.6117858732026065,
             "lng": 111.4629467550153,
             "jenis_diterima": [
@@ -1575,7 +1575,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.555656893856358,
             "lng": 111.52132316641277,
             "jenis_diterima": [
@@ -1589,7 +1589,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.66959311429644,
             "lng": 111.47247015874368,
             "jenis_diterima": [
@@ -1648,7 +1648,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S3",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K0",
           "skor_matching": 0.9383,
           "skor_jenis_cocok": 1,
@@ -1661,7 +1661,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K2",
           "skor_matching": 0.829,
           "skor_jenis_cocok": 1,
@@ -1674,7 +1674,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K1",
           "skor_matching": 0.8199,
           "skor_jenis_cocok": 1,
@@ -1689,7 +1689,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S3",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K1",
           "skor_matching": 0.9383,
           "jarak_km": 1.1,
@@ -1699,7 +1699,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K2",
           "skor_matching": 0.6502,
           "jarak_km": 4.91,
@@ -1709,7 +1709,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K0",
           "skor_matching": 0.6789,
           "jarak_km": 3.3,
@@ -1789,7 +1789,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.604390423109289,
             "lng": 111.50517918505008,
             "jenis_diterima": [
@@ -1802,7 +1802,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.625489435303025,
             "lng": 111.47707744092216,
             "jenis_diterima": [
@@ -1817,7 +1817,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.633128405006136,
             "lng": 111.44082271310502,
             "jenis_diterima": [
@@ -1831,7 +1831,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.641705482222605,
             "lng": 111.46761546661146,
             "jenis_diterima": [
@@ -1845,7 +1845,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.602951603813563,
             "lng": 111.48475313458825,
             "jenis_diterima": [
@@ -1857,7 +1857,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.584715399413835,
             "lng": 111.49542705204105,
             "jenis_diterima": [
@@ -1916,7 +1916,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S4",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K0",
           "skor_matching": 0.9631,
           "skor_jenis_cocok": 1,
@@ -1929,7 +1929,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K1",
           "skor_matching": 0.8971,
           "skor_jenis_cocok": 1,
@@ -1942,7 +1942,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K2",
           "skor_matching": 0.8771,
           "skor_jenis_cocok": 1,
@@ -1957,7 +1957,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S2",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K1",
           "skor_matching": 0.8666,
           "jarak_km": 2.59,
@@ -1967,7 +1967,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K2",
           "skor_matching": 0.9049,
           "jarak_km": 2.97,
@@ -1977,7 +1977,7 @@
         },
         {
           "id_sampah": "S4",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K0",
           "skor_matching": 0.9619,
           "jarak_km": 3.13,
@@ -2057,7 +2057,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.657257598892319,
             "lng": 111.47640753183747,
             "jenis_diterima": [
@@ -2072,7 +2072,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.588573458828032,
             "lng": 111.51947867078009,
             "jenis_diterima": [
@@ -2086,7 +2086,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.674327926568221,
             "lng": 111.51895299102878,
             "jenis_diterima": [
@@ -2100,7 +2100,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.555135208964348,
             "lng": 111.53893447179348,
             "jenis_diterima": [
@@ -2113,7 +2113,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.608565636752173,
             "lng": 111.52820412585977,
             "jenis_diterima": [
@@ -2125,7 +2125,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.678789073619991,
             "lng": 111.4331294648559,
             "jenis_diterima": [
@@ -2185,7 +2185,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S0",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K0",
           "skor_matching": 0.94,
           "skor_jenis_cocok": 1,
@@ -2198,7 +2198,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K1",
           "skor_matching": 0.9003,
           "skor_jenis_cocok": 1,
@@ -2211,7 +2211,7 @@
         },
         {
           "id_sampah": "S4",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K2",
           "skor_matching": 0.8396,
           "skor_jenis_cocok": 1,
@@ -2226,7 +2226,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S4",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K0",
           "skor_matching": 0.732,
           "jarak_km": 2.85,
@@ -2236,7 +2236,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K1",
           "skor_matching": 0.8743,
           "jarak_km": 2.16,
@@ -2246,7 +2246,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K2",
           "skor_matching": 0.84,
           "jarak_km": 0.09,
@@ -2326,7 +2326,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.595599098480307,
             "lng": 111.4700120880711,
             "jenis_diterima": [
@@ -2340,7 +2340,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.577403162515257,
             "lng": 111.55971735000145,
             "jenis_diterima": [
@@ -2353,7 +2353,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.550737623467575,
             "lng": 111.53898389874492,
             "jenis_diterima": [
@@ -2366,7 +2366,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.640996658862568,
             "lng": 111.52130106645636,
             "jenis_diterima": [
@@ -2379,7 +2379,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.592895649834536,
             "lng": 111.55410444754176,
             "jenis_diterima": [
@@ -2392,7 +2392,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.643013853561133,
             "lng": 111.52408098328858,
             "jenis_diterima": [
@@ -2452,7 +2452,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S0",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K1",
           "skor_matching": 1,
           "skor_jenis_cocok": 1,
@@ -2465,7 +2465,7 @@
         },
         {
           "id_sampah": "S3",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K2",
           "skor_matching": 0.9231,
           "skor_jenis_cocok": 1,
@@ -2478,7 +2478,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K0",
           "skor_matching": 0.9185,
           "skor_jenis_cocok": 1,
@@ -2493,7 +2493,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S0",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K1",
           "skor_matching": 1,
           "jarak_km": 0.64,
@@ -2503,7 +2503,7 @@
         },
         {
           "id_sampah": "S3",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K2",
           "skor_matching": 0.9231,
           "jarak_km": 1.95,
@@ -2513,7 +2513,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K0",
           "skor_matching": 0.9185,
           "jarak_km": 2.2,
@@ -2593,7 +2593,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.639738949136809,
             "lng": 111.51563486135099,
             "jenis_diterima": [
@@ -2606,7 +2606,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.604981347012799,
             "lng": 111.50978015732254,
             "jenis_diterima": [
@@ -2619,7 +2619,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.594618172394112,
             "lng": 111.55772878357908,
             "jenis_diterima": [
@@ -2632,7 +2632,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.562369343629107,
             "lng": 111.53328792531975,
             "jenis_diterima": [
@@ -2646,7 +2646,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.638039937596768,
             "lng": 111.5229542013281,
             "jenis_diterima": [
@@ -2659,7 +2659,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.655803267830051,
             "lng": 111.53652257765411,
             "jenis_diterima": [
@@ -2719,7 +2719,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S0",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K0",
           "skor_matching": 0.9564,
           "skor_jenis_cocok": 1,
@@ -2732,7 +2732,7 @@
         },
         {
           "id_sampah": "S4",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K1",
           "skor_matching": 0.939,
           "skor_jenis_cocok": 1,
@@ -2745,7 +2745,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K2",
           "skor_matching": 0.8943,
           "skor_jenis_cocok": 1,
@@ -2760,7 +2760,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S2",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K0",
           "skor_matching": 0.8943,
           "jarak_km": 1.04,
@@ -2770,7 +2770,7 @@
         },
         {
           "id_sampah": "S4",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K1",
           "skor_matching": 0.939,
           "jarak_km": 1.06,
@@ -2780,7 +2780,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K2",
           "skor_matching": 0.9564,
           "jarak_km": 3.44,
@@ -2860,7 +2860,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.617108301329426,
             "lng": 111.48433503772365,
             "jenis_diterima": [
@@ -2874,7 +2874,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.662532291896641,
             "lng": 111.50767903731438,
             "jenis_diterima": [
@@ -2888,7 +2888,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.629451179269235,
             "lng": 111.47103061177536,
             "jenis_diterima": [
@@ -2901,7 +2901,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.659417098001577,
             "lng": 111.54432942497544,
             "jenis_diterima": [
@@ -2914,7 +2914,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.679896410247311,
             "lng": 111.45643805169269,
             "jenis_diterima": [
@@ -2928,7 +2928,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.562659870507195,
             "lng": 111.51990276276368,
             "jenis_diterima": [
@@ -2987,7 +2987,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S5",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K0",
           "skor_matching": 0.9748,
           "skor_jenis_cocok": 1,
@@ -3000,7 +3000,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K1",
           "skor_matching": 0.9322,
           "skor_jenis_cocok": 1,
@@ -3013,7 +3013,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K2",
           "skor_matching": 0.8635,
           "skor_jenis_cocok": 1,
@@ -3028,7 +3028,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S1",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K2",
           "skor_matching": 0.8635,
           "jarak_km": 2.76,
@@ -3038,7 +3038,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K1",
           "skor_matching": 0.8076,
           "jarak_km": 1.98,
@@ -3048,7 +3048,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K0",
           "skor_matching": 0.9748,
           "jarak_km": 2.41,
@@ -3128,7 +3128,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.634862167097162,
             "lng": 111.50194797388278,
             "jenis_diterima": [
@@ -3142,7 +3142,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.570629571143072,
             "lng": 111.4946436604159,
             "jenis_diterima": [
@@ -3154,7 +3154,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.55203147891676,
             "lng": 111.48566483022879,
             "jenis_diterima": [
@@ -3167,7 +3167,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.634782788371667,
             "lng": 111.53951212790795,
             "jenis_diterima": [
@@ -3180,7 +3180,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.598113726696465,
             "lng": 111.48341390976218,
             "jenis_diterima": [
@@ -3194,7 +3194,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.663946012253873,
             "lng": 111.44036897266284,
             "jenis_diterima": [
@@ -3254,7 +3254,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S4",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K0",
           "skor_matching": 0.9804,
           "skor_jenis_cocok": 1,
@@ -3267,7 +3267,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K1",
           "skor_matching": 0.9231,
           "skor_jenis_cocok": 1,
@@ -3280,7 +3280,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K2",
           "skor_matching": 0.895,
           "skor_jenis_cocok": 1,
@@ -3295,7 +3295,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S4",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K1",
           "skor_matching": 0.9804,
           "jarak_km": 2.1,
@@ -3305,7 +3305,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K2",
           "skor_matching": 0.6787,
           "jarak_km": 3.31,
@@ -3315,7 +3315,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K0",
           "skor_matching": 0.8066,
           "jarak_km": 2.03,
@@ -3395,7 +3395,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.648099339432083,
             "lng": 111.48194870407926,
             "jenis_diterima": [
@@ -3408,7 +3408,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.6314005100610665,
             "lng": 111.44922667467735,
             "jenis_diterima": [
@@ -3422,7 +3422,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.5816046821838246,
             "lng": 111.43028591651935,
             "jenis_diterima": [
@@ -3436,7 +3436,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.606838444811292,
             "lng": 111.55376224676846,
             "jenis_diterima": [
@@ -3449,7 +3449,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.564559285943396,
             "lng": 111.43883306893055,
             "jenis_diterima": [
@@ -3464,7 +3464,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.664033488119021,
             "lng": 111.55364328647964,
             "jenis_diterima": [
@@ -3525,7 +3525,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S3",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K1",
           "skor_matching": 0.9345,
           "skor_jenis_cocok": 1,
@@ -3538,7 +3538,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K2",
           "skor_matching": 0.9255,
           "skor_jenis_cocok": 1,
@@ -3551,7 +3551,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K0",
           "skor_matching": 0.817,
           "skor_jenis_cocok": 1,
@@ -3566,7 +3566,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S3",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K1",
           "skor_matching": 0.9345,
           "jarak_km": 1.31,
@@ -3576,7 +3576,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K2",
           "skor_matching": 0.6678,
           "jarak_km": 3.92,
@@ -3586,7 +3586,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K0",
           "skor_matching": 0.8255,
           "jarak_km": 5.17,
@@ -3666,7 +3666,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.6775743235158735,
             "lng": 111.49887772531017,
             "jenis_diterima": [
@@ -3678,7 +3678,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.657971885744482,
             "lng": 111.52867431056453,
             "jenis_diterima": [
@@ -3690,7 +3690,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.6739350894559175,
             "lng": 111.53121918524383,
             "jenis_diterima": [
@@ -3703,7 +3703,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.589340975047089,
             "lng": 111.54757190234028,
             "jenis_diterima": [
@@ -3716,7 +3716,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.595933165792376,
             "lng": 111.4570759741473,
             "jenis_diterima": [
@@ -3731,7 +3731,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.577485124401282,
             "lng": 111.47669734069845,
             "jenis_diterima": [
@@ -3792,7 +3792,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S4",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K0",
           "skor_matching": 0.9939,
           "skor_jenis_cocok": 1,
@@ -3805,7 +3805,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K2",
           "skor_matching": 0.8649,
           "skor_jenis_cocok": 1,
@@ -3818,7 +3818,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K1",
           "skor_matching": 0.8575,
           "skor_jenis_cocok": 1,
@@ -3833,7 +3833,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S5",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K0",
           "skor_matching": 0.8649,
           "jarak_km": 2.68,
@@ -3843,7 +3843,7 @@
         },
         {
           "id_sampah": "S4",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K1",
           "skor_matching": 0.8939,
           "jarak_km": 1.34,
@@ -3853,7 +3853,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K2",
           "skor_matching": 0.6604,
           "jarak_km": 6.86,
@@ -3933,7 +3933,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.57875047664158,
             "lng": 111.53079597732751,
             "jenis_diterima": [
@@ -3946,7 +3946,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.627829946731217,
             "lng": 111.44221482251538,
             "jenis_diterima": [
@@ -3961,7 +3961,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.564011362250894,
             "lng": 111.48186215541325,
             "jenis_diterima": [
@@ -3974,7 +3974,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.607918841994833,
             "lng": 111.43973921608647,
             "jenis_diterima": [
@@ -3988,7 +3988,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.617043484924361,
             "lng": 111.55536531137302,
             "jenis_diterima": [
@@ -4001,7 +4001,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.5944636680488475,
             "lng": 111.47801179832314,
             "jenis_diterima": [
@@ -4061,7 +4061,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S5",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K0",
           "skor_matching": 0.9586,
           "skor_jenis_cocok": 1,
@@ -4074,7 +4074,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K1",
           "skor_matching": 0.9391,
           "skor_jenis_cocok": 1,
@@ -4087,7 +4087,7 @@
         },
         {
           "id_sampah": "S4",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K2",
           "skor_matching": 0.88,
           "skor_jenis_cocok": 1,
@@ -4102,7 +4102,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S4",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K2",
           "skor_matching": 0.88,
           "jarak_km": 1.84,
@@ -4112,7 +4112,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K1",
           "skor_matching": 0.8555,
           "jarak_km": 3.21,
@@ -4122,7 +4122,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K0",
           "skor_matching": 0.9586,
           "jarak_km": 3.32,
@@ -4202,7 +4202,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.564045865694061,
             "lng": 111.52411678317003,
             "jenis_diterima": [
@@ -4215,7 +4215,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.651910765659995,
             "lng": 111.53417520386866,
             "jenis_diterima": [
@@ -4229,7 +4229,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.61596576082753,
             "lng": 111.4492072099424,
             "jenis_diterima": [
@@ -4243,7 +4243,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.590199240795337,
             "lng": 111.50487711801892,
             "jenis_diterima": [
@@ -4257,7 +4257,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.61962865198031,
             "lng": 111.46000582491979,
             "jenis_diterima": [
@@ -4271,7 +4271,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.673300723065622,
             "lng": 111.4606864452688,
             "jenis_diterima": [
@@ -4333,7 +4333,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S5",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K0",
           "skor_matching": 0.9909,
           "skor_jenis_cocok": 1,
@@ -4346,7 +4346,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K1",
           "skor_matching": 0.8992,
           "skor_jenis_cocok": 1,
@@ -4359,7 +4359,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K2",
           "skor_matching": 0.8745,
           "skor_jenis_cocok": 1,
@@ -4374,7 +4374,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S4",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K1",
           "skor_matching": 0.895,
           "jarak_km": 0.47,
@@ -4384,7 +4384,7 @@
         },
         {
           "id_sampah": "S3",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K0",
           "skor_matching": 0.6718,
           "jarak_km": 3.7,
@@ -4394,7 +4394,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K2",
           "skor_matching": 0.7612,
           "jarak_km": 2.89,
@@ -4474,7 +4474,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.5935961672663685,
             "lng": 111.53255698995665,
             "jenis_diterima": [
@@ -4487,7 +4487,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.565551843955181,
             "lng": 111.44319954923122,
             "jenis_diterima": [
@@ -4501,7 +4501,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.6408990617166275,
             "lng": 111.51030696549454,
             "jenis_diterima": [
@@ -4514,7 +4514,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.603970202219207,
             "lng": 111.45296982035973,
             "jenis_diterima": [
@@ -4527,7 +4527,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.598735242390539,
             "lng": 111.47043360588374,
             "jenis_diterima": [
@@ -4540,7 +4540,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.583697389205917,
             "lng": 111.54532121744938,
             "jenis_diterima": [
@@ -4602,7 +4602,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S5",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K0",
           "skor_matching": 0.8838,
           "skor_jenis_cocok": 1,
@@ -4615,7 +4615,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K1",
           "skor_matching": 0.866,
           "skor_jenis_cocok": 1,
@@ -4628,7 +4628,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K2",
           "skor_matching": 0.864,
           "skor_jenis_cocok": 1,
@@ -4643,7 +4643,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S3",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K2",
           "skor_matching": 0.8559,
           "jarak_km": 3.19,
@@ -4653,7 +4653,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K0",
           "skor_matching": 0.7662,
           "jarak_km": 4.29,
@@ -4663,7 +4663,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K1",
           "skor_matching": 0.866,
           "jarak_km": 2.63,
@@ -4743,7 +4743,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.586631363900378,
             "lng": 111.45560426184676,
             "jenis_diterima": [
@@ -4756,7 +4756,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.650574640063569,
             "lng": 111.53449819576228,
             "jenis_diterima": [
@@ -4770,7 +4770,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.579135139975697,
             "lng": 111.55351213182556,
             "jenis_diterima": [
@@ -4782,7 +4782,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.593304022231605,
             "lng": 111.53595107623143,
             "jenis_diterima": [
@@ -4795,7 +4795,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.673264682099688,
             "lng": 111.5017487919354,
             "jenis_diterima": [
@@ -4809,7 +4809,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.559262996702455,
             "lng": 111.48324824688258,
             "jenis_diterima": [
@@ -4868,7 +4868,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S3",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K0",
           "skor_matching": 1,
           "skor_jenis_cocok": 1,
@@ -4881,7 +4881,7 @@
         },
         {
           "id_sampah": "S4",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K1",
           "skor_matching": 0.9775,
           "skor_jenis_cocok": 1,
@@ -4894,7 +4894,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K2",
           "skor_matching": 0.7557,
           "skor_jenis_cocok": 1,
@@ -4909,7 +4909,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S3",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K1",
           "skor_matching": 1,
           "jarak_km": 0.55,
@@ -4919,7 +4919,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K0",
           "skor_matching": 0.7175,
           "jarak_km": 3.66,
@@ -4929,7 +4929,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K2",
           "skor_matching": 0.7152,
           "jarak_km": 1.55,
@@ -5009,7 +5009,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.564029032881371,
             "lng": 111.4771636846685,
             "jenis_diterima": [
@@ -5022,7 +5022,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.568542866080533,
             "lng": 111.5522348749754,
             "jenis_diterima": [
@@ -5034,7 +5034,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.640992581280879,
             "lng": 111.44089006835829,
             "jenis_diterima": [
@@ -5048,7 +5048,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.627613572175615,
             "lng": 111.54809345178306,
             "jenis_diterima": [
@@ -5062,7 +5062,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.593052308352198,
             "lng": 111.54772629920393,
             "jenis_diterima": [
@@ -5074,7 +5074,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.632363291096408,
             "lng": 111.54483677649405,
             "jenis_diterima": [
@@ -5133,7 +5133,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S1",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K0",
           "skor_matching": 0.9342,
           "skor_jenis_cocok": 1,
@@ -5146,7 +5146,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K1",
           "skor_matching": 0.9097,
           "skor_jenis_cocok": 1,
@@ -5159,7 +5159,7 @@
         },
         {
           "id_sampah": "S3",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K2",
           "skor_matching": 0.8586,
           "skor_jenis_cocok": 1,
@@ -5174,7 +5174,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S1",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K1",
           "skor_matching": 0.9342,
           "jarak_km": 1.33,
@@ -5184,7 +5184,7 @@
         },
         {
           "id_sampah": "S3",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K2",
           "skor_matching": 0.6869,
           "jarak_km": 2.85,
@@ -5194,7 +5194,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K0",
           "skor_matching": 0.8629,
           "jarak_km": 5.32,
@@ -5274,7 +5274,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.558590696780011,
             "lng": 111.55198080894071,
             "jenis_diterima": [
@@ -5287,7 +5287,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.559103025475051,
             "lng": 111.49528230249183,
             "jenis_diterima": [
@@ -5300,7 +5300,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.6611599690001455,
             "lng": 111.47652736771852,
             "jenis_diterima": [
@@ -5313,7 +5313,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.664891850361601,
             "lng": 111.50893024550751,
             "jenis_diterima": [
@@ -5327,7 +5327,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.622249972145073,
             "lng": 111.5492801898974,
             "jenis_diterima": [
@@ -5341,7 +5341,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.622840519968886,
             "lng": 111.4983008148172,
             "jenis_diterima": [
@@ -5402,7 +5402,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S5",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K0",
           "skor_matching": 0.9554,
           "skor_jenis_cocok": 1,
@@ -5415,7 +5415,7 @@
         },
         {
           "id_sampah": "S3",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K1",
           "skor_matching": 0.9535,
           "skor_jenis_cocok": 1,
@@ -5428,7 +5428,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K2",
           "skor_matching": 0.8942,
           "skor_jenis_cocok": 1,
@@ -5443,7 +5443,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S4",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K2",
           "skor_matching": 0.7824,
           "jarak_km": 1.71,
@@ -5453,7 +5453,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K0",
           "skor_matching": 0.8942,
           "jarak_km": 1.05,
@@ -5463,7 +5463,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K1",
           "skor_matching": 0.8795,
           "jarak_km": 2.15,
@@ -5543,7 +5543,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.623602491880301,
             "lng": 111.53502468009712,
             "jenis_diterima": [
@@ -5557,7 +5557,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.609751648101955,
             "lng": 111.46149662260665,
             "jenis_diterima": [
@@ -5571,7 +5571,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.573428300919477,
             "lng": 111.46522852261319,
             "jenis_diterima": [
@@ -5584,7 +5584,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.585789173084777,
             "lng": 111.50412458215142,
             "jenis_diterima": [
@@ -5598,7 +5598,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.6397858736524356,
             "lng": 111.53653271412942,
             "jenis_diterima": [
@@ -5611,7 +5611,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.613675176438409,
             "lng": 111.5311505791056,
             "jenis_diterima": [
@@ -5671,7 +5671,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S1",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K0",
           "skor_matching": 0.9549,
           "skor_jenis_cocok": 1,
@@ -5684,7 +5684,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K2",
           "skor_matching": 0.9382,
           "skor_jenis_cocok": 1,
@@ -5697,7 +5697,7 @@
         },
         {
           "id_sampah": "S3",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K1",
           "skor_matching": 0.8936,
           "skor_jenis_cocok": 1,
@@ -5712,7 +5712,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S3",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K0",
           "skor_matching": 0.8936,
           "jarak_km": 1.08,
@@ -5722,7 +5722,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K2",
           "skor_matching": 0.8813,
           "jarak_km": 1.77,
@@ -5732,7 +5732,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K1",
           "skor_matching": 0.8085,
           "jarak_km": 2.77,
@@ -5812,7 +5812,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.604349948186427,
             "lng": 111.527935206478,
             "jenis_diterima": [
@@ -5825,7 +5825,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.585855461906176,
             "lng": 111.48096810173942,
             "jenis_diterima": [
@@ -5838,7 +5838,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.6526198410918,
             "lng": 111.50825733886333,
             "jenis_diterima": [
@@ -5850,7 +5850,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.668765409647021,
             "lng": 111.5286335016042,
             "jenis_diterima": [
@@ -5863,7 +5863,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.630729870821814,
             "lng": 111.45103945560754,
             "jenis_diterima": [
@@ -5875,7 +5875,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.636261875526979,
             "lng": 111.45560441700044,
             "jenis_diterima": [
@@ -5936,7 +5936,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S5",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K0",
           "skor_matching": 0.932,
           "skor_jenis_cocok": 1,
@@ -5949,7 +5949,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K1",
           "skor_matching": 0.8944,
           "skor_jenis_cocok": 1,
@@ -5962,7 +5962,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K2",
           "skor_matching": 0.8682,
           "skor_jenis_cocok": 1,
@@ -5977,7 +5977,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S4",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K1",
           "skor_matching": 0.72,
           "jarak_km": 0.67,
@@ -5987,7 +5987,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K2",
           "skor_matching": 0.6526,
           "jarak_km": 4.78,
@@ -5997,7 +5997,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K0",
           "skor_matching": 0.932,
           "jarak_km": 1.45,
@@ -6077,7 +6077,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.630988463463727,
             "lng": 111.4457879891037,
             "jenis_diterima": [
@@ -6090,7 +6090,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.646060605340171,
             "lng": 111.53743812541012,
             "jenis_diterima": [
@@ -6103,7 +6103,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.624293736019172,
             "lng": 111.52370972721837,
             "jenis_diterima": [
@@ -6115,7 +6115,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.577665702980012,
             "lng": 111.49232290450716,
             "jenis_diterima": [
@@ -6128,7 +6128,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.66170218033716,
             "lng": 111.53787485409528,
             "jenis_diterima": [
@@ -6142,7 +6142,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.588087099730037,
             "lng": 111.48270895925118,
             "jenis_diterima": [
@@ -6201,7 +6201,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S3",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K0",
           "skor_matching": 0.9498,
           "skor_jenis_cocok": 1,
@@ -6214,7 +6214,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K1",
           "skor_matching": 0.8906,
           "skor_jenis_cocok": 1,
@@ -6227,7 +6227,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K2",
           "skor_matching": 0.8673,
           "skor_jenis_cocok": 1,
@@ -6242,7 +6242,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S0",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K2",
           "skor_matching": 0.8906,
           "jarak_km": 1.25,
@@ -6252,7 +6252,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K0",
           "skor_matching": 0.8673,
           "jarak_km": 5.07,
@@ -6262,7 +6262,7 @@
         },
         {
           "id_sampah": "S3",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K1",
           "skor_matching": 0.9498,
           "jarak_km": 3.81,
@@ -6342,7 +6342,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.639588978360407,
             "lng": 111.49724440952065,
             "jenis_diterima": [
@@ -6357,7 +6357,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.575702566930558,
             "lng": 111.45095239477699,
             "jenis_diterima": [
@@ -6370,7 +6370,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.641961145317182,
             "lng": 111.43684374223697,
             "jenis_diterima": [
@@ -6383,7 +6383,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.584859857119154,
             "lng": 111.5016849034559,
             "jenis_diterima": [
@@ -6396,7 +6396,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.598011664568912,
             "lng": 111.45841211284977,
             "jenis_diterima": [
@@ -6408,7 +6408,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.665506541715003,
             "lng": 111.55547752707731,
             "jenis_diterima": [
@@ -6468,7 +6468,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S3",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K0",
           "skor_matching": 1,
           "skor_jenis_cocok": 1,
@@ -6481,7 +6481,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K1",
           "skor_matching": 0.9211,
           "skor_jenis_cocok": 1,
@@ -6494,7 +6494,7 @@
         },
         {
           "id_sampah": "S4",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K2",
           "skor_matching": 0.8874,
           "skor_jenis_cocok": 1,
@@ -6509,7 +6509,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S3",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K2",
           "skor_matching": 1,
           "jarak_km": 0.51,
@@ -6519,7 +6519,7 @@
         },
         {
           "id_sampah": "S4",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K0",
           "skor_matching": 0.8874,
           "jarak_km": 1.42,
@@ -6529,7 +6529,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K1",
           "skor_matching": 0.9211,
           "jarak_km": 5.42,
@@ -6609,7 +6609,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.570314882635139,
             "lng": 111.48490421383875,
             "jenis_diterima": [
@@ -6621,7 +6621,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.560247510059271,
             "lng": 111.50079516269733,
             "jenis_diterima": [
@@ -6635,7 +6635,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.615540259990375,
             "lng": 111.48282077559969,
             "jenis_diterima": [
@@ -6649,7 +6649,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.575003303410485,
             "lng": 111.44466356786434,
             "jenis_diterima": [
@@ -6662,7 +6662,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.627488827402703,
             "lng": 111.47490868483438,
             "jenis_diterima": [
@@ -6674,7 +6674,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.6370929996715855,
             "lng": 111.5155984506011,
             "jenis_diterima": [
@@ -6734,7 +6734,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S0",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K0",
           "skor_matching": 0.9605,
           "skor_jenis_cocok": 1,
@@ -6747,7 +6747,7 @@
         },
         {
           "id_sampah": "S4",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K1",
           "skor_matching": 0.9542,
           "skor_jenis_cocok": 1,
@@ -6760,7 +6760,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K2",
           "skor_matching": 0.8829,
           "skor_jenis_cocok": 1,
@@ -6775,7 +6775,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S2",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K1",
           "skor_matching": 0.7078,
           "jarak_km": 1.68,
@@ -6785,7 +6785,7 @@
         },
         {
           "id_sampah": "S3",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K0",
           "skor_matching": 0.7349,
           "jarak_km": 4.36,
@@ -6795,7 +6795,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K2",
           "skor_matching": 0.6781,
           "jarak_km": 3.35,
@@ -6875,7 +6875,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.632895658467896,
             "lng": 111.54823529363843,
             "jenis_diterima": [
@@ -6887,7 +6887,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.578037304498721,
             "lng": 111.51690776254749,
             "jenis_diterima": [
@@ -6900,7 +6900,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.603716242727823,
             "lng": 111.52017191094114,
             "jenis_diterima": [
@@ -6912,7 +6912,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.5969417359307405,
             "lng": 111.4557155675441,
             "jenis_diterima": [
@@ -6925,7 +6925,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.578668258900288,
             "lng": 111.4742420547409,
             "jenis_diterima": [
@@ -6939,7 +6939,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.623072910767514,
             "lng": 111.43997240962229,
             "jenis_diterima": [
@@ -6998,7 +6998,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S0",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K2",
           "skor_matching": 1,
           "skor_jenis_cocok": 1,
@@ -7011,7 +7011,7 @@
         },
         {
           "id_sampah": "S3",
-          "id_tps": "T4",
+          "id_penerima": "T4",
           "id_kurir": "K0",
           "skor_matching": 0.8997,
           "skor_jenis_cocok": 1,
@@ -7024,7 +7024,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K1",
           "skor_matching": 0.8586,
           "skor_jenis_cocok": 1,
@@ -7039,7 +7039,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S5",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K2",
           "skor_matching": 0.94,
           "jarak_km": 0.61,
@@ -7049,7 +7049,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K0",
           "skor_matching": 0.9,
           "jarak_km": 0.69,
@@ -7059,7 +7059,7 @@
         },
         {
           "id_sampah": "S3",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K1",
           "skor_matching": 0.7416,
           "jarak_km": 2.31,
@@ -7139,7 +7139,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.570244431179017,
             "lng": 111.46742261830019,
             "jenis_diterima": [
@@ -7152,7 +7152,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.580257257700432,
             "lng": 111.50778035203462,
             "jenis_diterima": [
@@ -7166,7 +7166,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.613254692398477,
             "lng": 111.4364499630034,
             "jenis_diterima": [
@@ -7178,7 +7178,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.551017902847379,
             "lng": 111.4665008128807,
             "jenis_diterima": [
@@ -7192,7 +7192,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.595579199097119,
             "lng": 111.49006149291527,
             "jenis_diterima": [
@@ -7206,7 +7206,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.633845880287699,
             "lng": 111.54417850820347,
             "jenis_diterima": [
@@ -7266,7 +7266,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S2",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K0",
           "skor_matching": 0.8802,
           "skor_jenis_cocok": 1,
@@ -7279,7 +7279,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K1",
           "skor_matching": 0.8747,
           "skor_jenis_cocok": 1,
@@ -7292,7 +7292,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T2",
+          "id_penerima": "T2",
           "id_kurir": "K2",
           "skor_matching": 0.766,
           "skor_jenis_cocok": 1,
@@ -7307,7 +7307,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S3",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K0",
           "skor_matching": 0.6466,
           "jarak_km": 2.03,
@@ -7317,7 +7317,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K2",
           "skor_matching": 0.7747,
           "jarak_km": 2.14,
@@ -7327,7 +7327,7 @@
         },
         {
           "id_sampah": "S2",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K1",
           "skor_matching": 0.8802,
           "jarak_km": 4.35,
@@ -7407,7 +7407,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.619457604365889,
             "lng": 111.51429175689584,
             "jenis_diterima": [
@@ -7421,7 +7421,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.651878189591225,
             "lng": 111.50194716615137,
             "jenis_diterima": [
@@ -7435,7 +7435,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.653838699439075,
             "lng": 111.4489346793783,
             "jenis_diterima": [
@@ -7448,7 +7448,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.669784812757279,
             "lng": 111.5241351377964,
             "jenis_diterima": [
@@ -7461,7 +7461,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.608136137302499,
             "lng": 111.5352079853369,
             "jenis_diterima": [
@@ -7474,7 +7474,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.56040224550059,
             "lng": 111.5175798548921,
             "jenis_diterima": [
@@ -7533,7 +7533,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S3",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K1",
           "skor_matching": 0.9908,
           "skor_jenis_cocok": 1,
@@ -7546,7 +7546,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K0",
           "skor_matching": 0.9152,
           "skor_jenis_cocok": 1,
@@ -7559,7 +7559,7 @@
         },
         {
           "id_sampah": "S1",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K2",
           "skor_matching": 0.9083,
           "skor_jenis_cocok": 1,
@@ -7574,7 +7574,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S0",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K0",
           "skor_matching": 0.9152,
           "jarak_km": 2.39,
@@ -7584,7 +7584,7 @@
         },
         {
           "id_sampah": "S4",
-          "id_tps": "T3",
+          "id_penerima": "T3",
           "id_kurir": "K1",
           "skor_matching": 0.895,
           "jarak_km": 0.86,
@@ -7594,7 +7594,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K2",
           "skor_matching": 0.7852,
           "jarak_km": 3.23,
@@ -7674,7 +7674,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.563355779154226,
             "lng": 111.52153604604537,
             "jenis_diterima": [
@@ -7688,7 +7688,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.662237740980927,
             "lng": 111.46536182659679,
             "jenis_diterima": [
@@ -7701,7 +7701,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.572222779341973,
             "lng": 111.49494142909069,
             "jenis_diterima": [
@@ -7714,7 +7714,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.638956110992003,
             "lng": 111.49045161462622,
             "jenis_diterima": [
@@ -7727,7 +7727,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.553387677816208,
             "lng": 111.43686680171872,
             "jenis_diterima": [
@@ -7739,7 +7739,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.644509996150155,
             "lng": 111.55788386213827,
             "jenis_diterima": [
@@ -7799,7 +7799,7 @@
       "alokasi_ai": [
         {
           "id_sampah": "S5",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K0",
           "skor_matching": 0.8926,
           "skor_jenis_cocok": 1,
@@ -7812,7 +7812,7 @@
         },
         {
           "id_sampah": "S4",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K1",
           "skor_matching": 0.8895,
           "skor_jenis_cocok": 1,
@@ -7825,7 +7825,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K2",
           "skor_matching": 0.8776,
           "skor_jenis_cocok": 1,
@@ -7840,7 +7840,7 @@
       "alokasi_baseline": [
         {
           "id_sampah": "S2",
-          "id_tps": "T0",
+          "id_penerima": "T0",
           "id_kurir": "K2",
           "skor_matching": 0.7354,
           "jarak_km": 4.34,
@@ -7850,7 +7850,7 @@
         },
         {
           "id_sampah": "S5",
-          "id_tps": "T5",
+          "id_penerima": "T5",
           "id_kurir": "K0",
           "skor_matching": 0.8926,
           "jarak_km": 1.13,
@@ -7860,7 +7860,7 @@
         },
         {
           "id_sampah": "S0",
-          "id_tps": "T1",
+          "id_penerima": "T1",
           "id_kurir": "K1",
           "skor_matching": 0.8776,
           "jarak_km": 1.97,
@@ -7940,7 +7940,7 @@
         ],
         "tps": [
           {
-            "id_tps": "T0",
+            "id_penerima": "T0",
             "lat": -7.5721447084657845,
             "lng": 111.49909827379045,
             "jenis_diterima": [
@@ -7954,7 +7954,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T1",
+            "id_penerima": "T1",
             "lat": -7.653227749359794,
             "lng": 111.45134206652409,
             "jenis_diterima": [
@@ -7967,7 +7967,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T2",
+            "id_penerima": "T2",
             "lat": -7.61862631859025,
             "lng": 111.48906815837836,
             "jenis_diterima": [
@@ -7980,7 +7980,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T3",
+            "id_penerima": "T3",
             "lat": -7.568148425340187,
             "lng": 111.48017775102053,
             "jenis_diterima": [
@@ -7994,7 +7994,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T4",
+            "id_penerima": "T4",
             "lat": -7.614325172670651,
             "lng": 111.4803077432327,
             "jenis_diterima": [
@@ -8008,7 +8008,7 @@
             "aktif": true
           },
           {
-            "id_tps": "T5",
+            "id_penerima": "T5",
             "lat": -7.599265070066322,
             "lng": 111.45291062550619,
             "jenis_diterima": [
@@ -8173,10 +8173,10 @@
     }
   ],
   "kecepatan": {
-    "skenario_kecil_ms": 0.3,
-    "skenario_besar_detik": 0.16,
-    "spesifikasi_kecil": "6 sampah, 6 TPS, 3 kurir",
-    "spesifikasi_besar": "50 sampah, 50 TPS, 20 kurir",
+    "skenario_kecil_ms": 0.287,
+    "skenario_besar_detik": 0.141,
+    "spesifikasi_kecil": "6 sampah, 6 penerima, 3 kurir",
+    "spesifikasi_besar": "50 sampah, 50 penerima, 20 kurir",
     "sla_detik": 3
   }
 }

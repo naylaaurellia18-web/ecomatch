@@ -8,8 +8,7 @@ const { parseJenisDiterima } = require('../lib/routing');
 
 const router = express.Router();
 
-const JENIS_TPS = ['tps_3r', 'tps_komposter', 'tps_maggot', 'tps_eco_enzyme', 'bank_sampah', 'lainnya'];
-const JENIS_PENGOLAHAN = ['komposter', 'maggot_bsf', 'eco_enzyme', 'bank_sampah', 'lainnya'];
+const JENIS_PENERIMA = ['panti_asuhan', 'yayasan', 'rumah_dhuafa', 'peternakan', 'lainnya'];
 const OUTPUT_JENIS = ['kompos', 'pupuk_cair', 'pakan_ternak', 'eco_enzyme', 'lainnya'];
 const JENIS_DITERIMA_DEFAULT = ['sisa_nasi', 'sayur', 'lauk', 'kulit_buah', 'campuran', 'lainnya'];
 
@@ -24,7 +23,7 @@ function numOrNull(v, { min = null, max = null } = {}) {
   return n;
 }
 
-function serializeTps(row, terpakai) {
+function serializePenerima(row, terpakai) {
   const kapasitas = Number(row.kapasitas_kg_hari || 0);
   return {
     ...row,
@@ -36,37 +35,36 @@ function serializeTps(row, terpakai) {
   };
 }
 
-async function loadTps(idTps) {
+async function loadPenerima(idPenerima) {
   return db.get(
     `SELECT t.*, u.nama, u.telepon, u.alamat, u.lat, u.lng, u.email, u.status
-       FROM tps_pengolah t JOIN user u ON u.id_user = t.id_user
+       FROM penerima t JOIN user u ON u.id_user = t.id_user
       WHERE t.id_user = ?`,
-    [idTps]
+    [idPenerima]
   );
 }
 
-// FR-03: profil TPS sendiri
-router.get('/me', requireRole('tps_pengolah', 'admin'), async (req, res, next) => {
+// FR-03: profil penerima sendiri
+router.get('/me', requireRole('penerima', 'admin'), async (req, res, next) => {
   try {
-    const row = await loadTps(req.user.id);
-    if (!row) return res.status(404).json({ error: 'Profil TPS belum terdaftar. Daftarkan lewat POST /api/tps/register' });
+    const row = await loadPenerima(req.user.id);
+    if (!row) return res.status(404).json({ error: 'Profil penerima belum terdaftar. Daftarkan lewat POST /api/penerima/register' });
     const terpakai = (await terpakaiHariIniMap()).get(Number(req.user.id)) || 0;
-    res.json(serializeTps(row, terpakai));
+    res.json(serializePenerima(row, terpakai));
   } catch (e) {
     next(e);
   }
 });
 
-// FR-03: perbarui profil TPS sendiri
-router.patch('/me', requireRole('tps_pengolah', 'admin'), async (req, res, next) => {
+// FR-03: perbarui profil penerima sendiri
+router.patch('/me', requireRole('penerima', 'admin'), async (req, res, next) => {
   try {
-    const row = await loadTps(req.user.id);
-    if (!row) return res.status(404).json({ error: 'Profil TPS belum terdaftar' });
+    const row = await loadPenerima(req.user.id);
+    if (!row) return res.status(404).json({ error: 'Profil penerima belum terdaftar' });
 
     const {
-      nama_tps,
-      jenis_tps,
-      jenis_pengolahan,
+      nama_penerima,
+      jenis_penerima,
       kapasitas_kg_hari,
       jenis_diterima,
       radius_layanan_km,
@@ -80,21 +78,16 @@ router.patch('/me', requireRole('tps_pengolah', 'admin'), async (req, res, next)
 
     const fields = [];
     const params = [];
-    if (nama_tps != null) {
-      const v = clampStr(nama_tps, 120);
-      if (!v) return res.status(400).json({ error: 'Nama TPS tidak boleh kosong' });
-      fields.push('nama_tps = ?');
+    if (nama_penerima != null) {
+      const v = clampStr(nama_penerima, 120);
+      if (!v) return res.status(400).json({ error: 'Nama penerima tidak boleh kosong' });
+      fields.push('nama_penerima = ?');
       params.push(v);
     }
-    if (jenis_tps != null) {
-      if (!JENIS_TPS.includes(jenis_tps)) return res.status(400).json({ error: 'Jenis TPS tidak valid' });
-      fields.push('jenis_tps = ?');
-      params.push(jenis_tps);
-    }
-    if (jenis_pengolahan != null) {
-      if (!JENIS_PENGOLAHAN.includes(jenis_pengolahan)) return res.status(400).json({ error: 'Jenis pengolahan tidak valid' });
-      fields.push('jenis_pengolahan = ?');
-      params.push(jenis_pengolahan);
+    if (jenis_penerima != null) {
+      if (!JENIS_PENERIMA.includes(jenis_penerima)) return res.status(400).json({ error: 'Jenis penerima tidak valid' });
+      fields.push('jenis_penerima = ?');
+      params.push(jenis_penerima);
     }
     if (kapasitas_kg_hari != null && kapasitas_kg_hari !== '') {
       const v = numOrNull(kapasitas_kg_hari, { min: 0, max: 100000 });
@@ -126,7 +119,7 @@ router.patch('/me', requireRole('tps_pengolah', 'admin'), async (req, res, next)
     }
     if (fields.length) {
       params.push(req.user.id);
-      await db.run(`UPDATE tps_pengolah SET ${fields.join(', ')} WHERE id_user = ?`, params);
+      await db.run(`UPDATE penerima SET ${fields.join(', ')} WHERE id_user = ?`, params);
     }
 
     // Koordinat/alamat ada di tabel user
@@ -154,46 +147,45 @@ router.patch('/me', requireRole('tps_pengolah', 'admin'), async (req, res, next)
       return res.status(400).json({ error: 'Tidak ada perubahan yang dikirim' });
     }
 
-    await audit(req.user.id, 'UPDATE_TPS_PROFILE', 'tps_pengolah', req.user.id, {
+    await audit(req.user.id, 'UPDATE_PENERIMA_PROFILE', 'penerima', req.user.id, {
       diubah: fields.map((f) => f.split(' =')[0]),
       user: userFields.map((f) => f.split(' =')[0]),
     });
-    const updated = await loadTps(req.user.id);
+    const updated = await loadPenerima(req.user.id);
     const terpakai = (await terpakaiHariIniMap()).get(Number(req.user.id)) || 0;
-    res.json({ message: 'Profil TPS diperbarui', tps: serializeTps(updated, terpakai) });
+    res.json({ message: 'Profil penerima diperbarui', penerima: serializePenerima(updated, terpakai) });
   } catch (e) {
     next(e);
   }
 });
 
-// FR-12: pendaftaran TPS baru
-router.post('/register', requireRole('tps_pengolah', 'admin'), async (req, res, next) => {
+// FR-12: pendaftaran penerima baru
+router.post('/register', requireRole('penerima', 'admin'), async (req, res, next) => {
   try {
-    const { id_user, nama_tps, jenis_tps, jenis_pengolahan, kapasitas_kg_hari, jenis_diterima, radius_layanan_km, izin_operasional, lat, lng } =
+    const { id_user, nama_penerima, jenis_penerima, kapasitas_kg_hari, jenis_diterima, radius_layanan_km, izin_operasional, lat, lng } =
       req.body || {};
     const targetId = req.user.role === 'admin' && id_user != null && id_user !== '' ? Number(id_user) : req.user.id;
 
-    const existing = await db.get('SELECT id_user FROM tps_pengolah WHERE id_user = ?', [targetId]);
-    if (existing) return res.status(409).json({ error: 'TPS sudah terdaftar' });
+    const existing = await db.get('SELECT id_user FROM penerima WHERE id_user = ?', [targetId]);
+    if (existing) return res.status(409).json({ error: 'Penerima sudah terdaftar' });
     const user = await db.get('SELECT id_user, nama, role, lat, lng FROM user WHERE id_user = ?', [targetId]);
     if (!user) return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
-    if (req.user.role !== 'admin' && user.role !== 'tps_pengolah') {
-      return res.status(403).json({ error: 'Hanya akun berperan tps_pengolah' });
+    if (req.user.role !== 'admin' && user.role !== 'penerima') {
+      return res.status(403).json({ error: 'Hanya akun berperan penerima' });
     }
 
-    const nama = clampStr(nama_tps, 120) || `${user.nama} TPS`;
+    const nama = clampStr(nama_penerima, 120) || `${user.nama}`;
     const kapasitas = numOrNull(kapasitas_kg_hari, { min: 0, max: 100000 }) ?? 100;
     const list = Array.isArray(jenis_diterima) && jenis_diterima.length ? jenis_diterima.map(String) : JENIS_DITERIMA_DEFAULT;
     const radius = numOrNull(radius_layanan_km, { min: 0, max: 100 }) ?? 15;
 
     await db.run(
-      `INSERT INTO tps_pengolah (id_user, nama_tps, jenis_tps, jenis_pengolahan, kapasitas_kg_hari, jenis_diterima, radius_layanan_km, izin_operasional)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO penerima (id_user, nama_penerima, jenis_penerima, kapasitas_kg_hari, jenis_diterima, radius_layanan_km, izin_operasional)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         targetId,
         nama,
-        JENIS_TPS.includes(jenis_tps) ? jenis_tps : 'tps_3r',
-        JENIS_PENGOLAHAN.includes(jenis_pengolahan) ? jenis_pengolahan : 'komposter',
+        JENIS_PENERIMA.includes(jenis_penerima) ? jenis_penerima : 'lainnya',
         kapasitas,
         JSON.stringify(list),
         radius,
@@ -207,44 +199,44 @@ router.post('/register', requireRole('tps_pengolah', 'admin'), async (req, res, 
       await db.run('UPDATE user SET lat = ?, lng = ? WHERE id_user = ?', [latBaru, lngBaru, targetId]);
     }
 
-    await audit(req.user.id, 'REGISTER_TPS', 'tps_pengolah', targetId, { nama_tps: nama, kapasitas_kg_hari: kapasitas });
-    res.status(201).json({ message: 'TPS terdaftar', id_user: targetId, nama_tps: nama });
+    await audit(req.user.id, 'REGISTER_PENERIMA', 'penerima', targetId, { nama_penerima: nama, kapasitas_kg_hari: kapasitas });
+    res.status(201).json({ message: 'Penerima terdaftar', id_user: targetId, nama_penerima: nama });
   } catch (e) {
     next(e);
   }
 });
 
-// FR-12: daftar TPS (untuk routing/UI)
+// FR-12: daftar penerima (untuk routing/UI)
 router.get('/list', async (_req, res, next) => {
   try {
     const rows = await db.all(
       `SELECT t.*, u.nama, u.alamat, u.telepon, u.lat, u.lng, u.status
-         FROM tps_pengolah t JOIN user u ON u.id_user = t.id_user
-        ORDER BY t.nama_tps`
+         FROM penerima t JOIN user u ON u.id_user = t.id_user
+        ORDER BY t.nama_penerima`
     );
     const map = await terpakaiHariIniMap();
-    res.json(rows.map((r) => serializeTps(r, map.get(Number(r.id_user)) || 0)));
+    res.json(rows.map((r) => serializePenerima(r, map.get(Number(r.id_user)) || 0)));
   } catch (e) {
     next(e);
   }
 });
 
-// FR-12: log pengolahan satu alokasi (oleh TPS penerima)
-router.post('/:id/log', requireRole('tps_pengolah', 'admin'), async (req, res, next) => {
+// FR-12: log penerimaan satu alokasi (oleh penerima)
+router.post('/:id/log', requireRole('penerima', 'admin'), async (req, res, next) => {
   try {
-    const tpsId = Number(req.params.id);
+    const penerimaId = Number(req.params.id);
     const { id_alokasi, input_kg, output_kg, output_jenis, foto_bukti } = req.body || {};
     if (id_alokasi == null || id_alokasi === '') {
       return res.status(400).json({ error: 'id_alokasi wajib diisi' });
     }
-    if (req.user.role !== 'admin' && tpsId !== req.user.id) {
-      return res.status(403).json({ error: 'Hanya TPS terkait yang boleh mencatat' });
+    if (req.user.role !== 'admin' && penerimaId !== req.user.id) {
+      return res.status(403).json({ error: 'Hanya penerima terkait yang boleh mencatat' });
     }
 
     const alokasi = await db.get('SELECT * FROM alokasi WHERE id_alokasi = ?', [id_alokasi]);
     if (!alokasi) return res.status(404).json({ error: 'Alokasi tidak ditemukan' });
-    if (alokasi.id_tps !== tpsId) {
-      return res.status(403).json({ error: 'Alokasi bukan untuk TPS ini' });
+    if (alokasi.id_penerima !== penerimaId) {
+      return res.status(403).json({ error: 'Alokasi bukan untuk penerima ini' });
     }
     if (!['terkirim', 'terverifikasi'].includes(alokasi.status)) {
       return res.status(400).json({ error: `Alokasi berstatus ${alokasi.status} — belum bisa dicatat (harus terkirim/terverifikasi)` });
@@ -269,7 +261,7 @@ router.post('/:id/log', requireRole('tps_pengolah', 'admin'), async (req, res, n
     );
     await audit(req.user.id, 'LOG_PENGOLAHAN', 'pengolahan_log', result.lastInsertRowid, {
       id_alokasi: alokasi.id_alokasi,
-      id_tps: tpsId,
+      id_penerima: penerimaId,
       input_kg: input,
       output_kg: output,
       output_jenis: output_jenis || null,
@@ -280,56 +272,56 @@ router.post('/:id/log', requireRole('tps_pengolah', 'admin'), async (req, res, n
   }
 });
 
-// FR-12: dashboard TPS
-router.get('/:id/dashboard', requireRole('tps_pengolah', 'admin'), async (req, res, next) => {
+// FR-12: dashboard penerima
+router.get('/:id/dashboard', requireRole('penerima', 'admin'), async (req, res, next) => {
   try {
-    const tpsId = Number(req.params.id);
-    if (req.user.role !== 'admin' && tpsId !== req.user.id) {
+    const penerimaId = Number(req.params.id);
+    if (req.user.role !== 'admin' && penerimaId !== req.user.id) {
       return res.status(403).json({ error: 'Bukan dashboard Anda' });
     }
-    const tps = await loadTps(tpsId);
-    if (!tps) return res.status(404).json({ error: 'TPS tidak ditemukan' });
+    const pen = await loadPenerima(penerimaId);
+    if (!pen) return res.status(404).json({ error: 'Penerima tidak ditemukan' });
 
     const [dialokasikan, dijemput, terkirim, terverifikasi, dibatalkan, kgMasuk, kgDiolah, outputRows, riwayat] =
       await Promise.all([
-        db.get(`SELECT COUNT(*) AS c FROM alokasi WHERE id_tps = ? AND status = 'dialokasikan'`, [tpsId]),
-        db.get(`SELECT COUNT(*) AS c FROM alokasi WHERE id_tps = ? AND status = 'dijemput'`, [tpsId]),
-        db.get(`SELECT COUNT(*) AS c FROM alokasi WHERE id_tps = ? AND status = 'terkirim'`, [tpsId]),
-        db.get(`SELECT COUNT(*) AS c FROM alokasi WHERE id_tps = ? AND status = 'terverifikasi'`, [tpsId]),
-        db.get(`SELECT COUNT(*) AS c FROM alokasi WHERE id_tps = ? AND status = 'dibatalkan'`, [tpsId]),
+        db.get(`SELECT COUNT(*) AS c FROM alokasi WHERE id_penerima = ? AND status = 'dialokasikan'`, [penerimaId]),
+        db.get(`SELECT COUNT(*) AS c FROM alokasi WHERE id_penerima = ? AND status = 'dijemput'`, [penerimaId]),
+        db.get(`SELECT COUNT(*) AS c FROM alokasi WHERE id_penerima = ? AND status = 'terkirim'`, [penerimaId]),
+        db.get(`SELECT COUNT(*) AS c FROM alokasi WHERE id_penerima = ? AND status = 'terverifikasi'`, [penerimaId]),
+        db.get(`SELECT COUNT(*) AS c FROM alokasi WHERE id_penerima = ? AND status = 'dibatalkan'`, [penerimaId]),
         db.get(
           `SELECT COALESCE(SUM(s.berat_kg), 0) AS c FROM alokasi a
              JOIN sampah_makanan s ON s.id_sampah = a.id_sampah
-            WHERE a.id_tps = ? AND a.status != 'dibatalkan'`,
-          [tpsId]
+            WHERE a.id_penerima = ? AND a.status != 'dibatalkan'`,
+          [penerimaId]
         ),
         db.get(
           `SELECT COALESCE(SUM(p.input_kg), 0) AS c FROM pengolahan_log p
              JOIN alokasi a ON a.id_alokasi = p.id_alokasi
-            WHERE a.id_tps = ?`,
-          [tpsId]
+            WHERE a.id_penerima = ?`,
+          [penerimaId]
         ),
         db.all(
           `SELECT p.output_jenis, COUNT(*) AS jumlah, COALESCE(SUM(p.output_kg), 0) AS total_kg
              FROM pengolahan_log p JOIN alokasi a ON a.id_alokasi = p.id_alokasi
-            WHERE a.id_tps = ? AND p.output_jenis IS NOT NULL
+            WHERE a.id_penerima = ? AND p.output_jenis IS NOT NULL
             GROUP BY p.output_jenis`,
-          [tpsId]
+          [penerimaId]
         ),
         db.all(
           `SELECT p.*, a.status AS status_alokasi, s.nama_sampah, s.berat_kg
              FROM pengolahan_log p
              JOIN alokasi a ON a.id_alokasi = p.id_alokasi
              JOIN sampah_makanan s ON s.id_sampah = a.id_sampah
-            WHERE a.id_tps = ?
+            WHERE a.id_penerima = ?
             ORDER BY p.tanggal DESC LIMIT 10`,
-          [tpsId]
+          [penerimaId]
         ),
       ]);
 
-    const terpakai = (await terpakaiHariIniMap()).get(tpsId) || 0;
+    const terpakai = (await terpakaiHariIniMap()).get(penerimaId) || 0;
     res.json({
-      tps: serializeTps(tps, terpakai),
+      penerima: serializePenerima(pen, terpakai),
       alokasi: {
         dialokasikan: Number(dialokasikan.c || 0),
         dijemput: Number(dijemput.c || 0),

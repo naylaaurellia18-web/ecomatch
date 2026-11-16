@@ -9,11 +9,11 @@
  *
  * Baseline pembanding: Greedy Jarak-Saja — filter aturan yang sama (status,
  * jarak radius, jenis diterima, kapasitas), tapi kandidat diurutkan dari trip
- * terpendek (kurir -> sampah -> TPS) tanpa penerapan BATAS_SKOR.
+ * terpendek (kurir -> sampah -> penerima) tanpa penerapan BATAS_SKOR.
  *
  * Definisi metrik:
  *   - % sampah teralokasi      : alokasi / 6 sampah x 100 (dibatasi 3 kurir)
- *   - Total jarak (km)         : sum haversine(kurir,sampah) + haversine(sampah,TPS)
+ *   - Total jarak (km)         : sum haversine(kurir,sampah) + haversine(sampah,penerima)
  *   - Skor kualitas            : rata-rata skor_matching alokasi (rumus sama utk 2 strategi)
  *   - Urgensi tinggi teralokasi: % sampah tingkat 'busuk' (skor urgensi 1,0) yg teralokasi
  *   - Hampir busuk tersalurkan : % sampah tingkat 'sedang' (umur 12–24 jam) yg teralokasi
@@ -33,8 +33,8 @@ const OUT_PATH = path.join(OUT_DIR, 'evaluasi-30-skenario.json');
 
 const KATEGORI = ['sisa_nasi', 'sayur', 'lauk', 'kulit_buah', 'campuran', 'lainnya'];
 const UMOUR_JAM = [1, 4, 8, 14, 18, 26, 40]; // <=12 segar; 12–24 sedang; >24 busuk
-// Bbox Kota Madiun sekitar TPS Pengolah pada seed.js (TPS Kompos Kawatan
-// -7.6386/111.5206, TPS Maggot Ngetan -7.5754/111.4789).
+// Bbox Kota Madiun sekitar Penerima pada seed.js (Panti Asuhan Al-Hidayah
+// -7.6386/111.5206, Peternakan Makmur Jaya -7.5754/111.4789).
 const BBOX = { latMin: -7.68, latMax: -7.55, lngMin: 111.43, lngMax: 111.56 };
 
 /** RNG deterministik (mulberry32) — seed tetap => hasil reproducible. */
@@ -96,7 +96,7 @@ function buatSkenario(seed, nSampah = 6, nTps = 6, nKurir = 3) {
     const dasar = campur(rng, KATEGORI).slice(0, acakInt(rng, 2, 4));
     const jenis = dasar.includes('lainnya') || rng() < 0.5 ? dasar.concat('lainnya') : dasar;
     tps.push({
-      id_tps: `T${i}`,
+      id_penerima: `T${i}`,
       lat: acak(rng, BBOX.latMin, BBOX.latMax),
       lng: acak(rng, BBOX.lngMin, BBOX.lngMax),
       jenis_diterima: [...new Set(jenis)],
@@ -124,21 +124,21 @@ function tripKm(s, t, k) {
 }
 
 /** Baseline Greedy Jarak-Saja: filter aturan sama, urut trip terpendek, tanpa BATAS_SKOR. */
-function baselineJarak(sampahList, tpsList, kurirList, nowMs, config) {
-  const sisaTpsMap = new Map();
-  for (const t of tpsList) {
-    sisaTpsMap.set(t.id_tps, Number(t.sisa_kapasitas_kg ?? t.kapasitas_kg_hari ?? 0));
+function baselineJarak(sampahList, penerimaList, kurirList, nowMs, config) {
+  const sisaPenerimaMap = new Map();
+  for (const t of penerimaList) {
+    sisaPenerimaMap.set(t.id_penerima, Number(t.sisa_kapasitas_kg ?? t.kapasitas_kg_hari ?? 0));
   }
   const kandidat = [];
   for (const s of sampahList) {
-    for (const t of tpsList) {
-      const t2 = { ...t, sisa_kapasitas_kg: sisaTpsMap.get(t.id_tps) ?? 0 };
+    for (const t of penerimaList) {
+      const t2 = { ...t, sisa_kapasitas_kg: sisaPenerimaMap.get(t.id_penerima) ?? 0 };
       for (const k of kurirList) {
         const hasil = hitungSkor(s, t2, k, nowMs, config);
         if (hasil.gugur) continue;
         kandidat.push({
           id_sampah: s.id_sampah,
-          id_tps: t.id_tps,
+          id_penerima: t.id_penerima,
           id_kurir: k.id_kurir,
           skor_matching: hasil.skor_matching,
           jarak_km: hasil.jarak_km,
@@ -155,11 +155,11 @@ function baselineJarak(sampahList, tpsList, kurirList, nowMs, config) {
   const alokasi = [];
   for (const c of kandidat) {
     if (dipakaiSampah.has(c.id_sampah) || dipakaiKurir.has(c.id_kurir)) continue;
-    const sisa = sisaTpsMap.get(c.id_tps) ?? 0;
+    const sisa = sisaPenerimaMap.get(c.id_penerima) ?? 0;
     if (sisa <= 0) continue;
     const berat = Number(sampahList.find((x) => x.id_sampah === c.id_sampah)?.berat_kg || 0);
     if (berat > sisa) continue;
-    sisaTpsMap.set(c.id_tps, sisa - berat);
+    sisaPenerimaMap.set(c.id_penerima, sisa - berat);
     dipakaiSampah.add(c.id_sampah);
     dipakaiKurir.add(c.id_kurir);
     alokasi.push(c);
@@ -167,13 +167,13 @@ function baselineJarak(sampahList, tpsList, kurirList, nowMs, config) {
   return { alokasi, jumlah: alokasi.length };
 }
 
-function metrik(alokasi, sampahList, tpsList, kurirList) {
+function metrik(alokasi, sampahList, penerimaList, kurirList) {
   const sMap = new Map(sampahList.map((s) => [s.id_sampah, s]));
-  const tMap = new Map(tpsList.map((t) => [t.id_tps, t]));
+  const tMap = new Map(penerimaList.map((t) => [t.id_penerima, t]));
   const kMap = new Map(kurirList.map((k) => [k.id_kurir, k]));
   const totalJarak = alokasi.reduce((sum, a) => {
     const s = sMap.get(a.id_sampah);
-    const t = tMap.get(a.id_tps);
+    const t = tMap.get(a.id_penerima);
     const k = kMap.get(a.id_kurir);
     return sum + (s && t && k ? tripKm(s, t, k) : 0);
   }, 0);
@@ -252,8 +252,8 @@ function ujiKecepatan() {
   return {
     skenario_kecil_ms: Number(msKecil.toFixed(3)),
     skenario_besar_detik: Number(detikBesar.toFixed(3)),
-    spesifikasi_kecil: '6 sampah, 6 TPS, 3 kurir',
-    spesifikasi_besar: '50 sampah, 50 TPS, 20 kurir',
+    spesifikasi_kecil: '6 sampah, 6 penerima, 3 kurir',
+    spesifikasi_besar: '50 sampah, 50 penerima, 20 kurir',
     sla_detik: CONFIG.sla.routing_detik,
   };
 }
@@ -317,13 +317,13 @@ function main() {
     Math.max(
       0,
       ...perSkenario.map((p) => {
-        const tMap = new Map(p.detail_skenario.tps.map((t) => [t.id_tps, t]));
+        const tMap = new Map(p.detail_skenario.tps.map((t) => [t.id_penerima, t]));
         const kMap = new Map(p.detail_skenario.kurir.map((k) => [k.id_kurir, k]));
         return Math.max(
           0,
           ...p[kunci].map((a) => {
             const s = p.detail_skenario.sampah.find((x) => x.id_sampah === a.id_sampah);
-            return s ? tripKm(s, tMap.get(a.id_tps), kMap.get(a.id_kurir)) : 0;
+            return s ? tripKm(s, tMap.get(a.id_penerima), kMap.get(a.id_kurir)) : 0;
           })
         );
       })
@@ -343,7 +343,7 @@ function main() {
       baseline: 'Greedy Jarak-Saja (filter aturan sama, urut trip terpendek, tanpa BATAS_SKOR)',
       definisi_metrik: {
         pct_alokasi: 'alokasi / 6 sampah x 100 (dibatasi 3 kurir per skenario)',
-        total_jarak_km: 'sum haversine(kurir,sampah) + haversine(sampah,TPS)',
+        total_jarak_km: 'sum haversine(kurir,sampah) + haversine(sampah,penerima)',
         pct_busuk: '% sampah tingkat busuk (umur > 24 jam, skor urgensi 1,0) teralokasi',
         pct_sedang: '% sampah tingkat sedang (umur 12–24 jam) teralokasi',
       },

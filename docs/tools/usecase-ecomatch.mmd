@@ -1,0 +1,51 @@
+flowchart LR
+  classDef actor fill:#DAE8FC,stroke:#6C8EBF,color:#0b2545,stroke-width:1.5px
+  classDef uc fill:#FFFFFF,stroke:#333333,color:#111111
+  DBG["Donor MBG (SPPG)"]:::actor
+  PEN["Penerima"]:::actor
+  KUR["Kurir / Relawan"]:::actor
+  ADM["Administrator"]:::actor
+  SYS["Sistem (AI)"]:::actor
+  subgraph BOUND["Sistem EcoMatch"]
+    direction TB
+    UC01["UC-01 Autentikasi dan RBAC"]:::uc
+    UC02["UC-02 Unggah Sampah Makanan"]:::uc
+    UC03["UC-03 Klasifikasi Jenis Sampah"]:::uc
+    UC04["UC-04 AI Routing dan Alokasi"]:::uc
+    UC05["UC-05 Rute GIS dan Foto Bukti"]:::uc
+    UC06["UC-06 Verifikasi OTP Serah Terima"]:::uc
+    UC07["UC-07 Catat Penanganan"]:::uc
+    UC08["UC-08 Kelola Profil Penerima"]:::uc
+    UC09["UC-09 Notifikasi Multi-kanal"]:::uc
+    UC10["UC-10 Dashboard Monitoring dan Kepatuhan"]:::uc
+    UC11["UC-11 Manajemen Pengguna dan Audit"]:::uc
+    UC12["UC-12 Modul Motivasi Donor"]:::uc
+    UC13["UC-13 Konfigurasi Regulasi Daerah"]:::uc
+    UC14["UC-14 Traceability End-to-End"]:::uc
+  end
+  DBG --> UC01
+  DBG --> UC02
+  DBG --> UC12
+  DBG --> UC14
+  PEN --> UC08
+  PEN --> UC06
+  PEN --> UC07
+  PEN --> UC14
+  KUR --> UC01
+  KUR --> UC05
+  ADM --> UC10
+  ADM --> UC11
+  ADM --> UC13
+  ADM --> UC03
+  ADM --> UC04
+  SYS --> UC03
+  SYS --> UC04
+  SYS --> UC09
+  UC02 -.->|include| UC01
+  UC02 -.->|include| UC03
+  UC04 -.->|include| UC03
+  UC04 -.->|include| UC05
+  UC06 -.->|include| UC07
+  UC06 -.->|include| UC09
+  UC10 -.->|include| UC14
+  UC03 -.->|extend| UC11

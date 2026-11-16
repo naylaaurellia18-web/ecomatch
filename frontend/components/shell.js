@@ -23,8 +23,8 @@ export const NAV = {
     ['notif', 'bell', 'Notifikasi'],
     ['akun', 'key', 'Ganti Sandi'],
   ],
-  tps_pengolah: [
-    ['recipient', 'heart', 'Profil TPS'],
+  penerima: [
+    ['recipient', 'heart', 'Profil Penerima'],
     ['recipient-matches', 'key', 'Konfirmasi OTP'],
     ['gis', 'map', 'Peta GIS'],
     ['notif', 'bell', 'Notifikasi'],
@@ -50,7 +50,7 @@ export const TAB_TITLES = {
   'donor-listings': 'Stok Sampah',
   'donor-matches': 'Routing Saya',
   'donor-points': 'Poin & Insentif',
-  recipient: 'Profil TPS',
+  recipient: 'Profil Penerima',
   'recipient-matches': 'Konfirmasi OTP',
   courier: 'Tugas Kurir',
   akun: 'Ganti Kata Sandi',
@@ -174,7 +174,7 @@ export function renderNav(user, currentTab) {
 export function renderUser(user) {
   const name = user.nama || user.email || '-';
   const ini = initials(name);
-  const roleLabel = { admin: 'Admin', donor_mbg: 'Donor MBG', tps_pengolah: 'TPS Pengolah', kurir: 'Kurir' }[user.role] || user.role;
+  const roleLabel = { admin: 'Admin', donor_mbg: 'Donor MBG', penerima: 'Penerima', kurir: 'Kurir' }[user.role] || user.role;
 
   const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
   set('userName', name);

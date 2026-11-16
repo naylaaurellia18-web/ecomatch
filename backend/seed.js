@@ -13,16 +13,16 @@ const JENIS_DITERIMA_PENUH = ['sisa_nasi', 'sayur', 'lauk', 'kulit_buah', 'campu
 
 /**
  * Akun demo (lokal saja): role EcoMatch + koordinat Kota Madiun.
- * [nama, email, sandi, role, status, telepon, alamat, lat, lng, nama_lembaga, kapasitas]
+ * [nama, email, sandi, role, status, telepon, alamat, lat, lng, nama_lembaga, kapasitas, jenis_penerima]
  */
 const DEMO_USERS = [
-  ['SPPG Hotel Merdeka', 'donor@ecomatch.id', 'donor123', 'donor_mbg', 'aktif', REAL_PHONE, 'Kota Madiun', -7.6245, 111.525, 'Hotel Merdeka Madiun', null],
-  ['SPPG RM Nusantara', 'donor2@ecomatch.id', 'donor123', 'donor_mbg', 'aktif', REAL_PHONE, 'Kartoharjo', -7.6014, 111.4844, 'RM Nusantara Madiun', null],
-  ['TPS Kompos Kawatan', 'tps@ecomatch.id', 'tps123', 'tps_pengolah', 'aktif', REAL_PHONE, 'Kawatan', -7.6386, 111.5206, null, 150],
-  ['TPS Maggot Ngetan', 'tps2@ecomatch.id', 'tps123', 'tps_pengolah', 'aktif', REAL_PHONE, 'Ngetan', -7.5754, 111.4789, null, 100],
-  ['Kurir Budi', 'kurir@ecomatch.id', 'kurir123', 'kurir', 'aktif', REAL_PHONE, 'Balerejo', -7.5483, 111.5597, null, 60],
-  ['Kurir Siti', 'kurir2@ecomatch.id', 'kurir123', 'kurir', 'aktif', REAL_PHONE, 'Mejayan', -7.5519, 111.4536, null, 40],
-  ['Menunggu Verifikasi', 'pending@ecomatch.id', 'pending123', 'donor_mbg', 'menunggu', REAL_PHONE, 'Kota Madiun', null, null, 'Kafe Uji Coba Madiun', null],
+  ['SPPG Hotel Merdeka', 'donor@ecomatch.id', 'donor123', 'donor_mbg', 'aktif', REAL_PHONE, 'Kota Madiun', -7.6245, 111.525, 'Hotel Merdeka Madiun', null, null],
+  ['SPPG RM Nusantara', 'donor2@ecomatch.id', 'donor123', 'donor_mbg', 'aktif', REAL_PHONE, 'Kartoharjo', -7.6014, 111.4844, 'RM Nusantara Madiun', null, null],
+  ['Panti Asuhan Al-Hidayah', 'penerima@ecomatch.id', 'penerima123', 'penerima', 'aktif', REAL_PHONE, 'Kawatan', -7.6386, 111.5206, null, 150, 'panti_asuhan'],
+  ['Peternakan Makmur Jaya', 'peternakan@ecomatch.id', 'ternak123', 'penerima', 'aktif', REAL_PHONE, 'Ngetan', -7.5754, 111.4789, null, 100, 'peternakan'],
+  ['Kurir Budi', 'kurir@ecomatch.id', 'kurir123', 'kurir', 'aktif', REAL_PHONE, 'Balerejo', -7.5483, 111.5597, null, 60, null],
+  ['Kurir Siti', 'kurir2@ecomatch.id', 'kurir123', 'kurir', 'aktif', REAL_PHONE, 'Mejayan', -7.5519, 111.4536, null, 40, null],
+  ['Menunggu Verifikasi', 'pending@ecomatch.id', 'pending123', 'donor_mbg', 'menunggu', REAL_PHONE, 'Kota Madiun', null, null, 'Kafe Uji Coba Madiun', null, null],
 ];
 
 function productionAdmin() {
@@ -55,7 +55,7 @@ async function wipeTransactional({ keepUsers = false } = {}) {
     DELETE FROM sampah_makanan;
     DELETE FROM motivasi_donor_mbg;
     DELETE FROM profil_mbg;
-    DELETE FROM tps_pengolah;
+    DELETE FROM penerima;
     ${keepUsers ? '' : 'DELETE FROM "user";'}
     ${db.auditTriggerDDL()}
   `);
@@ -63,7 +63,7 @@ async function wipeTransactional({ keepUsers = false } = {}) {
     try {
       const seq = keepUsers
         ? ['sampah_makanan', 'klasifikasi_sampah', 'alokasi', 'pengolahan_log', 'motivasi_donor_mbg', 'kode_otp', 'notifikasi', 'outbox_pesan', 'log_audit', 'reset_sandi']
-        : ['user', 'profil_mbg', 'tps_pengolah', 'sampah_makanan', 'klasifikasi_sampah', 'alokasi', 'pengolahan_log', 'motivasi_donor_mbg', 'kode_otp', 'notifikasi', 'outbox_pesan', 'log_audit', 'reset_sandi'];
+        : ['user', 'profil_mbg', 'penerima', 'sampah_makanan', 'klasifikasi_sampah', 'alokasi', 'pengolahan_log', 'motivasi_donor_mbg', 'kode_otp', 'notifikasi', 'outbox_pesan', 'log_audit', 'reset_sandi'];
       await db.exec(`DELETE FROM sqlite_sequence WHERE name IN (${seq.map((t) => `'${t}'`).join(',')})`);
     } catch {
       /* cloud tanpa sqlite_sequence */
@@ -86,11 +86,11 @@ async function insertUser(u) {
       u[6],
       u[5],
     ]);
-  } else if (u[3] === 'tps_pengolah') {
+  } else if (u[3] === 'penerima') {
     await db.run(
-      `INSERT INTO tps_pengolah (id_user, nama_tps, jenis_tps, jenis_pengolahan, kapasitas_kg_hari, jenis_diterima, radius_layanan_km, izin_operasional)
-       VALUES (?, ?, 'tps_komposter', 'komposter', ?, ?, 15, ?)`,
-      [id, u[0], u[10] ?? 100, JSON.stringify(JENIS_DITERIMA_PENUH), `IZIN-${id}-MADIUN`]
+      `INSERT INTO penerima (id_user, nama_penerima, jenis_penerima, kapasitas_kg_hari, jenis_diterima, radius_layanan_km, izin_operasional)
+       VALUES (?, ?, ?, ?, ?, 15, ?)`,
+      [id, u[0], u[11] || 'lainnya', u[10] ?? 100, JSON.stringify(JENIS_DITERIMA_PENUH), `IZIN-${id}-MADIUN`]
     );
   }
   return id;
@@ -174,16 +174,17 @@ async function seed({ force = false, full = false, clean = false, accounts = fal
       [donor1, 'Sisa campuran nasi & lauk', 'campuran', 22.0, jamLalu(30)],
     ];
     for (const l of listings) {
-      const ins = await db.run(
-        `INSERT INTO sampah_makanan (id_donor, nama_sampah, jenis_makanan, berat_kg, waktu_produksi, foto_url, status)
-         VALUES (?, ?, ?, ?, ?, ?, 'tersedia')`,
-        [l[0], l[1], l[2], l[3], l[4], FOTO_PLACEHOLDER]
-      );
       const hasil = klasifikasiLib.klasifikasi({
         nama_sampah: l[1],
         jenis_makanan: l[2],
         waktu_produksi: l[4],
       });
+      const kelayakan = klasifikasiLib.saranLayak(hasil.tingkat_pembusukan) || 'layak';
+      const ins = await db.run(
+        `INSERT INTO sampah_makanan (id_donor, nama_sampah, jenis_makanan, berat_kg, waktu_produksi, foto_url, status, kelayakan)
+         VALUES (?, ?, ?, ?, ?, ?, 'tersedia', ?)`,
+        [l[0], l[1], l[2], l[3], l[4], FOTO_PLACEHOLDER, kelayakan]
+      );
       await db.run(
         `INSERT INTO klasifikasi_sampah (id_sampah, kategori, tingkat_pembusukan, skor_keyakinan, metode, alasan)
          VALUES (?, ?, ?, ?, ?, ?)`,
@@ -204,7 +205,8 @@ async function seed({ force = false, full = false, clean = false, accounts = fal
     console.log('Seed akun login saja — sampah/alokasi kosong (siap diisi dari nol).');
     console.log('  admin@ecomatch.id / admin123');
     console.log('  donor@ecomatch.id / donor123');
-    console.log('  tps@ecomatch.id / tps123');
+    console.log('  penerima@ecomatch.id / penerima123');
+    console.log('  peternakan@ecomatch.id / ternak123');
     console.log('  kurir@ecomatch.id / kurir123');
   } else {
     console.log('Seed fresh: hanya admin, data transaksi kosong.');

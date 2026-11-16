@@ -15,15 +15,15 @@ const fs = require('node:fs');
  *
  * Migrasi cutover (Fase 4): cutoverEcoMatch() mengubah skema versi lama
  * (role donor/penerima, tabel surplus_makanan/kebutuhan_pangan, alokasi lama)
- * menjadi skema EcoMatch (role donor_mbg/tps_pengolah, sampah_makanan,
- * tps_pengolah, alokasi final). Idempoten — dilewati bila sudah skema final.
+ * menjadi skema EcoMatch (role donor_mbg/penerima, sampah_makanan,
+ * penerima, alokasi final). Idempoten — dilewati bila sudah skema final.
  */
 const TABLE_USER = `CREATE TABLE IF NOT EXISTS user (
     id_user INTEGER PRIMARY KEY AUTOINCREMENT,
     nama TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'donor_mbg' CHECK (role IN ('donor_mbg','tps_pengolah','kurir','admin')),
+    role TEXT NOT NULL DEFAULT 'donor_mbg' CHECK (role IN ('donor_mbg','penerima','kurir','admin')),
     status TEXT NOT NULL DEFAULT 'menunggu' CHECK (status IN ('menunggu','aktif','ditolak')),
     telepon TEXT,
     alamat TEXT,
@@ -47,13 +47,11 @@ const TABLE_PROFIL_MBG = `CREATE TABLE IF NOT EXISTS profil_mbg (
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`;
 
-const TABLE_TPS = `CREATE TABLE IF NOT EXISTS tps_pengolah (
+const TABLE_PENERIMA = `CREATE TABLE IF NOT EXISTS penerima (
     id_user INTEGER PRIMARY KEY REFERENCES user(id_user),
-    nama_tps TEXT NOT NULL,
-    jenis_tps TEXT NOT NULL DEFAULT 'tps_3r'
-      CHECK (jenis_tps IN ('tps_3r','tps_komposter','tps_maggot','tps_eco_enzyme','bank_sampah','lainnya')),
-    jenis_pengolahan TEXT NOT NULL DEFAULT 'komposter'
-      CHECK (jenis_pengolahan IN ('komposter','maggot_bsf','eco_enzyme','bank_sampah','lainnya')),
+    nama_penerima TEXT NOT NULL,
+    jenis_penerima TEXT NOT NULL DEFAULT 'lainnya'
+      CHECK (jenis_penerima IN ('panti_asuhan','yayasan','rumah_dhuafa','peternakan','lainnya')),
     kapasitas_kg_hari REAL NOT NULL DEFAULT 0 CHECK (kapasitas_kg_hari >= 0),
     jenis_diterima TEXT NOT NULL DEFAULT '["lainnya"]',
     radius_layanan_km REAL NOT NULL DEFAULT 15,
@@ -71,6 +69,8 @@ const TABLE_SAMPAH = `CREATE TABLE IF NOT EXISTS sampah_makanan (
     berat_kg REAL NOT NULL CHECK (berat_kg > 0),
     waktu_produksi TEXT NOT NULL,
     foto_url TEXT,
+    kelayakan TEXT NOT NULL DEFAULT 'layak'
+      CHECK (kelayakan IN ('layak','tidak_layak')),
     status TEXT NOT NULL DEFAULT 'tersedia'
       CHECK (status IN ('tersedia','dialokasikan','dijemput','terkirim','terverifikasi','dibatalkan')),
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -94,7 +94,7 @@ const TABLE_KLASIFIKASI = `CREATE TABLE IF NOT EXISTS klasifikasi_sampah (
 const TABLE_ALOKASI = `CREATE TABLE IF NOT EXISTS alokasi (
     id_alokasi INTEGER PRIMARY KEY AUTOINCREMENT,
     id_sampah INTEGER NOT NULL REFERENCES sampah_makanan(id_sampah),
-    id_tps INTEGER NOT NULL REFERENCES tps_pengolah(id_user),
+    id_penerima INTEGER NOT NULL REFERENCES penerima(id_user),
     id_kurir INTEGER NOT NULL REFERENCES user(id_user),
     skor_matching REAL NOT NULL,
     skor_jenis_cocok REAL NOT NULL,
@@ -201,7 +201,7 @@ const SHARED_TABLES = [TABLE_KODE_OTP, TABLE_NOTIFIKASI, TABLE_LOG_AUDIT, TABLE_
 const SCHEMA_TABLES = [
   TABLE_USER,
   TABLE_PROFIL_MBG,
-  TABLE_TPS,
+  TABLE_PENERIMA,
   TABLE_SAMPAH,
   TABLE_KLASIFIKASI,
   TABLE_ALOKASI,
@@ -217,8 +217,8 @@ const SCHEMA_INDEX_STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS idx_sampah_status ON sampah_makanan(status)`,
   `CREATE INDEX IF NOT EXISTS idx_sampah_donor ON sampah_makanan(id_donor)`,
   `CREATE INDEX IF NOT EXISTS idx_klasifikasi_sampah ON klasifikasi_sampah(id_sampah)`,
-  `CREATE INDEX IF NOT EXISTS idx_tps_aktif ON tps_pengolah(aktif)`,
-  `CREATE INDEX IF NOT EXISTS idx_alokasi_tps ON alokasi(id_tps, status)`,
+  `CREATE INDEX IF NOT EXISTS idx_penerima_aktif ON penerima(aktif)`,
+  `CREATE INDEX IF NOT EXISTS idx_alokasi_penerima ON alokasi(id_penerima, status)`,
   `CREATE INDEX IF NOT EXISTS idx_alokasi_kurir ON alokasi(id_kurir, status)`,
   `CREATE INDEX IF NOT EXISTS idx_notifikasi_user ON notifikasi(id_user, dibaca_pada)`,
 ];
@@ -232,7 +232,7 @@ const PK_BY_TABLE = {
   outbox_pesan: 'id_pesan',
   reset_sandi: 'id_reset',
   profil_mbg: 'id_user',
-  tps_pengolah: 'id_user',
+  penerima: 'id_user',
   sampah_makanan: 'id_sampah',
   klasifikasi_sampah: 'id_klasifikasi',
   pengolahan_log: 'id_pengolahan',
@@ -285,10 +285,10 @@ const POSTGIS_VIEW = `
               THEN ST_SetSRID(ST_MakePoint(u.lng, u.lat), 4326)::geography END AS posisi
   FROM "user" u WHERE u.lat IS NOT NULL AND u.lng IS NOT NULL
   UNION ALL
-  SELECT 'tps_pengolah', t.id_user, t.nama_tps, u.lat, u.lng,
+  SELECT 'penerima', t.id_user, t.nama_penerima, u.lat, u.lng,
          CASE WHEN u.lat IS NOT NULL AND u.lng IS NOT NULL
               THEN ST_SetSRID(ST_MakePoint(u.lng, u.lat), 4326)::geography END
-  FROM tps_pengolah t JOIN "user" u ON u.id_user = t.id_user
+  FROM penerima t JOIN "user" u ON u.id_user = t.id_user
   WHERE u.lat IS NOT NULL AND u.lng IS NOT NULL AND t.aktif;
 `;
 
@@ -444,7 +444,7 @@ const MIGRATION_STATEMENTS = [
 const REGULASI_ATURAN =
   '{"bobot_routing":{"jenis_cocok":0.35,"kapasitas":0.25,"jarak":0.25,"urgensi":0.15},' +
   '"radius_layanan_km":15,"batas_skor":0.3,"target_alokasi_persen":85,' +
-  '"sla_routing_detik":3,"poin_per_kg":10,"larangan":["buang sampah makanan ke TPS biasa"]}';
+  '"sla_routing_detik":3,"poin_per_kg":10,"larangan":["menyalurkan sisa makanan layak di luar jalur resmi"]}'
 
 // ---------------------------------------------------------------------------
 // Penerjemah SQL -> PostgreSQL
@@ -607,7 +607,7 @@ async function cutoverPg() {
   try {
 
   // (0) tipe kolom aktif -> boolean (skema EcoMatch final)
-  for (const tabel of ['tps_pengolah', 'konfigurasi_regulasi']) {
+  for (const tabel of ['penerima', 'konfigurasi_regulasi']) {
     const info = await q(
       `SELECT data_type FROM information_schema.columns
         WHERE table_schema = 'public' AND table_name = $1 AND column_name = 'aktif'`,
@@ -621,7 +621,7 @@ async function cutoverPg() {
     }
   }
 
-  // (a) role user: donor -> donor_mbg, penerima -> tps_pengolah
+  // (a) role user: donor (SKPL lama) -> donor_mbg; role 'penerima' sudah final
   const roleCons = (
     await q(
       `SELECT conname, pg_get_constraintdef(oid) AS def
@@ -630,18 +630,19 @@ async function cutoverPg() {
          AND pg_get_constraintdef(oid) LIKE '%role%'`
     )
   ).rows;
-  const sudahEco = roleCons.some((c) => c.def.includes('donor_mbg'));
+  const sudahEco = roleCons.some(
+    (c) => c.def.includes('donor_mbg') && c.def.includes('penerima') && !c.def.includes('tps_pengolah')
+  );
   const roleLama = (
-    await q(`SELECT COUNT(*)::int AS c FROM "user" WHERE role IN ('donor','penerima')`)
+    await q(`SELECT COUNT(*)::int AS c FROM "user" WHERE role = 'donor'`)
   ).rows[0].c;
   if (!sudahEco || roleLama > 0) {
     for (const c of roleCons) await q(`ALTER TABLE "user" DROP CONSTRAINT "${c.conname}"`);
     await q(
-      `UPDATE "user" SET role = CASE role WHEN 'donor' THEN 'donor_mbg' WHEN 'penerima' THEN 'tps_pengolah' ELSE role END
-       WHERE role IN ('donor','penerima')`
+      `UPDATE "user" SET role = 'donor_mbg' WHERE role = 'donor'`
     );
     await q(
-      `ALTER TABLE "user" ADD CONSTRAINT user_role_check CHECK (role IN ('donor_mbg','tps_pengolah','kurir','admin'))`
+      `ALTER TABLE "user" ADD CONSTRAINT user_role_check CHECK (role IN ('donor_mbg','penerima','kurir','admin'))`
     );
     await q(`ALTER TABLE "user" ALTER COLUMN role SET DEFAULT 'donor_mbg'`);
     adaPerubahan = true;
@@ -662,17 +663,17 @@ async function cutoverPg() {
     adaPerubahan = true;
   }
 
-  // (c) akun penerima -> profil TPS Pengolah (nama_lembaga -> nama_tps)
+  // (c) akun penerima -> profil Penerima (nama_lembaga -> nama_penerima)
   await q(`
-    INSERT INTO tps_pengolah (id_user, nama_tps, kapasitas_kg_hari, jenis_diterima, radius_layanan_km, aktif, created_at)
+    INSERT INTO penerima (id_user, nama_penerima, kapasitas_kg_hari, jenis_diterima, radius_layanan_km, aktif, created_at)
     SELECT u.id_user, COALESCE(NULLIF(u.nama_lembaga, ''), u.nama), COALESCE(u.kapasitas, 100),
            '["sisa_nasi","sayur","lauk","kulit_buah","campuran","lainnya"]', 15, TRUE, u.created_at
     FROM "user" u
-    WHERE u.role = 'tps_pengolah'
-      AND NOT EXISTS (SELECT 1 FROM tps_pengolah t WHERE t.id_user = u.id_user)
+    WHERE u.role = 'penerima'
+      AND NOT EXISTS (SELECT 1 FROM penerima t WHERE t.id_user = u.id_user)
   `);
 
-  // (d) alokasi lama -> alokasi final (id_makanan/id_penerima -> id_sampah/id_tps)
+  // (d) alokasi lama -> alokasi final (id_makanan/id_penerima -> id_sampah/id_penerima)
   const kolomLama = (
     await q(
       `SELECT COUNT(*)::int AS c FROM information_schema.columns
@@ -690,7 +691,7 @@ async function cutoverPg() {
     await q(`ALTER TABLE alokasi RENAME TO alokasi_lama`);
     await q(toPg(TABLE_ALOKASI, { ddl: true }));
     await q(`
-      INSERT INTO alokasi (id_alokasi, id_sampah, id_tps, id_kurir, skor_matching, skor_jenis_cocok,
+      INSERT INTO alokasi (id_alokasi, id_sampah, id_penerima, id_kurir, skor_matching, skor_jenis_cocok,
                            skor_kapasitas, skor_jarak, skor_urgensi, jarak_km, rute_json, status,
                            foto_jemput, foto_antar, waktu_alokasi, updated_at)
       SELECT a.id_alokasi, a.id_makanan, a.id_penerima, a.id_kurir, a.skor_matching,
@@ -753,7 +754,7 @@ async function cutoverSqlite() {
           nama TEXT NOT NULL,
           email TEXT NOT NULL UNIQUE,
           password TEXT NOT NULL,
-          role TEXT NOT NULL DEFAULT 'donor_mbg' CHECK (role IN ('donor_mbg','tps_pengolah','kurir','admin')),
+          role TEXT NOT NULL DEFAULT 'donor_mbg' CHECK (role IN ('donor_mbg','penerima','kurir','admin')),
           status TEXT NOT NULL DEFAULT 'menunggu' CHECK (status IN ('menunggu','aktif','ditolak')),
           telepon TEXT,
           alamat TEXT,
@@ -767,7 +768,7 @@ async function cutoverSqlite() {
       await rawRun(
         `INSERT INTO user_ecomatch (id_user, nama, email, password, role, status, telepon, alamat, lat, lng, nama_lembaga, kapasitas, created_at)
          SELECT id_user, nama, email, password,
-                CASE role WHEN 'donor' THEN 'donor_mbg' WHEN 'penerima' THEN 'tps_pengolah' ELSE role END,
+                CASE role WHEN 'donor' THEN 'donor_mbg' WHEN 'penerima' THEN 'penerima' ELSE role END,
                 status, telepon, alamat, lat, lng, nama_lembaga, kapasitas, created_at
          FROM user`
       );
@@ -791,14 +792,14 @@ async function cutoverSqlite() {
       adaPerubahan = true;
     }
 
-    // (c) akun penerima -> profil TPS Pengolah
+    // (c) akun penerima -> profil Penerima
     await rawRun(
-      `INSERT INTO tps_pengolah (id_user, nama_tps, kapasitas_kg_hari, jenis_diterima, radius_layanan_km, aktif, created_at)
+      `INSERT INTO penerima (id_user, nama_penerima, kapasitas_kg_hari, jenis_diterima, radius_layanan_km, aktif, created_at)
        SELECT u.id_user, COALESCE(NULLIF(u.nama_lembaga, ''), u.nama), COALESCE(u.kapasitas, 100),
               '["sisa_nasi","sayur","lauk","kulit_buah","campuran","lainnya"]', 15, 1, u.created_at
        FROM user u
-       WHERE u.role = 'tps_pengolah'
-         AND NOT EXISTS (SELECT 1 FROM tps_pengolah t WHERE t.id_user = u.id_user)`
+       WHERE u.role = 'penerima'
+         AND NOT EXISTS (SELECT 1 FROM penerima t WHERE t.id_user = u.id_user)`
     );
 
     // (d) alokasi lama -> alokasi final
@@ -809,7 +810,7 @@ async function cutoverSqlite() {
         `CREATE TABLE alokasi_ecomatch (
           id_alokasi INTEGER PRIMARY KEY AUTOINCREMENT,
           id_sampah INTEGER NOT NULL REFERENCES sampah_makanan(id_sampah),
-          id_tps INTEGER NOT NULL REFERENCES tps_pengolah(id_user),
+          id_penerima INTEGER NOT NULL REFERENCES penerima(id_user),
           id_kurir INTEGER NOT NULL REFERENCES user(id_user),
           skor_matching REAL NOT NULL,
           skor_jenis_cocok REAL NOT NULL,
@@ -827,7 +828,7 @@ async function cutoverSqlite() {
         )`
       );
       await rawRun(
-        `INSERT INTO alokasi_ecomatch (id_alokasi, id_sampah, id_tps, id_kurir, skor_matching, skor_jenis_cocok,
+        `INSERT INTO alokasi_ecomatch (id_alokasi, id_sampah, id_penerima, id_kurir, skor_matching, skor_jenis_cocok,
                                        skor_kapasitas, skor_jarak, skor_urgensi, jarak_km, rute_json, status,
                                        foto_jemput, foto_antar, waktu_alokasi, updated_at)
          SELECT a.id_alokasi, a.id_makanan, a.id_penerima, a.id_kurir, a.skor_matching,
@@ -874,7 +875,7 @@ async function cutoverSqlite() {
 async function cutoverEcoMatch() {
   const berubah = isPg() ? await cutoverPg() : await cutoverSqlite();
   if (berubah) {
-    console.log('DB: cutover EcoMatch dijalankan (role donor_mbg/tps_pengolah, sampah_makanan, alokasi final).');
+    console.log('DB: cutover EcoMatch dijalankan (role donor_mbg/penerima, sampah_makanan, alokasi final).');
   }
 }
 

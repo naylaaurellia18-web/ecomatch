@@ -1,6 +1,6 @@
 /**
  * Routing Engine EcoMatch (FR-04, FR-13, NFR-02) — memilih kombinasi
- * sampah makanan MBG -> TPS Pengolah -> kurir.
+ * sampah makanan MBG -> Penerima -> kurir.
  *
  * Konfigurasi bobot/radius/batas skor dibaca dari config/routing.json
  * (jenis_cocok 0,35; kapasitas 0,25; jarak 0,25; urgensi 0,15; radius 15 km;
@@ -9,7 +9,7 @@
  *
  * Bentuk input (disiapkan routes/routing.js):
  *   sampah: { id_sampah, lat, lng, berat_kg, waktu_produksi, status, kategori?, tingkat_pembusukan? }
- *   tps:    { id_tps, lat, lng, jenis_diterima[], kapasitas_kg_hari, sisa_kapasitas_kg?, aktif }
+ *   tps:    { id_penerima, lat, lng, jenis_diterima[], kapasitas_kg_hari, sisa_kapasitas_kg?, aktif }
  *   kurir:  { id_kurir, lat, lng, kapasitas }
  */
 const { buildRoute, haversineKm } = require('./gis');
@@ -84,12 +84,18 @@ function isAktifNilai(v) {
   return v == null ? true : !(v === false || v === 0 || v === '0' || v === 'f' || v === false);
 }
 
-/** Skor satu kombinasi (sampah, TPS, kurir); {gugur: alasan} bila tersaring aturan. */
+/** Skor satu kombinasi (sampah, penerima, kurir); {gugur: alasan} bila tersaring aturan. */
 function hitungSkor(s, t, k, nowMs, config = cfg()) {
   const berat = Number(s.berat_kg || 0);
   if (berat <= 0) return { gugur: 'berat' };
   if ((s.status || 'tersedia') !== 'tersedia') return { gugur: 'status' };
-  if (!isAktifNilai(t.aktif)) return { gugur: 'tps_nonaktif' };
+  if (!isAktifNilai(t.aktif)) return { gugur: 'penerima_nonaktif' };
+
+  // Filter kelayakan (revisi): layak -> penerima non-peternakan; tidak layak -> peternakan
+  const kelayakan = s.kelayakan || 'layak';
+  const jenisPen = t.jenis_penerima || 'lainnya';
+  if (kelayakan === 'tidak_layak' && jenisPen !== 'peternakan') return { gugur: 'kelayakan' };
+  if (kelayakan === 'layak' && jenisPen === 'peternakan') return { gugur: 'kelayakan' };
 
   const km = haversineKm(s.lat, s.lng, t.lat, t.lng);
   if (km == null || km > Number(config.radius_layanan_km)) return { gugur: 'jarak' };
@@ -98,13 +104,13 @@ function hitungSkor(s, t, k, nowMs, config = cfg()) {
   const sJenis = skorJenisCocok(kategori, parseJenisDiterima(t.jenis_diterima));
   if (sJenis == null) return { gugur: 'jenis' };
 
-  let sisaTps = t.sisa_kapasitas_kg;
-  if (sisaTps == null) sisaTps = t.kapasitas_kg_hari || 0;
-  sisaTps = Number(sisaTps);
+  let sisaPenerima = t.sisa_kapasitas_kg;
+  if (sisaPenerima == null) sisaPenerima = t.kapasitas_kg_hari || 0;
+  sisaPenerima = Number(sisaPenerima);
   const kapKurir = Number(k.kapasitas || 0);
-  if (sisaTps <= 0 || kapKurir <= 0 || berat > sisaTps) return { gugur: 'kapasitas' };
+  if (sisaPenerima <= 0 || kapKurir <= 0 || berat > sisaPenerima) return { gugur: 'kapasitas' };
 
-  const rasio = Math.min(sisaTps / berat, kapKurir / berat);
+  const rasio = Math.min(sisaPenerima / berat, kapKurir / berat);
   const sKap = skorKapasitas(rasio);
   const sJar = skorJarak(km);
   const tingkat = tingkatSampah(s, nowMs);
@@ -128,23 +134,23 @@ function hitungSkor(s, t, k, nowMs, config = cfg()) {
 }
 
 /** Greedy assignment: kandidat diurutkan skor tertinggi; 1 sampah - 1 TPS - 1 kurir. */
-function hitungRouting(sampahList, tpsList, kurirList, nowMs = Date.now(), config = cfg()) {
+function hitungRouting(sampahList, penerimaList, kurirList, nowMs = Date.now(), config = cfg()) {
   const batas = Number(config.batas_skor);
 
-  const sisaTpsMap = new Map();
-  for (const t of tpsList) {
+  const sisaPenerimaMap = new Map();
+  for (const t of penerimaList) {
     let sisa = t.sisa_kapasitas_kg;
     if (sisa == null) sisa = t.kapasitas_kg_hari || 0;
-    sisaTpsMap.set(t.id_tps ?? t.id_user, Number(sisa));
+    sisaPenerimaMap.set(t.id_penerima ?? t.id_user, Number(sisa));
   }
 
   const kandidat = [];
-  const gugur = { status: 0, jarak: 0, jenis: 0, kapasitas: 0, skor: 0 };
+  const gugur = { status: 0, jarak: 0, jenis: 0, kapasitas: 0, kelayakan: 0, skor: 0 };
 
   for (const s of sampahList) {
-    for (const t of tpsList) {
-      const tid = t.id_tps ?? t.id_user;
-      const t2 = { ...t, sisa_kapasitas_kg: sisaTpsMap.get(tid) ?? 0 };
+    for (const t of penerimaList) {
+      const tid = t.id_penerima ?? t.id_user;
+      const t2 = { ...t, sisa_kapasitas_kg: sisaPenerimaMap.get(tid) ?? 0 };
       for (const k of kurirList) {
         const hasil = hitungSkor(s, t2, k, nowMs, config);
         if (hasil.gugur) {
@@ -157,7 +163,7 @@ function hitungRouting(sampahList, tpsList, kurirList, nowMs = Date.now(), confi
         }
         kandidat.push({
           id_sampah: s.id_sampah,
-          id_tps: tid,
+          id_penerima: tid,
           id_kurir: k.id_kurir ?? k.id_user,
           skor_matching: hasil.skor_matching,
           skor_jenis_cocok: hasil.skor_jenis_cocok,
@@ -180,12 +186,12 @@ function hitungRouting(sampahList, tpsList, kurirList, nowMs = Date.now(), confi
   for (const c of kandidat) {
     if (dipakaiSampah.has(c.id_sampah)) continue;
     if (dipakaiKurir.has(c.id_kurir)) continue;
-    const sisa = sisaTpsMap.get(c.id_tps) ?? 0;
+    const sisa = sisaPenerimaMap.get(c.id_penerima) ?? 0;
     if (sisa <= 0) continue;
     const s = sampahList.find((x) => x.id_sampah === c.id_sampah);
     const berat = Number(s?.berat_kg || 0);
     if (berat > sisa) continue;
-    sisaTpsMap.set(c.id_tps, sisa - berat);
+    sisaPenerimaMap.set(c.id_penerima, sisa - berat);
     dipakaiSampah.add(c.id_sampah);
     dipakaiKurir.add(c.id_kurir);
     alokasi.push(c);
@@ -200,24 +206,24 @@ function hitungRouting(sampahList, tpsList, kurirList, nowMs = Date.now(), confi
     rata_rata_skor: rata2,
     kandidat: kandidat.length,
     kandidat_gugur: gugur,
-    sisa_kapasitas_tps: Object.fromEntries([...sisaTpsMap].map(([k, v]) => [String(k), Number(v.toFixed(2))])),
+    sisa_kapasitas_penerima: Object.fromEntries([...sisaPenerimaMap].map(([k, v]) => [String(k), Number(v.toFixed(2))])),
   };
 }
 
-/** Sisipkan rute (OSRM/haversine) kurir -> dapur MBG -> TPS Pengolah. */
+/** Sisipkan rute (OSRM/haversine) kurir -> dapur MBG -> Penerima. */
 async function lampirkanRute(alokasiList, { sampah, tps, kurir }) {
   const sampahMap = new Map(sampah.map((s) => [s.id_sampah, s]));
-  const tpsMap = new Map(tps.map((t) => [t.id_tps ?? t.id_user, t]));
+  const tpsMap = new Map(tps.map((t) => [t.id_penerima ?? t.id_user, t]));
   const kurirMap = new Map(kurir.map((k) => [k.id_kurir ?? k.id_user, k]));
   await Promise.all(
     alokasiList.map(async (a) => {
       const s = sampahMap.get(a.id_sampah);
-      const t = tpsMap.get(a.id_tps);
+      const t = tpsMap.get(a.id_penerima);
       const k = kurirMap.get(a.id_kurir);
       if (!s || !t || !k) return;
       const rute = await buildRoute({
         donor: { nama: s.nama_sampah || s.nama_donor || 'Dapur MBG', lat: s.lat, lng: s.lng },
-        penerima: { nama: t.nama_tps || 'TPS Pengolah', lat: t.lat, lng: t.lng },
+        penerima: { nama: t.nama_penerima || 'Penerima', lat: t.lat, lng: t.lng },
         kurir: { nama: k.nama || 'Kurir', lat: k.lat, lng: k.lng },
       });
       a.rute_json = JSON.stringify(rute);
@@ -245,18 +251,21 @@ async function runRouting({ sampah = [], tps = [], kurir = [], nowMs = Date.now(
     kandidat: hasil.kandidat,
     kandidat_gugur: hasil.kandidat_gugur,
     kandidat_input: { sampah: sampah.length, tps: tps.length, kurir: kurir.length },
-    sisa_kapasitas_tps: hasil.sisa_kapasitas_tps,
+    sisa_kapasitas_penerima: hasil.sisa_kapasitas_penerima,
     alokasi: hasil.alokasi,
   };
 }
 
 /**
  * Klasifikasi hibrida (FR-11): Python dulu (/v1/classify), fallback JS lokal.
+ * Selalu menyertakan saran_layak (layak/tidak_layak) dari tingkat pembusukan.
  */
 async function classifyWaste(payload, nowMs = Date.now()) {
   const hasilPy = await hitClassify({ ...payload, now: nowMs });
-  if (hasilPy) return { ...hasilPy, mesin: 'python-fastapi' };
-  return { ...klasifikasiLib.klasifikasi(payload, nowMs), mesin: 'javascript-fallback' };
+  const base = hasilPy || klasifikasiLib.klasifikasi(payload, nowMs);
+  const mesin = hasilPy ? 'python-fastapi' : 'javascript-fallback';
+  const saran = base.saran_layak || klasifikasiLib.saranLayak(base.tingkat_pembusukan);
+  return { ...base, saran_layak: saran, mesin };
 }
 
 function engineStatus() {

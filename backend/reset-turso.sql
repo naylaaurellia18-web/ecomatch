@@ -24,7 +24,7 @@ DELETE FROM sampah_makanan;
 DELETE FROM motivasi_donor_mbg;
 -- OPSI A: komentar dua baris berikut agar profil TPS/MBG dipertahankan
 DELETE FROM profil_mbg;
-DELETE FROM tps_pengolah;
+DELETE FROM penerima;
 -- OPSI A: komentar baris berikut agar akun login dipertahankan
 DELETE FROM "user";
 

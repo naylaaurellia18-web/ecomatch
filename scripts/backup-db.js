@@ -21,7 +21,7 @@ const TABLES = [
   'outbox_pesan',
   'log_audit',
   'profil_mbg',
-  'tps_pengolah',
+  'penerima',
   'sampah_makanan',
   'klasifikasi_sampah',
   'pengolahan_log',

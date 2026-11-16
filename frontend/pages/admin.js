@@ -5,7 +5,7 @@ import { kpiCard, kpiGrid } from '../components/kpi.js';
 
 async function usersView() {
   const users = await api('/api/admin/users');
-  return `${pageHead('Pengguna', 'Verifikasi, tolak, atau hapus akun donor MBG, TPS pengolah, dan kurir')}
+  return `${pageHead('Pengguna', 'Verifikasi, tolak, atau hapus akun donor MBG, penerima, dan kurir')}
   <div class="section"><div class="card">
     ${
       users.length <= 1
@@ -42,7 +42,7 @@ async function matchesView() {
   const rows = await api('/api/routing');
   return `${pageHead(
     'Routing AI',
-    'Sampah makanan dialokasikan ke TPS pengolah &amp; kurir terdekat',
+    'Sampah makanan dialokasikan ke penerima &amp; kurir terdekat',
     `<button class="btn btn-primary" data-post="/api/routing/run">${icon('sparkles', 15)} Jalankan Routing</button>`
   )}
   <div class="section"><div class="card">
@@ -52,16 +52,16 @@ async function matchesView() {
     </div>
     ${
       rows.length === 0
-        ? emptyHtml('Belum ada alokasi', 'Catat sampah makanan & daftarkan TPS dulu, lalu jalankan routing AI.')
+        ? emptyHtml('Belum ada alokasi', 'Catat sampah makanan & daftarkan penerima dulu, lalu jalankan routing AI.')
         : `<div class="table-wrap" style="border:none">
       <table class="table">
-        <thead><tr><th>#</th><th>Sampah → TPS</th><th>Kurir</th><th>Skor</th><th>Jarak</th><th>Status</th></tr></thead>
+        <thead><tr><th>#</th><th>Sampah → Penerima</th><th>Kurir</th><th>Skor</th><th>Jarak</th><th>Status</th></tr></thead>
         <tbody>
         ${rows
           .map(
             (m) => `<tr>
           <td data-label="#" class="muted">${m.id_alokasi}</td>
-          <td data-label="Sampah → TPS"><b>${esc(m.nama_sampah)}</b> (${m.berat_kg} kg) ${statusTag(m.kategori || m.jenis_makanan)}<br>→ ${esc(m.nama_tps)} ${m.tingkat_pembusukan ? statusTag(m.tingkat_pembusukan) : ''}<br><span class="muted">${esc(m.nama_donor)} → ${esc(m.nama_tps)}</span></td>
+          <td data-label="Sampah → Penerima"><b>${esc(m.nama_sampah)}</b> (${m.berat_kg} kg) ${statusTag(m.kategori || m.jenis_makanan)}<br>→ ${esc(m.nama_penerima)} ${m.tingkat_pembusukan ? statusTag(m.tingkat_pembusukan) : ''}<br><span class="muted">${esc(m.nama_donor)} → ${esc(m.nama_penerima)}</span></td>
           <td data-label="Kurir">${esc(m.nama_kurir)}</td>
           <td data-label="Skor">
             <b>${m.skor_persen}%</b>

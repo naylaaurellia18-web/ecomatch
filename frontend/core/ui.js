@@ -93,7 +93,7 @@ export function fmtPct(n) {
 
 export const ROLE_LABEL = {
   donor_mbg: 'Donor MBG',
-  tps_pengolah: 'TPS Pengolah',
+  penerima: 'Penerima',
   kurir: 'Kurir',
   admin: 'Admin',
 };
@@ -113,7 +113,7 @@ const STATUS_MAP = {
   rendah: ['badge', 'Rendah'], basah: ['badge-info', 'Makanan Basah'],
   kering: ['badge-warning', 'Makanan Kering'], donor: ['badge-info', 'Donor'],
   penerima: ['badge-success', 'Penerima'], donor_mbg: ['badge-info', 'Donor MBG'],
-  tps_pengolah: ['badge-success', 'TPS Pengolah'], kurir: ['badge-warning', 'Kurir'],
+  penerima: ['badge-success', 'Penerima'], kurir: ['badge-warning', 'Kurir'],
   admin: ['badge-primary', 'Admin'],
   nasi: ['badge-info', 'Nasi'], sayur: ['badge-success', 'Sayur'],
   lauk: ['badge-warning', 'Lauk'], buah: ['badge-success', 'Buah'],

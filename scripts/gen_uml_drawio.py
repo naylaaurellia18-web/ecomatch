@@ -6,7 +6,7 @@ Sumber diagram:
   - 10 blok mermaid dari docs/arsitektur/Dokumen_Arsitektur_Sistem_EcoMatch_v2.0.md
   - 2 diagram baru hasil turunan kode backend:
       sequence-compliance     <- backend/routes/compliance.js (FR-14, FR-17)
-      activity-pengolahan-tps <- backend/routes/tps.js POST /:id/log (FR-08)
+      activity-pengolahan-tps <- backend/routes/penerima.js POST /:id/log (FR-12)
 
 Pemakaian: python scripts/gen_uml_drawio.py
 """
@@ -16,8 +16,8 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-DOC = r'C:\Users\nuy07\ecomatch\docs\arsitektur\Dokumen_Arsitektur_Sistem_EcoMatch_v2.0.md'
-OUT = r'C:\Users\nuy07\ecomatch\docs\arsitektur\UML_EcoMatch.drawio'
+DOC = r'D:\ecomatch\docs\arsitektur\Dokumen_Arsitektur_Sistem_EcoMatch_v2.0.md'
+OUT = r'D:\ecomatch\docs\arsitektur\UML_EcoMatch.drawio'
 
 SRC_COMPLIANCE = '''sequenceDiagram
     autonumber
@@ -30,18 +30,18 @@ SRC_COMPLIANCE = '''sequenceDiagram
     API->>DB: agregat alokasi, sampah, klasifikasi, pengolahan_log
     API->>DB: konfigurasi_regulasi aktif (KOTA_MADIUN)
     DB-->>API: ringkasan + aturan daerah
-    API-->>A: 200 kg_dialihkan, alokasi, tps, klasifikasi, target
+    API-->>A: 200 kg_dialihkan, alokasi, penerima, klasifikasi, target
 
     alt ALT: laporan ketertelusuran (maks 500 baris)
         A->>API: GET /api/compliance/report
-        API->>DB: JOIN alokasi -> sampah -> tps -> klasifikasi -> pengolahan_log
+        API->>DB: JOIN alokasi -> sampah -> penerima -> klasifikasi -> pengolahan_log
         DB-->>API: baris terbaru
         API-->>A: 200 baris laporan + regulasi
     else ALT: telusuri satu entitas
         A->>API: GET /api/compliance/trace/:id
         API->>DB: SELECT alokasi / sampah + log_audit terkait
         DB-->>API: detail + riwayat
-        API-->>A: 200 jejak digital sampah ke TPS
+        API-->>A: 200 jejak digital sampah ke penerima
     end
 
     opt OPT: daftar regulasi daerah
@@ -52,15 +52,15 @@ SRC_COMPLIANCE = '''sequenceDiagram
     end'''
 
 SRC_PENGOLAHAN = '''flowchart TD
-    Start([Mulai - TPS mencatat hasil pengolahan]) --> A["TPS isi form hasil olah<br/>POST /api/tps/:id/log<br/>id_alokasi, input_kg, output_kg, output_jenis, foto_bukti"]
-    A --> B{"requireRole tps_pengolah / admin?"}
+    Start([Mulai - Penerima mencatat penanganan]) --> A["Penerima isi form penanganan<br/>POST /api/penerima/:id/log<br/>id_alokasi, input_kg, output_kg, output_jenis, foto_bukti"]
+    A --> B{"requireRole penerima / admin?"}
     B -->|Bukan pemilik: 403| Z([Selesai - gagal])
-    B -->|Sesuai| C{"Alokasi milik TPS ini dan status<br/>terkirim / terverifikasi?"}
+    B -->|Sesuai| C{"Alokasi milik penerima ini dan status<br/>terkirim / terverifikasi?"}
     C -->|Tidak: 400/403/404| Z
     C -->|Valid| D{"input_kg >= 0, output_kg valid,<br/>output_jenis sesuai enum?"}
     D -->|Invalid: 400| Z
     D -->|Valid| E["INSERT pengolahan_log<br/>+ audit LOG_PENGOLAHAN"]
-    E --> F([201 Log pengolahan dicatat])'''
+    E --> F([201 Catatan penanganan dicatat])'''
 
 PAGES = [
     ('arsitektur-3tier-ecomatch', 'flow', 0),

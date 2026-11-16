@@ -13,7 +13,7 @@ function photoField(m, kind) {
     <div class="row row-2 row-wrap" style="align-items:center">
       <input class="input" type="file" name="${name}" accept="image/*" capture="environment" required style="max-width:340px" />
       <button class="btn btn-primary btn-capture" type="submit" style="flex:1;min-width:220px">
-        ${icon(isPickup ? 'camera' : 'check', 18)} ${isPickup ? 'Foto & jemput' : 'Tandai sampai di TPS'}
+        ${icon(isPickup ? 'camera' : 'check', 18)} ${isPickup ? 'Foto & jemput' : 'Tandai sampai di penerima'}
       </button>
     </div>
   </form>`;
@@ -43,7 +43,7 @@ function taskCard(m) {
     <div class="row row-between row-wrap" style="align-items:flex-start">
       <div class="grow">
         <div style="font-weight:700">Alokasi #${m.id_alokasi}: ${esc(m.nama_sampah)} — ${m.berat_kg} kg ${statusTag(m.kategori || m.jenis_makanan)}</div>
-        <div class="t-sm muted">Untuk ${esc(m.nama_tps)} · Skor ${m.skor_persen ?? ''}% · Jarak ${m.jarak_km} km</div>
+        <div class="t-sm muted">Untuk ${esc(m.nama_penerima)} · Skor ${m.skor_persen ?? ''}% · Jarak ${m.jarak_km} km</div>
       </div>
       ${statusTag(m.status)}
     </div>
@@ -53,7 +53,7 @@ function taskCard(m) {
     ${routeBlock(m.rute)}
 
     <p class="muted t-xs" style="margin-top:8px">Jemput: (${m.lat_donor ?? '—'}, ${m.lng_donor ?? '—'})<br>
-    Antar: ${esc(m.nama_tps)} (${m.lat_tps ?? '—'}, ${m.lng_tps ?? '—'})</p>
+    Antar: ${esc(m.nama_penerima)} (${m.lat_penerima ?? '—'}, ${m.lng_penerima ?? '—'})</p>
 
     ${photos.length
       ? `<div class="task-photos">${photos.map((p) => `<img src="${p}" alt="Bukti penjemputan/pengantaran" />`).join('')}</div>`
@@ -61,7 +61,7 @@ function taskCard(m) {
 
     ${m.status === 'dialokasikan' ? photoField(m, 'jemput') : ''}
     ${m.status === 'dijemput' ? photoField(m, 'antar') : ''}
-    ${m.status === 'terkirim' ? `<div class="muted t-sm" style="margin-top:10px">${icon('clock', 14)} Menunggu TPS memasukkan OTP…</div>` : ''}
+    ${m.status === 'terkirim' ? `<div class="muted t-sm" style="margin-top:10px">${icon('clock', 14)} Menunggu penerima memasukkan OTP…</div>` : ''}
   </div>`;
 }
 
@@ -69,8 +69,8 @@ async function courierView() {
   const rows = await api('/api/routing');
   const active = rows.filter((m) => ['dialokasikan', 'dijemput', 'terkirim'].includes(m.status));
 
-  return `${pageHead('Tugas Kurir', 'Ambil foto kondisi sampah, antar ke TPS, dan tandai status pengiriman')}
-  ${flowStripHtml(['Terima tugas', 'Foto & jemput', 'Antar & tandai sampai', 'TPS OTP → selesai'])}
+  return `${pageHead('Tugas Kurir', 'Ambil foto kondisi sampah, antar ke penerima, dan tandai status pengiriman')}
+  ${flowStripHtml(['Terima tugas', 'Foto & jemput', 'Antar & tandai sampai', 'OTP penerima → selesai'])}
   <div class="section"><div class="card">
     <div class="card-head"><div><h2>Tugas aktif</h2></div></div>
     <div class="stack stack-4">
@@ -85,14 +85,14 @@ async function courierView() {
         ? emptyHtml('Belum ada riwayat', '')
         : `<div class="table-wrap" style="border:none">
       <table class="table">
-        <thead><tr><th>#</th><th>Sampah</th><th>TPS</th><th>Skor</th><th>Jarak</th><th>Status</th></tr></thead>
+        <thead><tr><th>#</th><th>Sampah</th><th>Penerima</th><th>Skor</th><th>Jarak</th><th>Status</th></tr></thead>
         <tbody>
         ${rows
           .map(
             (m) => `<tr>
 <td data-label="#" class="muted">${m.id_alokasi}</td>
 <td data-label="Sampah">${esc(m.nama_sampah)}</td>
-<td data-label="TPS">${esc(m.nama_tps)}</td>
+<td data-label="Penerima">${esc(m.nama_penerima)}</td>
 <td data-label="Skor"><b>${m.skor_persen ?? ''}%</b></td>
 <td data-label="Jarak">${m.jarak_km} km</td>
 <td data-label="Status">${statusTag(m.status)}</td>

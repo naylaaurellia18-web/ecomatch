@@ -20,7 +20,7 @@ async function aksesSampah(req, idSampah) {
   if (s.id_donor === req.user.id) return true;
   const alokasi = await db.get(
     `SELECT id_alokasi FROM alokasi
-      WHERE id_sampah = ? AND status != 'dibatalkan' AND (id_kurir = ? OR id_tps = ?)
+      WHERE id_sampah = ? AND status != 'dibatalkan' AND (id_kurir = ? OR id_penerima = ?)
       LIMIT 1`,
     [idSampah, req.user.id, req.user.id]
   );

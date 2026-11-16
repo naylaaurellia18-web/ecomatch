@@ -1,6 +1,6 @@
 # DOKUMEN ARSITEKTUR SISTEM — EcoMatch
-### Platform AI Routing Sampah Makanan MBG ke TPS Pengolah (Studi Kasus: Kota Madiun)
-**Tagline:** *"AI pilih TPS, sampah terolah."* · **Versi:** 2.0 (refactor dari Dokumen Arsitektur Sistem versi lama v1.1)
+### Platform AI Routing Sampah Makanan MBG ke Penerima (Studi Kasus: Kota Madiun)
+**Tagline:** *"AI pilih penerima, sisa makanan tersalurkan."* · **Versi:** 2.0 (refactor dari Dokumen Arsitektur Sistem versi lama v1.1)
 **Dasar:** SKPL EcoMatch (17 FR + 11 NFR) · **Kode:** `C:\Users\nuy07\ecomatch`
 
 ---
@@ -8,18 +8,18 @@
 ## 0. Latar Belakang, Aktor & Gambaran Sistem
 
 ### 0.1 Latar Belakang
-Program **MBG (Makan Bergizi Gratis)** di Kota Madiun menghasilkan **sampah makanan** setiap hari dari dapur/SPPG (nasi sisa, sayur, lauk, kulit buah, campuran). Berdasarkan regulasi daerah, **TPS (Tempat Pembuangan Sementara) biasa sudah tidak boleh / tidak bisa menerima sampah organik**, sehingga sampah makanan MBG **tidak dapat dibuang ke TPS biasa** dan harus dikirim ke **TPS Pengolah yang masih bisa & mau mengolah**: TPS 3R, TPS komposter, TPS dengan unit Maggot BSF, TPS dengan unit Eco-enzyme, bank sampah organik, atau unit pengolahan sampah makanan lain di bawah dinas terkait.
+Program **MBG (Makan Bergizi Gratis)** di Kota Madiun menghasilkan **sampah makanan** setiap hari dari dapur/SPPG (nasi sisa, sayur, lauk, kulit buah, campuran). Berdasarkan regulasi daerah, **TPS (Tempat Pembuangan Sementara) biasa sudah tidak boleh / tidak bisa menerima sampah organik**, sehingga sampah makanan MBG **tidak dapat dibuang ke TPS biasa** dan harus disalurkan ke **Penerima**: **panti asuhan / yayasan / rumah dhuafa bila LAYAK konsumsi**, dan **peternakan bila TIDAK LAYAK konsumsi** (diolah jadi pakan), atau lembaga lain (`lainnya`) di bawah dinas terkait.
 
-**Masalah:** pengelola MBG tidak tahu TPS mana yang mampu menampung sampah makanannya, jarak & kapasitasnya bagaimana, dan bagaimana membuktikan kepatuhan regulasi ke Pemkot Madiun.
-**Solusi EcoMatch:** AI mengklasifikasi jenis sampah lalu **merutekan** sampah MBG ke **TPS Pengolah terbaik** (jenis olahan cocok, kapasitas tersisa, jarak terdekat, urgensi pembusukan), dilengkapi pelacakan (traceability) dan laporan kepatuhan.
-**Alur inti:** MBG unggah sampah → AI klasifikasi → AI routing → TPS Pengolah terpilih → kurir jemput & antar → TPS olah → laporan kepatuhan ke Pemkot Madiun.
+**Masalah:** pengelola MBG tidak tahu penerima mana yang layak & mampu menampung sisa makanannya, kelayakan konsumsinya bagaimana, jarak & kapasitasnya seperti apa, dan bagaimana membuktikan kepatuhan regulasi ke Pemkot Madiun.
+**Solusi EcoMatch:** AI mengklasifikasi jenis sampah + **saran kelayakan konsumsi** lalu **merutekan** sisa makanan MBG ke **Penerima terbaik** (kelayakan cocok, jenis diterima cocok, kapasitas tersisa, jarak terdekat, urgensi pembusukan), dilengkapi pelacakan (traceability) dan laporan kepatuhan.
+**Alur inti:** MBG unggah sampah (+ kelayakan) → AI klasifikasi + saran kelayakan → AI routing (filter kelayakan) → Penerima terpilih → kurir jemput & antar → penerima menyalurkan/mencatat penanganan → laporan kepatuhan ke Pemkot Madiun.
 
 ### 0.2 Aktor Sistem
 | # | Aktor | Peran dalam EcoMatch |
 |---|-------|----------------------|
 | 1 | **Donor — Pengelola MBG / SPPG** | Dapur Makan Bergizi Gratis yang menghasilkan & mengunggah sampah makanan; wajib menyalurkan agar patuh regulasi, menghindari sanksi/denda, bukti kepatuhan laporan ke Pemkot, citra baik CSR, sertifikat & poin |
-| 2 | **Penerima — TPS Pengolah** | TPS/unit pengolah di Kota Madiun yang masih bisa menerima & mengolah sampah makanan: TPS 3R, TPS komposter, TPS maggot BSF, TPS eco-enzyme, bank sampah organik, unit pengolahan sampah makanan |
-| 3 | **Kurir / Relawan** | Penjemput di dapur MBG & pengantar sampah ke TPS Pengolah (foto bukti + OTP) |
+| 2 | **Penerima** | Lembaga penerima sisa makanan MBG di Kota Madiun: panti asuhan, yayasan, rumah dhuafa (untuk sisa **LAYAK** konsumsi), peternakan (untuk sisa **TIDAK LAYAK** konsumsi), atau lainnya |
+| 3 | **Kurir / Relawan** | Penjemput di dapur MBG & pengantar sampah ke penerima (foto bukti + OTP) |
 | 4 | **Administrator** | Verifikasi akun & klasifikasi, menjalankan AI routing, konfigurasi regulasi, kelola platform |
 | 5 | **Sistem** | Job terjadwal: auto-expire sampah, notifikasi, agregasi laporan kepatuhan |
 
@@ -38,7 +38,7 @@ Program **MBG (Makan Bergizi Gratis)** di Kota Madiun menghasilkan **sampah maka
 flowchart TB
     subgraph CLIENT["Client Tier (PWA / Browser)"]
         A1["Donor MBG / SPPG - PWA"]
-        A2["TPS Pengolah - PWA"]
+        A2["Penerima - PWA"]
         A3["Kurir / Relawan - PWA"]
         A4["Admin - Web Dashboard"]
         MAP["Leaflet + OpenStreetMap (GIS)"]
@@ -46,7 +46,7 @@ flowchart TB
 
     subgraph APP["Application Tier (Node.js + Express)"]
         GW["API Gateway / Express<br/>backend/app.js - CORS, CSP, HSTS, rate-limit"]
-        AUTH["AuthService<br/>JWT + bcrypt + RBAC (donor_mbg / tps_pengolah / kurir / admin)"]
+        AUTH["AuthService<br/>JWT + bcrypt + RBAC (donor_mbg / penerima / kurir / admin)"]
         CLASS["Classification Service<br/>klasifikasi jenis sampah (rule-based / admin verifikasi)"]
         ROUTE["AI Routing Engine<br/>backend/lib/routing.js + config/routing.json"]
         GIS["GIS Service<br/>backend/lib/gis.js (haversine + OSRM + PostGIS)"]
@@ -96,23 +96,23 @@ flowchart TB
 
 | Kode | Fitur (SKPL EcoMatch) | Endpoint | Tabel DB | Logic utama | Tech pendukung |
 |------|------------------------|----------|----------|-------------|----------------|
-| **FR-01** | Autentikasi & RBAC (MBG, TPS Pengolah, Kurir, Admin) | `POST /api/auth/register` · `POST /api/auth/login` · `POST /api/auth/forgot` · `POST /api/auth/reset` | `user`, `reset_sandi` | Register pilih role `donor_mbg\|tps_pengolah\|kurir` → `status='menunggu'`; admin verifikasi | **bcryptjs**, **JWT HS256**, **RBAC** `requireRole([...])`, rate-limit |
-| **FR-02** | Unggah sampah makanan (MBG input jenis, berat, foto) | `POST /api/waste` · `GET /api/waste/mine` · `GET /api/waste/:id` · `PATCH /api/waste/:id` · `DELETE /api/waste/:id` | `sampah_makanan` | Simpan jenis_makanan, berat_kg, waktu_produksi, foto; status `tersedia` | **multer** 1 MB + magic-bytes, **Cloudinary/base64** |
-| **FR-03** | Profil TPS Pengolah (jenis olahan, kapasitas, jenis diterima) | `GET /api/tps/me` · `PATCH /api/tps/me` | `tps_pengolah` | jenis_tps, jenis_pengolahan, kapasitas_kg_hari, jenis_diterima (JSON array) | validasi `lib/validate.js`, RBAC `tps_pengolah` |
-| **FR-04** | AI Routing — cari TPS Pengolah terbaik untuk sampah MBG | `POST /api/routing/run` (admin) · `GET /api/routing` · `GET /api/routing/:id/explain` | `alokasi` (4 sub-skor + `jarak_km` + `rute_json`) | Filter TPS aktif → skor multi-kriteria (jenis_cocok, kapasitas, jarak, urgensi) → greedy | **Routing Engine** `lib/routing.js` + `config/routing.json`; mesin Python (`ai`) |
-| **FR-05** | Rute GIS (MBG → TPS Pengolah) | `GET /api/geo` · `GET /api/geo/nearby` · rute di `alokasi.rute_json` | `alokasi.rute_json`, view `v_lokasi_geospasial` | `haversineKm()` + **OSRM** (rute jalan) + `buildRoute()` kurir→MBG→TPS | **Leaflet + OpenStreetMap**, **OSRM**, **PostGIS** `ST_DWithin`/`ST_Distance` |
+| **FR-01** | Autentikasi & RBAC (MBG, Penerima, Kurir, Admin) | `POST /api/auth/register` · `POST /api/auth/login` · `POST /api/auth/forgot` · `POST /api/auth/reset` | `user`, `reset_sandi` | Register pilih role `donor_mbg\|penerima\|kurir` → `status='menunggu'`; admin verifikasi | **bcryptjs**, **JWT HS256**, **RBAC** `requireRole([...])`, rate-limit |
+| **FR-02** | Unggah sampah makanan (MBG input jenis, berat, foto, **dan kelayakan konsumsi — layak/tidak_layak, saran AI**) | `POST /api/waste` · `GET /api/waste/mine` · `GET /api/waste/:id` · `PATCH /api/waste/:id` · `DELETE /api/waste/:id` | `sampah_makanan` | Simpan jenis_makanan, berat_kg, waktu_produksi, foto, kelayakan; status `tersedia` | **multer** 1 MB + magic-bytes, **Cloudinary/base64** |
+| **FR-03** | Profil Penerima (jenis penerima, kapasitas, jenis diterima) | `GET /api/penerima/me` · `PATCH /api/penerima/me` | `penerima` | jenis_penerima (panti_asuhan\|yayasan\|rumah_dhuafa\|peternakan\|lainnya), kapasitas_kg_hari, jenis_diterima (JSON array) | validasi `lib/validate.js`, RBAC `penerima` |
+| **FR-04** | AI Routing — cari Penerima terbaik untuk sampah MBG (**filter kelayakan**: `layak` → panti_asuhan/yayasan/rumah_dhuafa, `tidak_layak` → peternakan) | `POST /api/routing/run` (admin) · `GET /api/routing` · `GET /api/routing/:id/explain` | `alokasi` (4 sub-skor + `jarak_km` + `rute_json`) | Filter penerima aktif + kelayakan cocok → skor multi-kriteria (jenis_cocok, kapasitas, jarak, urgensi) → greedy | **Routing Engine** `lib/routing.js` + `config/routing.json`; mesin Python (`ai`) |
+| **FR-05** | Rute GIS (MBG → Penerima) | `GET /api/geo` · `GET /api/geo/nearby` · rute di `alokasi.rute_json` | `alokasi.rute_json`, view `v_lokasi_geospasial` | `haversineKm()` + **OSRM** (rute jalan) + `buildRoute()` kurir→MBG→penerima | **Leaflet + OpenStreetMap**, **OSRM**, **PostGIS** `ST_DWithin`/`ST_Distance` |
 | **FR-06** | Notifikasi (in-app, WhatsApp, email) | `GET /api/notifications` · `PATCH /api/notifications/:id/read` | `notifikasi`, `outbox_pesan` | In-app + outbox WA/email (antre→terkirim/simulasi/gagal) | **CallMeBot** (demo) → **Fonnte** (prod), **nodemailer** |
 | **FR-07** | Foto bukti (pickup & antar) | `POST /api/deliveries/:id/pickup` · `POST /api/deliveries/:id/deliver` | `alokasi.foto_jemput`, `alokasi.foto_antar` | Wajib foto, magic-bytes, status `dijemput`→`terkirim` | multer + validasi buffer + audit |
 | **FR-08** | Verifikasi OTP serah terima | `POST /api/deliveries/:id/verify-otp` · `POST /api/deliveries/:id/resend-otp` | `kode_otp` | OTP 6 digit, TTL 30 mnt, **sekali pakai**, 5 percobaan/15 mnt | **crypto.randomInt** + **timingSafeEqual**, rate-limit |
-| **FR-09** | Dashboard analitik (kg dialihkan dari TPS biasa, jumlah TPS aktif, coverage) | `GET /api/admin/stats` | agregat `sampah_makanan`, `alokasi`, `tps_pengolah` | kg dialihkan, TPS aktif, cakupan wilayah, grafik | agregasi SQL + index, uptime monitor |
+| **FR-09** | Dashboard analitik (kg dialihkan dari TPS biasa, jumlah penerima aktif, coverage) | `GET /api/admin/stats` | agregat `sampah_makanan`, `alokasi`, `penerima` | kg dialihkan, penerima aktif, cakupan wilayah, grafik | agregasi SQL + index, uptime monitor |
 | **FR-10** | Manajemen pengguna & audit | `GET /api/admin/users` · `PATCH /api/admin/users/:id/status` · `GET /api/admin/audit` | `user`, `log_audit` | Verifikasi/nonaktif akun; semua aksi ditulis log | RBAC admin, **log immutable** (trigger DB) |
 | **FR-11** | Klasifikasi jenis sampah (AI + verifikasi admin) | `POST /api/classify` · `GET /api/classify/:id` · `PATCH /api/classify/:id/verify` | `klasifikasi_sampah` | `classifyWaste()`: kategori + tingkat_pembusukan + skor keyakinan + alasan; admin verifikasi bila ragu | **rule-based** (default), opsional **TensorFlow.js vision** (saran, wajib admin verifikasi) |
-| **FR-12** | Registrasi & profil TPS Pengolah (multi-jenis olahan) | `POST /api/tps/register` · `GET /api/tps/list` · `POST /api/tps/:id/log` · `GET /api/tps/:id/dashboard` | `tps_pengolah`, `pengolahan_log` | Daftar TPS + catat hasil olah (input_kg → output_kg, jenis output) | validasi, RBAC `tps_pengolah` |
-| **FR-13** | AI Routing sampah organik ke TPS Pengolah | (bagian dari FR-04) | `alokasi` | Bobot: jenis_cocok 0.35 · kapasitas 0.25 · jarak 0.25 · urgensi 0.15 | `config/routing.json`, greedy assignment |
-| **FR-14** | Dashboard kepatuhan regulasi Madiun | `GET /api/compliance/summary` · `GET /api/compliance/report` · `GET /api/compliance/trace/:id` · `GET /api/compliance/regulations` | join `sampah_makanan → klasifikasi → alokasi → pengolahan_log` | kg dialihkan, % sampah tidak ke TPS biasa, traceability end-to-end | **PDF generation**, agregasi SQL |
+| **FR-12** | Registrasi & profil Penerima | `POST /api/penerima/register` · `GET /api/penerima/list` · `POST /api/penerima/:id/log` · `GET /api/penerima/:id/dashboard` | `penerima`, `pengolahan_log` | Daftar penerima + catat penanganan (input_kg → output_kg, jenis output) | validasi, RBAC `penerima` |
+| **FR-13** | AI Routing sisa makanan ke Penerima | (bagian dari FR-04) | `alokasi` | Filter kelayakan (layak → panti_asuhan/yayasan/rumah_dhuafa, tidak_layak → peternakan); Bobot: jenis_cocok 0.35 · kapasitas 0.25 · jarak 0.25 · urgensi 0.15 | `config/routing.json`, greedy assignment |
+| **FR-14** | Dashboard kepatuhan regulasi Madiun | `GET /api/compliance/summary` · `GET /api/compliance/report` · `GET /api/compliance/trace/:id` · `GET /api/compliance/regulations` | join `sampah_makanan → klasifikasi → alokasi → pengolahan_log` | kg dialihkan, rekap per penerima, % sampah tidak ke TPS biasa, traceability end-to-end | **PDF generation**, agregasi SQL |
 | **FR-15** | Modul motivasi MBG (sertifikat, poin, laporan kepatuhan) | `GET /api/mbg/motivation` · `POST /api/mbg/motivation/claim` · `GET /api/admin/mbg/report` | `motivasi_donor_mbg` | Akumulasi poin per kg dialihkan; klaim sertifikat/laporan CSR | **PDF generation** |
 | **FR-16** | Konfigurasi regulasi daerah | `POST /api/admin/regulations` · `PATCH /api/admin/regulations/:id` · `GET /api/admin/regulations` | `konfigurasi_regulasi` | Aturan larangan/kewajiban/sanksi/insentif dalam JSON per daerah | **JSON per daerah**, default `KOTA_MADIUN` |
-| **FR-17** | Traceability sampah end-to-end | `GET /api/compliance/trace/:id` | `sampah_makanan → klasifikasi_sampah → alokasi → pengolahan_log` | Riwayat penuh: MBG → TPS → output olahan (kompos/pupuk/pakan/eco-enzyme) | join 4 tabel + immutable log |
+| **FR-17** | Traceability sampah end-to-end | `GET /api/compliance/trace/:id` | `sampah_makanan → klasifikasi_sampah → alokasi → pengolahan_log` | Riwayat penuh: MBG → penerima → output penyalurannya (layak: panti/yayasan; tidak_layak: pakan ternak) | join 4 tabel + immutable log |
 
 **Urutan pipeline middleware:**
 ```
@@ -128,7 +128,7 @@ Request → trust proxy → security headers (CSP/HSTS/nosniff) → CORS allowli
 
 | Kode | Kebutuhan | Keputusan Desain Backend | Implementasi di Kode |
 |------|-----------|--------------------------|----------------------|
-| **NFR-01** | Keamanan: autentikasi, enkripsi password, RBAC | Stateless token + hash satu-arah + guard per-role per-route | `bcryptjs`, `jsonwebtoken` (exp 12 jam), `authenticate/requireRole/requireActive`, parameterized query |
+| **NFR-01** | Keamanan: autentikasi, enkripsi password, RBAC | Stateless token + hash satu-arah + guard per-role per-route (`donor_mbg\|penerima\|kurir\|admin`) | `bcryptjs`, `jsonwebtoken` (exp 12 jam), `authenticate/requireRole/requireActive`, parameterized query |
 | **NFR-02** | Performa: respons & AI Routing < 3 detik | Routing **in-process** (fallback JS) + layanan Python lokal dengan timeout; query terindeks | `lib/routing.js`, `lib/aiService.js` (timeout 1.8 dtk → fallback), index unik alokasi |
 | **NFR-03** | Ketersediaan 24/7, uptime ≥ 99% | Healthcheck, auto-restart, monitoring berkala, deploy managed | `GET /api/health`, GitHub Actions monitor 15 menit, `vercel.json`, backup DB |
 | **NFR-04** | Skalabilitas 5.000 pengguna aktif | **Tanpa state sesi** (JWT) → horizontal scale; PostgreSQL + PostGIS; rate-limit | JWT stateless, `DATABASE_URL` (PostgreSQL), rate-limit per IP+email |
@@ -136,7 +136,7 @@ Request → trust proxy → security headers (CSP/HSTS/nosniff) → CORS allowli
 | **NFR-06** | Akurasi jarak/rute ≥ 95% | Pisahkan **perhitungan jarak** dari **visualisasi peta**; adapter GIS bisa ditukar | `lib/gis.js`: **OSRM** (rute jalan) dengan fallback haversine; jarak lurus tetap untuk skor awal |
 | **NFR-07** | Portabilitas: Android/iOS 3 thn terakhir + browser modern | Aplikasi sebagai **PWA** (installable) alih-alih native 2 platform | `manifest.webmanifest`, service worker, target evergreen browser, CSP ketat |
 | **NFR-08** | Auditabilitas: log tak bisa diubah | **Immutable di level DB**, bukti foto + OTP sekali pakai | Trigger `log_audit_no_update` & `log_audit_no_delete` (SQLite `RAISE(ABORT)` / PostgreSQL `RAISE EXCEPTION`), foto pickup/antar, OTP sekali pakai |
-| **NFR-09** | **Kepatuhan regulasi Madiun (traceability)** | Setiap kg sampah terlacak MBG → TPS → output olahan; laporan siap cetak | Tabel `pengolahan_log`, endpoint `/api/compliance/*`, log audit immutabel |
+| **NFR-09** | **Kepatuhan regulasi Madiun (traceability)** | Setiap kg sisa makanan terlacak MBG → penerima → output penyalurannya; laporan siap cetak | Tabel `pengolahan_log`, endpoint `/api/compliance/*`, log audit immutabel |
 | **NFR-10** | **Akurasi klasifikasi jenis sampah ≥ 85%** | Rule-based transparan + **skor keyakinan** + verifikasi admin bila `skor < ambang` | `klasifikasi_sampah.skor_keyakinan`, `metode`, `alasan`; jalur verifikasi admin |
 | **NFR-11** | **Fleksibilitas konfigurasi daerah** | Aturan regulasi sebagai data (JSON), bukan hardcode | Tabel `konfigurasi_regulasi` (kode_daerah, aturan JSON), default `KOTA_MADIUN` |
 
@@ -148,11 +148,11 @@ Request → trust proxy → security headers (CSP/HSTS/nosniff) → CORS allowli
 
 | Kode | Keputusan | Alasan |
 |------|-----------|--------|
-| **K-11** | **AI Routing sampah ke TPS Pengolah (bukan TPS biasa)** — daftar TPS Pengolah difilter hanya yang `aktif` DAN `jenis_diterima` memuat kategori sampah | Regulasi Kota Madiun: TPS biasa tidak boleh menerima sampah organik; sistem tidak boleh mengarahkan sampah MBG ke TPS non-pengolah |
+| **K-11** | **AI Routing sisa makanan ke Penerima (bukan TPS biasa)** — daftar penerima difilter hanya yang `aktif` DAN `jenis_diterima` memuat kategori sampah DAN kelayakan konsumsi cocok (`layak` → panti_asuhan/yayasan/rumah_dhuafa, `tidak_layak` → peternakan) | Regulasi Kota Madiun: TPS biasa tidak boleh menerima sampah organik; sistem tidak boleh mengarahkan sampah MBG ke TPS non-pengolah |
 | **K-12** | **Klasifikasi jenis sampah + verifikasi admin** — hasil mesin (rule-based/AI vision) berstatus saran sampai diverifikasi admin bila keyakinan rendah | NFR-10: jaga akurasi ≥ 85% tanpa memblokir alur (default otomatis untuk keyakinan tinggi) |
 | **K-13** | **Modul motivasi donor MBG** (kepatuhan + CSR): poin per kg dialihkan, sertifikat, laporan CSR | Mendorong kepatuhan sukarela & memberi bukti pelaporan ke Pemkot (motivasi donor §0.3) |
 | **K-14** | **Konfigurasi regulasi daerah sebagai data** (JSON per `kode_daerah`), default `KOTA_MADIUN` | NFR-11: regulasi bisa berubah/perluasan kota tanpa perubahan kode |
-| **K-15** | **Traceability sampah end-to-end**: setiap `alokasi` wajib berpasangan dengan `klasifikasi_sampah` dan ditutup `pengolahan_log` | NFR-09: bukti rantai penanganan dari dapur MBG → TPS → output olahan untuk audit kepatuhan |
+| **K-15** | **Traceability sampah end-to-end**: setiap `alokasi` wajib berpasangan dengan `klasifikasi_sampah` dan ditutup `pengolahan_log` | NFR-09: bukti rantai penanganan dari dapur MBG → penerima → output penyalurannya untuk audit kepatuhan |
 
 ---
 
@@ -160,19 +160,19 @@ Request → trust proxy → security headers (CSP/HSTS/nosniff) → CORS allowli
 
 ## 5. Diagram
 
-### 5.1 Activity Diagram — Unggah Sampah MBG → Klasifikasi → Routing ke TPS (FR-02, FR-11, FR-13)
+### 5.1 Activity Diagram — Unggah Sampah MBG → Klasifikasi → Routing ke Penerima (FR-02, FR-11, FR-13)
 
 **Bagian A - unggah & klasifikasi sampah:**
 
 ```mermaid
 flowchart TD
-    Start([Mulai]) --> A["Dapur MBG / SPPG unggah sampah<br/>jenis, berat kg, waktu produksi, foto"]
+    Start([Mulai]) --> A["Dapur MBG / SPPG unggah sampah<br/>jenis, berat kg, waktu produksi, foto, kelayakan"]
     A --> B{"Verifikasi akun MBG<br/>oleh Admin?"}
     B -->|Ditolak| Z([Selesai - gagal])
     B -->|Aktif| C["Sampah 'tersedia' + klasifikasi otomatis<br/>POST /api/classify"]
     C --> D{"Skor keyakinan<br/>>= ambang admin?"}
     D -->|Ragu| E["Menunggu verifikasi admin<br/>PATCH /classify/:id/verify"]
-    D -->|Yakin| F["Klasifikasi tercatat<br/>kategori + tingkat pembusukan"]
+    D -->|Yakin| F["Klasifikasi tercatat<br/>kategori + tingkat pembusukan<br/>+ saran kelayakan (layak/tidak_layak)"]
     E -->|Ditolak| Z
     E -->|Disetujui| F
     F --> OUT([Lanjut ke Bagian B - routing])
@@ -183,31 +183,31 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([Mulai - hasil klasifikasi]) --> G["AI Routing POST /api/routing/run"]
-    G --> H["LOOP: skor tiap triplet sampah x TPS x kurir<br/>jenis_cocok 0.35, kapasitas 0.25, jarak 0.25, urgensi 0.15"]
-    H --> I{"Skor >= batas, TPS aktif,<br/>jenis diterima cocok, kapasitas cukup?"}
+    G --> H["LOOP: skor tiap triplet sampah x penerima x kurir<br/>jenis_cocok 0.35, kapasitas 0.25, jarak 0.25, urgensi 0.15"]
+    H --> I{"Skor >= batas, penerima aktif, kelayakan cocok,<br/>jenis diterima cocok, kapasitas cukup?"}
     I -->|Tidak| H
-    I -->|Ya| J["Urutkan skor + seleksi greedily<br/>1 sampah - 1 TPS - 1 kurir"]
+    I -->|Ya| J["Urutkan skor + seleksi greedily<br/>1 sampah - 1 penerima - 1 kurir"]
     J --> K{"Alokasi terbentuk?"}
     K -->|Tidak| L["Sampah tetap 'tersedia'<br/>+ notifikasi donor MBG"]
     L --> Z2([Selesai])
     K -->|Ya| M["INSERT alokasi + rute_json<br/>sampah -> 'dialokasikan'"]
-    M --> N["Notifikasi MBG, TPS, kurir<br/>+ log_audit ROUTE_WASTE"]
+    M --> N["Notifikasi MBG, penerima, kurir<br/>+ log_audit ROUTE_WASTE"]
     N --> Z3([Selesai])
 ```
 
-### 5.2 Activity Diagram — Serah Terima & OTP di TPS Pengolah (FR-07, FR-08)
+### 5.2 Activity Diagram — Serah Terima & OTP di Penerima (FR-07, FR-08)
 
 ```mermaid
 flowchart TD
     Start([Mulai]) --> A["Kurir terima tugas<br/>POST /pickup + foto SEBELUM"]
-    A --> B["Status 'dijemput'<br/>OTP 6 digit berlaku 30 menit<br/>notifikasi OTP ke TPS Pengolah"]
+    A --> B["Status 'dijemput'<br/>OTP 6 digit berlaku 30 menit<br/>notifikasi OTP ke Penerima"]
     B --> C["POST /deliver + foto SESUDAH<br/>status 'terkirim'"]
     C --> D{"Rate-limit 5 percobaan / 15 menit<br/>dan OTP benar?"}
     D -->|Salah / kadaluwarsa| E["Log OTP_FAIL + pesan error"]
     E --> D
     D -->|Melebihi limit| X([Ditolak 429])
     D -->|Benar| F["OTP sekali pakai<br/>alokasi & sampah 'terverifikasi'"]
-    F --> G["TPS mencatat hasil pengolahan<br/>POST /tps/:id/log (input_kg - output_kg)"]
+    F --> G["Penerima mencatat penanganan<br/>POST /api/penerima/:id/log (input_kg - output_kg)"]
     G --> H["Notifikasi kurir & MBG<br/>+ log_audit VERIFY_OTP + LOG_PENGOLAHAN"]
     H --> L([Transaksi selesai - immutable])
 ```
@@ -216,9 +216,9 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User buka PWA]) --> A["Pilih peran: MBG | TPS Pengolah | Kurir"]
+    Start([User buka PWA]) --> A["Pilih peran: MBG | Penerima | Kurir"]
     A --> B1["MBG: nama SPPG, alamat, kapasitas, kontak"]
-    A --> B2["TPS: nama TPS, jenis TPS, jenis pengolahan,<br/>kapasitas kg/hari, jenis diterima, izin"]
+    A --> B2["Penerima: nama penerima, jenis penerima,<br/>kapasitas kg/hari, jenis diterima, izin"]
     A --> B3["Kurir: kendaraan, area layanan"]
     B1 --> C
     B2 --> C
@@ -251,7 +251,7 @@ classDiagram
         +string nama
         +string email
         +string password
-        +enum role "donor_mbg|tps_pengolah|kurir|admin"
+        +enum role "donor_mbg|penerima|kurir|admin"
         +enum status
         +float lat
         +float lng
@@ -272,6 +272,7 @@ classDiagram
         +int id_donor FK
         +enum jenis_makanan
         +float berat_kg
+        +enum kelayakan "layak|tidak_layak"
         +datetime waktu_produksi
         +string foto_url
         +enum status
@@ -288,21 +289,22 @@ classDiagram
         +string alasan
         +int diverifikasi_oleh FK
     }
-    class TPSPengolah {
+    class Penerima {
         +int id_user PK
-        +string nama_tps
-        +enum jenis_tps
-        +enum jenis_pengolahan
+        +string nama_penerima
+        +enum jenis_penerima "panti_asuhan|yayasan|rumah_dhuafa|peternakan|lainnya"
         +float kapasitas_kg_hari
         +string jenis_diterima
-        +float radius_layanan_km
-        +string izin_operasional
-        +boolean aktif
-        +catatPengolahan(data)
+        +float lat
+        +float lng
+        +string telepon
+        +string alamat
+        +catatPenanganan(data)
     }
     class PengolahanLog {
         +int id_pengolahan PK
         +int id_alokasi FK
+        +int id_penerima FK
         +float input_kg
         +float output_kg
         +enum output_jenis
@@ -311,7 +313,7 @@ classDiagram
     class Alokasi {
         +int id_alokasi PK
         +int id_sampah FK
-        +int id_tps FK
+        +int id_penerima FK
         +int id_kurir FK
         +float skor_matching
         +float skor_jenis_cocok
@@ -331,11 +333,11 @@ classDiagram
         -tingkatPembusukan(jenis, jam) enum
     }
     class RoutingService {
-        +routeWasteToTPS(sampah, tps, kurir) Alokasi[]
-        +scorePair(sampah, tps, kurir) Skor
-        -jenisCocok(sampah, tps) float
-        -kapasitasSisa(tps, berat) float
-        -jarakKm(mbg, tps) float
+        +routeWasteToPenerima(sampah, penerima, kurir) Alokasi[]
+        +scorePair(sampah, penerima, kurir) Skor
+        -jenisCocok(sampah, penerima) float
+        -kapasitasSisa(penerima, berat) float
+        -jarakKm(mbg, penerima) float
         -urgensiBusuk(klasifikasi) float
         -bobot config
     }
@@ -382,18 +384,18 @@ classDiagram
 
     AuthService --> User : mengelola
     User "1" --> "0..1" ProfilMBG : profil donor MBG
-    User "1" --> "0..1" TPSPengolah : profil TPS
+    User "1" --> "0..1" Penerima : profil penerima
     User "1" --> "0..*" SampahMakanan : donor MBG
     SampahMakanan "1" --> "0..*" KlasifikasiSampah : diklasifikasi
     SampahMakanan "1" --> "0..*" Alokasi : dialokasikan
-    TPSPengolah "1" --> "0..*" PengolahanLog : mengolah
+    Penerima "1" --> "0..*" PengolahanLog : menyalurkan
     Alokasi "1" --> "0..*" PengolahanLog : ditutup dengan
     Alokasi "1" --> "0..*" KodeOtp : verifikasi serah terima
     User "1" --> "0..*" Alokasi : sebagai kurir
     ClassificationService --> SampahMakanan : membaca
     ClassificationService --> KlasifikasiSampah : menghasilkan
     RoutingService --> SampahMakanan : membaca
-    RoutingService --> TPSPengolah : membaca
+    RoutingService --> Penerima : membaca
     RoutingService --> Alokasi : menghasilkan
     RoutingService --> GisService : jarak dan rute
     RoutingService --> KonfigurasiRegulasi : bobot & aturan daerah
@@ -416,7 +418,7 @@ sequenceDiagram
     actor A as Admin (Dashboard)
     participant NS as Notification Service
 
-    M->>API: POST /api/waste (jenis, berat, foto, waktu_produksi)
+    M->>API: POST /api/waste (jenis, berat, foto, waktu_produksi, kelayakan)
     API->>API: validasi input + magic-bytes foto
     API->>DB: INSERT sampah_makanan (tersedia)
     DB-->>API: ok
@@ -443,7 +445,7 @@ sequenceDiagram
     end
 ```
 
-### 5.6 Sequence Diagram — Routing Sampah MBG → TPS Pengolah (wajib fragmen ALT)
+### 5.6 Sequence Diagram — Routing Sampah MBG → Penerima (wajib fragmen ALT)
 
 ```mermaid
 sequenceDiagram
@@ -458,46 +460,46 @@ sequenceDiagram
     A->>API: POST /api/routing/run
     API->>API: requireRole([admin])
     API->>DB: SELECT sampah 'tersedia' + klasifikasi
-    API->>DB: SELECT TPS aktif + jenis_diterima + kapasitas
+    API->>DB: SELECT penerima aktif + jenis_diterima + kapasitas
     API->>DB: SELECT kurir aktif (tanpa tugas)
     DB-->>API: kandidat
-    API->>RE: routeWasteToTPS(sampah, tps, kurir)
+    API->>RE: routeWasteToPenerima(sampah, penerima, kurir)
 
-    loop LOOP: iterasi triplet sampah x TPS x kurir
-        RE->>RE: jenis_cocok = kategori in jenis_diterima TPS
+    loop LOOP: iterasi triplet sampah x penerima x kurir
+        RE->>RE: jenis_cocok = kategori in jenis_diterima penerima
         RE->>RE: kapasitas = sisa_hari_ini / berat_sampah
-        RE->>GIS: haversineKm(MBG -> TPS)
+        RE->>GIS: haversineKm(MBG -> penerima)
         GIS-->>RE: jarak_km
         RE->>RE: urgensi_busuk dari klasifikasi
         RE->>RE: skor = 0.35*jenis + 0.25*kapasitas + 0.25*jarak + 0.15*urgensi
-        alt ALT: lolos filter (aktif, jenis cocok, kapasitas, jarak, skor)
+        alt ALT: lolos filter (aktif, kelayakan cocok, jenis cocok, kapasitas, jarak, skor)
             RE->>RE: masukkan daftar kandidat
         else ALT: gugur filter
             RE->>RE: abaikan
         end
     end
 
-    RE->>RE: sort skor tertinggi + greedy (1 sampah - 1 TPS - 1 kurir)
+    RE->>RE: sort skor tertinggi + greedy (1 sampah - 1 penerima - 1 kurir)
     alt ALT: ada kandidat lolos
         RE-->>API: daftar alokasi + rute_json (OSRM/haversine)
         API->>DB: INSERT alokasi, UPDATE sampah -> dialokasikan
-        API->>NS: notify(MBG, TPS, kurir)
+        API->>NS: notify(MBG, penerima, kurir)
         API->>DB: log_audit ROUTE_WASTE
         API-->>A: 200 alokasi terbentuk
     else ALT: tidak ada kandidat
         API->>DB: log_audit ROUTE_NOT_FOUND
-        API->>NS: notify(MBG, belum ada TPS yang cocok)
+        API->>NS: notify(MBG, belum ada penerima yang cocok)
         API-->>A: 200 tanpa alokasi (TC-05)
     end
 ```
 
-### 5.7 Sequence Diagram — Serah Terima OTP & Pengolahan (wajib fragmen ALT + OPT)
+### 5.7 Sequence Diagram — Serah Terima OTP & Penanganan (wajib fragmen ALT + OPT)
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor K as Kurir (PWA)
-    actor T as TPS Pengolah (PWA)
+    actor T as Penerima (PWA)
     participant API as API Gateway
     participant DB as Database
     participant NS as Notification Service
@@ -508,7 +510,7 @@ sequenceDiagram
     API->>API: requireRole(kurir) + magic-bytes
     API->>DB: INSERT foto, status -> dijemput
     API->>DB: INSERT kode_otp (TTL 30 menit)
-    API->>NS: notify(TPS, kode OTP)
+    API->>NS: notify(penerima, kode OTP)
     API->>AU: audit(PICKUP)
     API-->>K: 200 penjemputan tercatat
 
@@ -534,8 +536,8 @@ sequenceDiagram
         end
     end
 
-    opt OPT: TPS mencatat hasil pengolahan
-        T->>API: POST /api/tps/:id/log (input_kg, output_kg, output_jenis, foto)
+    opt OPT: Penerima mencatat penanganan
+        T->>API: POST /api/penerima/:id/log (input_kg, output_kg, output_jenis, foto)
         API->>DB: INSERT pengolahan_log
         API->>AU: audit(LOG_PENGOLAHAN)
         API-->>T: 201 log pengolahan dicatat
@@ -557,7 +559,7 @@ sequenceDiagram
 ```mermaid
 erDiagram
     USER ||--o| PROFIL_MBG : "profil donor MBG"
-    USER ||--o| TPS_PENGOLAH : "profil TPS"
+    USER ||--o| PENERIMA : "profil penerima"
     USER ||--o{ SAMPAH_MAKANAN : "mengunggah (MBG)"
     USER ||--o{ ALOKASI : "sebagai kurir"
     USER ||--o{ NOTIFIKASI : "menerima"
@@ -565,19 +567,19 @@ erDiagram
     USER ||--o{ MOTIVASI_DONOR_MBG : "menerima insentif"
     USER ||--o{ KLASIFIKASI_SAMPAH : "memverifikasi"
     SAMPAH_MAKANAN ||--o{ KLASIFIKASI_SAMPAH : "diklasifikasi"
-    SAMPAH_MAKANAN ||--o{ ALOKASI : "dialokasikan ke TPS"
-    TPS_PENGOLAH ||--o{ ALOKASI : "menerima"
+    SAMPAH_MAKANAN ||--o{ ALOKASI : "dialokasikan ke penerima"
+    PENERIMA ||--o{ ALOKASI : "menerima"
     ALOKASI ||--o{ KODE_OTP : "diverifikasi dengan"
     ALOKASI ||--o{ PENGOLAHAN_LOG : "diolah menjadi"
     ALOKASI ||--o{ NOTIFIKASI : "terkait"
-    KONFIGURASI_REGULASI ||--o{ TPS_PENGOLAH : "mengatur aturan daerah"
+    KONFIGURASI_REGULASI ||--o{ PENERIMA : "mengatur aturan daerah"
 
     USER {
         int id_user PK
         string nama
         string email UK
         string password "bcrypt"
-        enum role "donor_mbg|tps_pengolah|kurir|admin"
+        enum role "donor_mbg|penerima|kurir|admin"
         enum status "menunggu|aktif|ditolak"
         string telepon
         string alamat
@@ -596,15 +598,16 @@ erDiagram
         string kontak
         string npwp
     }
-    TPS_PENGOLAH {
+    PENERIMA {
         int id_user PK,FK
-        string nama_tps
-        enum jenis_tps "tps_3r|tps_komposter|tps_maggot|tps_eco_enzyme|bank_sampah|lainnya"
-        enum jenis_pengolahan "komposter|maggot_bsf|eco_enzyme|bank_sampah|lainnya"
+        string nama_penerima
+        enum jenis_penerima "panti_asuhan|yayasan|rumah_dhuafa|peternakan|lainnya"
         float kapasitas_kg_hari
         string jenis_diterima "JSON array"
-        float radius_layanan_km
-        string izin_operasional
+        float lat
+        float lng
+        string telepon
+        string alamat
         boolean aktif
     }
     SAMPAH_MAKANAN {
@@ -612,6 +615,7 @@ erDiagram
         int id_donor FK
         enum jenis_makanan "nasi|sayur|lauk|buah|campuran|lainnya"
         float berat_kg
+        enum kelayakan "layak|tidak_layak"
         datetime waktu_produksi
         string foto_url
         enum status "tersedia|dialokasikan|dijemput|terkirim|terverifikasi|dibatalkan"
@@ -630,7 +634,7 @@ erDiagram
     ALOKASI {
         int id_alokasi PK
         int id_sampah FK
-        int id_tps FK
+        int id_penerima FK
         int id_kurir FK
         float skor_matching
         float skor_jenis_cocok
@@ -647,6 +651,7 @@ erDiagram
     PENGOLAHAN_LOG {
         int id_pengolahan PK
         int id_alokasi FK
+        int id_penerima FK
         float input_kg
         float output_kg
         enum output_jenis "kompos|pupuk_cair|pakan_ternak|eco_enzyme|lainnya"
@@ -704,7 +709,7 @@ erDiagram
 | Basis data utama | **PostgreSQL 16 + PostGIS 3.4** (Docker `ecomatch-postgis`, port 5433) | FR-17, NFR-06, NFR-09 |
 | Basis data fallback/demo | libSQL/TurSQL (`file:local.db`) — driver lintas-dialek di `backend/db.js` | portabilitas (NFR-07) |
 | Basis data driver | `pg` (PG) + `@libsql/client` (SQLite) — transisi mulus | transisi nol waktu henti |
-| Otorisasi | **JWT HS256** (12 jam) + **bcryptjs** + RBAC `donor_mbg\|tps_pengolah\|kurir\|admin` | FR-01, NFR-01 |
+| Otorisasi | **JWT HS256** (12 jam) + **bcryptjs** + RBAC `donor_mbg\|penerima\|kurir\|admin` | FR-01, NFR-01 |
 | Klasifikasi sampah | **Rule-based engine** (`ai`) + verifikasi admin; opsional **TensorFlow.js vision** | FR-11, NFR-10 |
 | AI routing | `backend/lib/routing.js` (JS, in-process) + **mesin Python FastAPI** `ai` (`:8001`) dengan timeout & fallback | FR-04/FR-13, NFR-02 |
 | GIS & rute | **Leaflet + OpenStreetMap** (client), **OSRM public** (rute jalan), haversine (fallback), **PostGIS** `ST_DWithin`/`ST_Distance` | FR-05, NFR-06 |
@@ -720,13 +725,13 @@ erDiagram
 
 | # | v1.1 (versi lama) | v2.0 (EcoMatch) | Keputusan |
 |---|---------------------|------------------|-----------|
-| 1 | Donor → penerima surplus makanan (manusia), TPS `lokasi_makanan` | Donor **MBG** → **TPS Pengolah** yang masih bisa menerima & mengolah; TPS biasa dilarang terima sampah organik | K-11 |
-| 2 | Rekomendasi `penyaluran` surplus + impact metrics | **Klasifikasi + AI Routing** sampah ke TPS terbaik (jenis, kapasitas, jarak, urgensi) | FR-11, FR-13 |
-| 3 | Skema v1.1 (`surplus_makanan`, `kebutuhan_makanan`) | Skema baru `sampah_makanan`, `klasifikasi_sampah`, `tps_pengolah`, `pengolahan_log`, `motivasi_donor_mbg`, `konfigurasi_regulasi` (Fase 2) | FR-02…17 |
+| 1 | Donor → penerima surplus makanan (manusia), TPS `lokasi_makanan` | Donor **MBG** → **Penerima** (panti asuhan/yayasan/rumah dhuafa bila layak konsumsi, peternakan bila tidak layak); TPS biasa dilarang terima sampah organik | K-11 |
+| 2 | Rekomendasi `penyaluran` surplus + impact metrics | **Klasifikasi + AI Routing** sisa makanan ke penerima terbaik (kelayakan, jenis, kapasitas, jarak, urgensi) | FR-11, FR-13 |
+| 3 | Skema v1.1 (`surplus_makanan`, `kebutuhan_makanan`) | Skema baru `sampah_makanan`, `klasifikasi_sampah`, `penerima`, `pengolahan_log`, `motivasi_donor_mbg`, `konfigurasi_regulasi` (Fase 2) | FR-02…17 |
 | 4 | 10 FR + 8 NFR | **17 FR + 11 NFR** (NFR-09 kepatuhan, NFR-10 klasifikasi, NFR-11 konfigurasi daerah) | SKPL v2.0 |
 | 5 | Motivasi: donor umum (CSR, komunitas) | **Motivasi donor MBG**: kepatuhan regulasi, hindari sanksi, laporan Pemkot, CSR, sertifikat & poin | FR-15, K-13 |
 | 6 | Belum ada konfigurasi daerah | **`konfigurasi_regulasi` JSON per daerah**, default `KOTA_MADIUN` | FR-16, NFR-11, K-14 |
-| 7 | Traceability tidak eksplisit | **Traceability end-to-end** MBG → TPS → output olahan + laporan | FR-17, NFR-09, K-15 |
+| 7 | Traceability tidak eksplisit | **Traceability end-to-end** MBG → penerima → output penyalurannya + laporan | FR-17, NFR-09, K-15 |
 
 ---
 
@@ -756,12 +761,12 @@ erDiagram
 |--------|------------------------------|
 | Arsitektur 3-Tier | `EcoMatch_01_arsitektur_3tier.png` |
 | Activity unggah & klasifikasi MBG | `EcoMatch_02a_activity_klasifikasi.png` |
-| Activity AI routing MBG→TPS | `EcoMatch_02b_activity_routing.png` |
+| Activity AI routing MBG→Penerima | `EcoMatch_02b_activity_routing.png` |
 | Activity serah terima OTP | `EcoMatch_03_activity_otp.png` |
 | Activity registrasi multi-role | `EcoMatch_04_activity_registrasi.png` |
 | Class diagram backend | `EcoMatch_05_class.png` |
 | Sequence klasifikasi sampah | `EcoMatch_06_sequence_klasifikasi.png` |
-| Sequence routing MBG→TPS | `EcoMatch_07_sequence_routing.png` |
+| Sequence routing MBG→Penerima | `EcoMatch_07_sequence_routing.png` |
 | Sequence OTP + pengolahan | `EcoMatch_08_sequence_otp.png` |
 | ERD EcoMatch | `ERD_EcoMatch.png` (**Fase 2**) |
 
@@ -777,4 +782,4 @@ erDiagram
 
 ---
 
-*Dokumen Arsitektur Sistem EcoMatch v2.0 — disusun ulang dari Dokumen Arsitektur Backend versi lama v1.1 sebagai bagian dari Fase 1 refactor total ke proyek **EcoMatch — AI Routing Sampah Makanan MBG ke TPS Pengolah (Kota Madiun)**.*
+*Dokumen Arsitektur Sistem EcoMatch v2.0 — disusun ulang dari Dokumen Arsitektur Backend versi lama v1.1 sebagai bagian dari Fase 1 refactor total ke proyek **EcoMatch — AI Routing Sampah Makanan MBG ke Penerima (Kota Madiun)**.*

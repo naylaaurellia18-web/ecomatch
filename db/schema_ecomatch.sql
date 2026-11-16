@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS "user" (
   email          TEXT NOT NULL UNIQUE,
   password       TEXT NOT NULL,
   role           TEXT NOT NULL DEFAULT 'donor_mbg'
-                 CHECK (role IN ('donor_mbg','tps_pengolah','kurir','admin')),
+                 CHECK (role IN ('donor_mbg','penerima','kurir','admin')),
   status         TEXT NOT NULL DEFAULT 'menunggu'
                  CHECK (status IN ('menunggu','aktif','ditolak')),
   telepon        TEXT,
@@ -45,14 +45,12 @@ CREATE TABLE IF NOT EXISTS profil_mbg (
                         DEFAULT to_char((now() at time zone 'utc'), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
 );
 
--- 3. tps_pengolah — profil TPS (FR-05, FR-14); id_user = PK karena 1 akun 1 TPS
-CREATE TABLE IF NOT EXISTS tps_pengolah (
+-- 3. penerima — profil penerima sisa makanan (panti asuhan/yayasan/peternakan) (FR-05, FR-14); id_user = PK karena 1 akun 1 penerima
+CREATE TABLE IF NOT EXISTS penerima (
   id_user           BIGINT PRIMARY KEY REFERENCES "user"(id_user),
-  nama_tps          TEXT NOT NULL,
-  jenis_tps         TEXT NOT NULL DEFAULT 'tps_3r'
-                    CHECK (jenis_tps IN ('tps_3r','tps_komposter','tps_maggot','tps_eco_enzyme','bank_sampah','lainnya')),
-  jenis_pengolahan  TEXT NOT NULL DEFAULT 'komposter'
-                    CHECK (jenis_pengolahan IN ('komposter','maggot_bsf','eco_enzyme','bank_sampah','lainnya')),
+  nama_penerima          TEXT NOT NULL,
+  jenis_penerima         TEXT NOT NULL DEFAULT 'lainnya'
+                    CHECK (jenis_penerima IN ('panti_asuhan','yayasan','rumah_dhuafa','peternakan','lainnya')),
   kapasitas_kg_hari DOUBLE PRECISION NOT NULL DEFAULT 0 CHECK (kapasitas_kg_hari >= 0),
   jenis_diterima    TEXT NOT NULL DEFAULT '["lainnya"]',   -- JSON array kategori sampah
   radius_layanan_km DOUBLE PRECISION NOT NULL DEFAULT 15,
@@ -72,6 +70,8 @@ CREATE TABLE IF NOT EXISTS sampah_makanan (
   berat_kg         DOUBLE PRECISION NOT NULL CHECK (berat_kg > 0),
   waktu_produksi   TEXT NOT NULL,
   foto_url         TEXT,
+  kelayakan        TEXT NOT NULL DEFAULT 'layak'
+                   CHECK (kelayakan IN ('layak','tidak_layak')),
   status           TEXT NOT NULL DEFAULT 'tersedia'
                    CHECK (status IN ('tersedia','dialokasikan','dijemput','terkirim','terverifikasi','dibatalkan')),
   created_at       TEXT NOT NULL
@@ -95,11 +95,11 @@ CREATE TABLE IF NOT EXISTS klasifikasi_sampah (
                       DEFAULT to_char((now() at time zone 'utc'), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
 );
 
--- 6. alokasi — pasangan sampah -> TPS -> kurir + sub-skor routing (FR-08, FR-15)
+-- 6. alokasi — pasangan sampah -> penerima -> kurir + sub-skor routing (FR-08, FR-15)
 CREATE TABLE IF NOT EXISTS alokasi (
   id_alokasi       BIGSERIAL PRIMARY KEY,
   id_sampah        BIGINT NOT NULL REFERENCES sampah_makanan(id_sampah),
-  id_tps           BIGINT NOT NULL REFERENCES tps_pengolah(id_user),
+  id_penerima           BIGINT NOT NULL REFERENCES penerima(id_user),
   id_kurir         BIGINT NOT NULL REFERENCES "user"(id_user),
   skor_matching    DOUBLE PRECISION NOT NULL,
   skor_jenis_cocok DOUBLE PRECISION NOT NULL,
@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS alokasi (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_alokasi_aktif
   ON alokasi(id_sampah) WHERE status != 'dibatalkan';
 
--- 7. kode_otp — verifikasi serah terima kurir<->TPS (FR-10)
+-- 7. kode_otp — verifikasi serah terima kurir<->penerima (FR-10)
 CREATE TABLE IF NOT EXISTS kode_otp (
   id_kode_otp     BIGSERIAL PRIMARY KEY,
   id_alokasi      BIGINT NOT NULL REFERENCES alokasi(id_alokasi),
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS kode_otp (
                   DEFAULT to_char((now() at time zone 'utc'), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
 );
 
--- 8. pengolahan_log — bukti TPS mengolah sampah (FR-11, traceability)
+-- 8. pengolahan_log — bukti penerima menerima/mengolah sisa makanan (FR-11, traceability)
 CREATE TABLE IF NOT EXISTS pengolahan_log (
   id_pengolahan BIGSERIAL PRIMARY KEY,
   id_alokasi    BIGINT NOT NULL REFERENCES alokasi(id_alokasi),
@@ -224,8 +224,8 @@ CREATE TABLE IF NOT EXISTS reset_sandi (
 CREATE INDEX IF NOT EXISTS idx_sampah_status    ON sampah_makanan(status);
 CREATE INDEX IF NOT EXISTS idx_sampah_donor     ON sampah_makanan(id_donor);
 CREATE INDEX IF NOT EXISTS idx_klasifikasi_sampah ON klasifikasi_sampah(id_sampah);
-CREATE INDEX IF NOT EXISTS idx_tps_aktif        ON tps_pengolah(aktif);
-CREATE INDEX IF NOT EXISTS idx_alokasi_tps      ON alokasi(id_tps, status);
+CREATE INDEX IF NOT EXISTS idx_penerima_aktif        ON penerima(aktif);
+CREATE INDEX IF NOT EXISTS idx_alokasi_penerima      ON alokasi(id_penerima, status);
 CREATE INDEX IF NOT EXISTS idx_alokasi_kurir    ON alokasi(id_kurir, status);
 CREATE INDEX IF NOT EXISTS idx_notifikasi_user  ON notifikasi(id_user, dibaca_pada);
 
@@ -255,10 +255,10 @@ SELECT 'user'::text AS sumber, u.id_user::bigint AS id, u.nama, u.lat, u.lng,
 FROM "user" u
 WHERE u.lat IS NOT NULL AND u.lng IS NOT NULL
 UNION ALL
-SELECT 'tps_pengolah', t.id_user, t.nama_tps, u.lat, u.lng,
+SELECT 'penerima', t.id_user, t.nama_penerima, u.lat, u.lng,
        CASE WHEN u.lat IS NOT NULL AND u.lng IS NOT NULL
             THEN ST_SetSRID(ST_MakePoint(u.lng, u.lat), 4326)::geography END
-FROM tps_pengolah t JOIN "user" u ON u.id_user = t.id_user
+FROM penerima t JOIN "user" u ON u.id_user = t.id_user
 WHERE u.lat IS NOT NULL AND u.lng IS NOT NULL AND t.aktif;
 
 -- Parameter default routing/kepatuhan (dipakai ai + /api/compliance)
@@ -266,7 +266,7 @@ INSERT INTO konfigurasi_regulasi (kode_daerah, nama_regulasi, jenis_regulasi, at
 VALUES ('KOTA_MADIUN', 'Kebijakan Pengelolaan Sampah Makanan MBG Kota Madiun', 'lainnya',
         '{"bobot_routing":{"jenis_cocok":0.35,"kapasitas":0.25,"jarak":0.25,"urgensi":0.15},' ||
         '"radius_layanan_km":15,"batas_skor":0.3,"target_alokasi_persen":85,' ||
-        '"sla_routing_detik":3,"larangan":["buang sampah makanan ke TPS biasa"]}', TRUE)
+        '"sla_routing_detik":3,"larangan":["menyalurkan sisa makanan layak di luar jalur resmi"]}', TRUE)
 ON CONFLICT DO NOTHING;
 
 -- ==========================================================================
@@ -275,7 +275,7 @@ ON CONFLICT DO NOTHING;
 -- (a) Role user:
 --     UPDATE "user" SET role = CASE role
 --       WHEN 'donor'   THEN 'donor_mbg'
---       WHEN 'penerima' THEN 'tps_pengolah'
+--       WHEN 'penerima' THEN 'penerima'
 --       ELSE role END
 --     WHERE role IN ('donor','penerima');
 --
@@ -287,14 +287,14 @@ ON CONFLICT DO NOTHING;
 --            jumlah_porsi * 0.4, expiry_time, foto_kondisi, status, created_at
 --     FROM surplus_makanan;
 --
--- (c) kebutuhan_pangan dilebur: akun penerima menjadi profil TPS Pengolah
---     (nama_lembaga -> nama_tps, kapasitas -> kapasitas_kg_hari):
---     INSERT INTO tps_pengolah (id_user, nama_tps, kapasitas_kg_hari, aktif)
+-- (c) kebutuhan_pangan dilebur: akun penerima menjadi profil Penerima
+--     (nama_lembaga -> nama_penerima, kapasitas -> kapasitas_kg_hari):
+--     INSERT INTO penerima (id_user, nama_penerima, kapasitas_kg_hari, aktif)
 --     SELECT id_user, COALESCE(nama_lembaga, nama), COALESCE(kapasitas, 0), TRUE
---     FROM "user" WHERE role = 'tps_pengolah';
+--     FROM "user" WHERE role = 'penerima';
 --
 -- (d) alokasi lama (id_makanan/id_kebutuhan/id_penerima) di-rebuild ke
---     alokasi baru (id_sampah/id_tps/id_kurir) — lihat backend/db.js.
+--     alokasi baru (id_sampah/id_penerima/id_kurir) — lihat backend/db.js.
 --
 -- (e) Setelah migrasi: DROP TABLE surplus_makanan, kebutuhan_pangan.
 -- ==========================================================================

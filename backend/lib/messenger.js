@@ -103,7 +103,7 @@ async function sendEmail(to, subject, body) {
       html: `<div style="font-family:system-ui,sans-serif;font-size:14px;line-height:1.5">
   <p><b>${escapeHtml(subject)}</b></p>
   <p>${escapeHtml(body).replace(/\n/g, '<br>')}</p>
-  <p style="color:#64748b;font-size:12px">EcoMatch — Pengalihan Sampah Makanan MBG ke TPS Pengolah</p>
+  <p style="color:#64748b;font-size:12px">EcoMatch — Pengalihan Sampah Makanan MBG ke Penerima</p>
 </div>`,
     });
     return { ok: true, simulated: false, to, response: info.messageId || 'ok' };

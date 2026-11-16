@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.use(authenticate, requireActive);
 
-const ROLES_LOKASI = `('donor_mbg','tps_pengolah','kurir')`;
+const ROLES_LOKASI = `('donor_mbg','penerima','kurir')`;
 
 /**
  * Titik terdekat di sekitar posisi (SKPL: GIS Service / spatial data store).
@@ -56,9 +56,9 @@ router.get('/', async (_req, res, next) => {
        ORDER BY id_user`
     );
     const tps = await db.all(
-      `SELECT t.id_user, t.nama_tps, t.jenis_pengolahan, t.kapasitas_kg_hari, t.radius_layanan_km, t.aktif,
+      `SELECT t.id_user, t.nama_penerima, t.jenis_penerima, t.kapasitas_kg_hari, t.radius_layanan_km, t.aktif,
               u.lat, u.lng, u.alamat
-         FROM tps_pengolah t JOIN user u ON u.id_user = t.id_user
+         FROM penerima t JOIN user u ON u.id_user = t.id_user
         WHERE u.lat IS NOT NULL AND u.lng IS NOT NULL
         ORDER BY t.id_user`
     );
@@ -70,7 +70,7 @@ router.get('/', async (_req, res, next) => {
           AND s.status IN ('tersedia', 'dialokasikan')
         ORDER BY s.id_sampah`
     );
-    res.json({ users, tps, listings });
+    res.json({ users, penerima: tps, listings });
   } catch (e) {
     next(e);
   }

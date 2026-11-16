@@ -16,8 +16,8 @@ function donorForm() {
   const now = new Date(Date.now() - 60000);
   const waktuDefault = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
-  return `${pageHead('Catat Sampah Makanan MBG', 'Catat sisa makanan MBG dari dapur/SPPG untuk dialihkan ke TPS pengolah')}
-  ${flowStripHtml(['Isi form + foto', 'Klasifikasi otomatis', 'Routing AI ke TPS', 'Kurir jemput & OTP TPS'])}
+  return `${pageHead('Catat Sampah Makanan MBG', 'Catat sisa makanan MBG dari dapur/SPPG untuk disalurkan ke penerima yang tepat')}
+  ${flowStripHtml(['Isi form + foto', 'Cek kelayakan', 'Routing AI ke penerima', 'Kurir jemput & OTP'])}
   <div class="section"><div class="card card-pad-lg">
     <form id="wasteForm" data-action="1" data-endpoint="/api/waste" data-multipart="1" novalidate>
       ${wizardStepper(0)}
@@ -51,6 +51,21 @@ function donorForm() {
           <input class="sr-only" id="wFoto" name="foto" type="file" accept="image/*" capture="environment" required />
           <div class="err-msg" data-err-for="wFoto" hidden></div>
         </div>
+
+        <div class="field">
+          <label class="label">Kelayakan konsumsi<span class="req">*</span></label>
+          <div class="grid grid-2">
+            <label class="role-card" style="cursor:pointer">
+              <input type="radio" name="kelayakan" value="layak" required checked />
+              <span><b>Layak dikonsumsi</b><small>Disalurkan ke panti asuhan / yayasan</small></span>
+            </label>
+            <label class="role-card" style="cursor:pointer">
+              <input type="radio" name="kelayakan" value="tidak_layak" required />
+              <span><b>Tidak layak</b><small>Diarahkan ke peternakan (pakan ternak)</small></span>
+            </label>
+          </div>
+          <div class="t-xs" id="saranAi" hidden style="margin-top:6px"></div>
+        </div>
       </div>
 
       <div class="stack stack-4" data-step-panel="1" hidden>
@@ -68,11 +83,12 @@ function donorForm() {
             <div><span class="muted">Nama:</span> <b id="sumNama">—</b></div>
             <div><span class="muted">Jenis / berat:</span> <b id="sumJenis">—</b></div>
             <div><span class="muted">Waktu produksi:</span> <b id="sumWaktu">—</b></div>
+            <div><span class="muted">Kelayakan:</span> <b id="sumKelayakan">—</b></div>
             <div><span class="muted">Lokasi:</span> <b id="sumLokasi">—</b></div>
             <div><span class="muted">Foto:</span> <b id="sumFoto">—</b></div>
           </div>
         </div>
-        <div class="t-sm muted">Sampah akan diklasifikasi otomatis (FR-11) lalu menunggu routing AI (FR-04) menuju TPS terdekat.</div>
+        <div class="t-sm muted">Sampah akan diklasifikasi otomatis (FR-11) lalu menunggu routing AI (FR-04) — layak ke panti asuhan, tidak layak ke peternakan.</div>
         <div id="sopBox">${sopHtml('basah')}</div>
       </div>
 
@@ -133,6 +149,10 @@ function initWizard(root) {
     root.querySelector('#sumJenis').textContent = `${g('jenis_makanan').selectedOptions[0].textContent} · ${g('berat_kg').value || '—'} kg`;
     const w = g('waktu_produksi').value;
     root.querySelector('#sumWaktu').textContent = w ? fmtDate(w) : '—';
+    const kel = form.querySelector('[name="kelayakan"]:checked');
+    root.querySelector('#sumKelayakan').textContent = kel
+      ? (kel.value === 'layak' ? 'Layak dikonsumsi (panti/yayasan)' : 'Tidak layak (peternakan)')
+      : '—';
     const lat = g('lat').value;
     const locSel = form.querySelector('[data-loc-select]');
     root.querySelector('#sumLokasi').textContent = lat
@@ -188,6 +208,43 @@ function initWizard(root) {
     root.querySelector('#dzName').textContent = `${f.name} · ${(f.size / 1024).toFixed(0)} KB`;
   });
 
+  const saranBox = root.querySelector('#saranAi');
+  let saranTimer = null;
+  let userPilih = false;
+  form.querySelectorAll('[name="kelayakan"]').forEach((r) => {
+    r.addEventListener('change', () => { userPilih = true; });
+  });
+  const mintaSaran = () => {
+    clearTimeout(saranTimer);
+    saranTimer = setTimeout(async () => {
+      const g = (n) => form.querySelector(`[name="${n}"]`);
+      const nama = g('nama_sampah').value.trim();
+      const jenis = g('jenis_makanan').value;
+      const waktu = g('waktu_produksi').value;
+      if (!nama || !jenis || !waktu || !saranBox) return;
+      try {
+        const r = await api('/api/classify', {
+          method: 'POST',
+          body: { nama_sampah: nama, jenis_makanan: jenis, waktu_produksi: waktu },
+        });
+        if (!r.saran_layak) return;
+        const label = r.saran_layak === 'layak' ? 'Layak dikonsumsi' : 'Tidak layak';
+        saranBox.hidden = false;
+        saranBox.textContent = `Saran AI: ${label} (dari tingkat pembusukan: ${r.tingkat_pembusukan || '-'}) — boleh dikoreksi bila Anda yakin lain.`;
+        if (!userPilih) {
+          const target = form.querySelector(`[name="kelayakan"][value="${r.saran_layak}"]`);
+          if (target) target.checked = true;
+        }
+      } catch {
+        /* saran AI bersifat opsional */
+      }
+    }, 500);
+  };
+  ['nama_sampah', 'jenis_makanan', 'waktu_produksi'].forEach((n) => {
+    form.querySelector(`[name="${n}"]`).addEventListener('change', mintaSaran);
+  });
+  mintaSaran();
+
   show();
   bindSopToggle(root);
 }
@@ -201,7 +258,7 @@ async function donorListings() {
         ? emptyHtml('Belum ada stok sampah', 'Catat sampah makanan terlebih dahulu.')
         : `<div class="table-wrap" style="border:none">
       <table class="table">
-        <thead><tr><th>Foto</th><th>Nama</th><th>Jenis</th><th>Berat</th><th>Klasifikasi</th><th>Produksi</th><th>Status</th><th style="text-align:right">Aksi</th></tr></thead>
+        <thead><tr><th>Foto</th><th>Nama</th><th>Jenis</th><th>Berat</th><th>Klasifikasi</th><th>Kelayakan</th><th>Produksi</th><th>Status</th><th style="text-align:right">Aksi</th></tr></thead>
         <tbody>
         ${rows
           .map(
@@ -211,6 +268,7 @@ async function donorListings() {
           <td data-label="Jenis">${statusTag(l.jenis_makanan)}</td>
           <td data-label="Berat">${l.berat_kg} kg</td>
           <td data-label="Klasifikasi">${l.kategori ? `${statusTag(l.kategori)} <span class="muted">${statusTag(l.tingkat_pembusukan)}</span>` : '—'}</td>
+          <td data-label="Kelayakan">${l.kelayakan ? statusTag(l.kelayakan === 'layak' ? 'layak' : 'tidak_layak') : '—'}</td>
           <td data-label="Produksi" class="muted">${fmtDate(l.waktu_produksi)}</td>
           <td data-label="Status">${statusTag(l.status)}</td>
           <td data-label="Aksi"><div class="cell-actions">${['tersedia', 'dialokasikan'].includes(l.status) ? `<button class="btn btn-sm btn-danger" data-patch="/api/waste/${l.id_sampah}" data-body='{"status":"dibatalkan"}'>Batalkan</button>` : '—'}</div></td>

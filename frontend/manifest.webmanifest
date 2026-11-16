@@ -1,7 +1,7 @@
 {
   "name": "EcoMatch — AI Routing Sampah Makanan MBG",
   "short_name": "EcoMatch",
-  "description": "Pengalihan sampah makanan MBG ke TPS pengolah berbasis AI Routing & GIS.",
+  "description": "Penyaluran sisa makanan MBG ke penerima berbasis AI Routing & GIS.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

@@ -16,6 +16,7 @@ const upload = multer({
 });
 
 const JENIS_VALID = ['nasi', 'sayur', 'lauk', 'buah', 'campuran', 'lainnya'];
+const KELAYAKAN_VALID = ['layak', 'tidak_layak'];
 const STATUS_BATAL = 'dibatalkan';
 
 const SELECT_LIST = `
@@ -40,7 +41,7 @@ async function aksesSampah(req, sampah) {
   const alokasi = await db.get(
     `SELECT id_alokasi FROM alokasi
       WHERE id_sampah = ? AND status != 'dibatalkan'
-        AND (id_kurir = ? OR id_tps = ?)
+        AND (id_kurir = ? OR id_penerima = ?)
       LIMIT 1`,
     [sampah.id_sampah, req.user.id, req.user.id]
   );
@@ -59,9 +60,13 @@ async function batalkanSampah(sampah) {
 // FR-02: unggah sampah makanan (foto wajib) + klasifikasi otomatis
 router.post('/', requireRole('donor_mbg', 'admin'), upload.single('foto'), async (req, res, next) => {
   try {
-    const { nama_sampah, jenis_makanan, berat_kg, waktu_produksi, lat, lng } = req.body || {};
+    const { nama_sampah, jenis_makanan, berat_kg, waktu_produksi, lat, lng, kelayakan } = req.body || {};
     const cleanName = clampStr(nama_sampah, 200);
     if (!cleanName) return res.status(400).json({ error: 'Nama sampah wajib diisi' });
+
+    if (!KELAYAKAN_VALID.includes(kelayakan)) {
+      return res.status(400).json({ error: 'Kelayakan wajib diisi: layak atau tidak_layak' });
+    }
 
     const berat = Number(berat_kg);
     if (!Number.isFinite(berat) || berat <= 0 || berat > 10000) {
@@ -91,9 +96,9 @@ router.post('/', requireRole('donor_mbg', 'admin'), upload.single('foto'), async
     }
 
     const result = await db.run(
-      `INSERT INTO sampah_makanan (id_donor, nama_sampah, jenis_makanan, berat_kg, waktu_produksi, foto_url)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [req.user.id, cleanName, jenis, berat, new Date(waktuMs).toISOString(), await saveImage(req.file)]
+      `INSERT INTO sampah_makanan (id_donor, nama_sampah, jenis_makanan, berat_kg, waktu_produksi, foto_url, kelayakan)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [req.user.id, cleanName, jenis, berat, new Date(waktuMs).toISOString(), await saveImage(req.file), kelayakan]
     );
     const idSampah = result.lastInsertRowid;
 
@@ -107,6 +112,7 @@ router.post('/', requireRole('donor_mbg', 'admin'), upload.single('foto'), async
     await audit(req.user.id, 'CREATE_WASTE', 'sampah_makanan', idSampah, {
       berat_kg: berat,
       jenis_makanan: jenis,
+      kelayakan,
       kategori: klasifikasi.kategori,
       tingkat_pembusukan: klasifikasi.tingkat_pembusukan,
     });
@@ -126,7 +132,7 @@ router.get('/mine', requireRole('donor_mbg', 'admin'), async (req, res, next) =>
   }
 });
 
-// Daftar sesuai peran: admin semua, donor miliknya, tps/kurir yang terkait alokasi
+// Daftar sesuai peran: admin semua, donor miliknya, penerima/kurir yang terkait alokasi
 router.get('/', async (req, res, next) => {
   try {
     let rows;
@@ -139,7 +145,7 @@ router.get('/', async (req, res, next) => {
         `${SELECT_LIST}
          WHERE s.id_donor = ? OR s.id_sampah IN (
            SELECT a.id_sampah FROM alokasi a
-            WHERE a.status != 'dibatalkan' AND (a.id_kurir = ? OR a.id_tps = ?)
+            WHERE a.status != 'dibatalkan' AND (a.id_kurir = ? OR a.id_penerima = ?)
          )
          ORDER BY s.created_at DESC`,
         [req.user.id, req.user.id, req.user.id]
@@ -173,7 +179,7 @@ router.patch('/:id', async (req, res, next) => {
       return res.status(403).json({ error: 'Bukan milik Anda' });
     }
 
-    const { nama_sampah, jenis_makanan, berat_kg, waktu_produksi, status } = req.body || {};
+    const { nama_sampah, jenis_makanan, berat_kg, waktu_produksi, kelayakan, status } = req.body || {};
     if (status != null) {
       if (status !== STATUS_BATAL) return res.status(400).json({ error: 'Hanya status dibatalkan yang bisa diubah' });
       if (!['tersedia', 'dialokasikan'].includes(sampah.status)) {
@@ -219,6 +225,13 @@ router.patch('/:id', async (req, res, next) => {
       }
       fields.push('waktu_produksi = ?');
       params.push(t.toISOString());
+    }
+    if (kelayakan != null && kelayakan !== '') {
+      if (!KELAYAKAN_VALID.includes(kelayakan)) {
+        return res.status(400).json({ error: 'Kelayakan harus layak atau tidak_layak' });
+      }
+      fields.push('kelayakan = ?');
+      params.push(kelayakan);
     }
     if (!fields.length) return res.status(400).json({ error: 'Tidak ada perubahan yang dikirim' });
 

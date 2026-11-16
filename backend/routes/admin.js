@@ -57,8 +57,8 @@ router.get('/stats', async (req, res, next) => {
       })
       .filter((r) => r.durasi_ms != null);
 
-    const tpsRows = await db.all('SELECT aktif FROM tps_pengolah');
-    const tpsAktif = tpsRows.filter((r) => !(r.aktif === false || r.aktif === 0 || r.aktif === '0')).length;
+    const penerimaRows = await db.all('SELECT aktif FROM penerima');
+    const tpsAktif = penerimaRows.filter((r) => !(r.aktif === false || r.aktif === 0 || r.aktif === '0')).length;
 
     res.json({
       users: {
@@ -66,7 +66,7 @@ router.get('/stats', async (req, res, next) => {
         menunggu: await count(`SELECT COUNT(*) AS c FROM user WHERE status = 'menunggu'`),
         aktif: await count(`SELECT COUNT(*) AS c FROM user WHERE status = 'aktif'`),
         donor_mbg: await count(`SELECT COUNT(*) AS c FROM user WHERE role = 'donor_mbg'`),
-        tps_pengolah: await count(`SELECT COUNT(*) AS c FROM user WHERE role = 'tps_pengolah'`),
+        penerima: await count(`SELECT COUNT(*) AS c FROM user WHERE role = 'penerima'`),
         kurir: await count(`SELECT COUNT(*) AS c FROM user WHERE role = 'kurir'`),
         admin: await count(`SELECT COUNT(*) AS c FROM user WHERE role = 'admin'`),
       },
@@ -77,8 +77,8 @@ router.get('/stats', async (req, res, next) => {
         terverifikasi: await count(`SELECT COUNT(*) AS c FROM sampah_makanan WHERE status = 'terverifikasi'`),
         dibatalkan: await count(`SELECT COUNT(*) AS c FROM sampah_makanan WHERE status = 'dibatalkan'`),
       },
-      tps: {
-        total: tpsRows.length,
+      penerima: {
+        total: penerimaRows.length,
         aktif: tpsAktif,
         radius_layanan_km: cfg.radius_layanan_km,
       },
@@ -171,7 +171,7 @@ router.delete('/users/:id', async (req, res, next) => {
     const activeAlokasi = await db.get(
       `SELECT COUNT(*) AS c FROM alokasi
         WHERE status IN ('dialokasikan','dijemput','terkirim')
-          AND (id_kurir = ? OR id_tps = ?
+          AND (id_kurir = ? OR id_penerima = ?
                OR id_sampah IN (SELECT id_sampah FROM sampah_makanan WHERE id_donor = ?))`,
       [user.id_user, user.id_user, user.id_user]
     );
@@ -188,9 +188,9 @@ router.delete('/users/:id', async (req, res, next) => {
     await db.run('DELETE FROM notifikasi WHERE id_user = ?', [user.id_user]);
     await db.run('DELETE FROM reset_sandi WHERE id_user = ?', [user.id_user]);
     try {
-      await db.run('DELETE FROM tps_pengolah WHERE id_user = ?', [user.id_user]);
+      await db.run('DELETE FROM penerima WHERE id_user = ?', [user.id_user]);
     } catch {
-      return res.status(400).json({ error: 'TPS masih terkait riwayat alokasi' });
+      return res.status(400).json({ error: 'Penerima masih terkait riwayat alokasi' });
     }
 
     await audit(req.user.id, 'DELETE_USER', 'user', user.id_user, { email: user.email, role: user.role });
@@ -261,12 +261,12 @@ router.get('/matches', async (_req, res, next) => {
   try {
     const rows = await db.all(
       `SELECT a.*, s.nama_sampah, s.jenis_makanan, s.berat_kg, s.waktu_produksi, s.status AS status_sampah,
-              t.nama_tps, t.jenis_pengolahan,
+              t.nama_penerima, t.jenis_penerima,
               dn.nama AS nama_donor, c.nama AS nama_kurir,
               (SELECT k.kategori FROM klasifikasi_sampah k WHERE k.id_sampah = s.id_sampah ORDER BY k.id_klasifikasi DESC LIMIT 1) AS kategori
          FROM alokasi a
          JOIN sampah_makanan s ON s.id_sampah = a.id_sampah
-         JOIN tps_pengolah t ON t.id_user = a.id_tps
+         JOIN penerima t ON t.id_user = a.id_penerima
          JOIN user dn ON dn.id_user = s.id_donor
          JOIN user c ON c.id_user = a.id_kurir
         ORDER BY a.waktu_alokasi DESC`

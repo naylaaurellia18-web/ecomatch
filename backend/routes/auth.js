@@ -26,8 +26,8 @@ router.post('/register', async (req, res, next) => {
     if (!isEmail(email)) {
       return res.status(400).json({ error: 'Format email tidak valid' });
     }
-    if (!['donor_mbg', 'tps_pengolah', 'kurir'].includes(role)) {
-      return res.status(400).json({ error: 'Peran harus donor_mbg, tps_pengolah, atau kurir' });
+    if (!['donor_mbg', 'penerima', 'kurir'].includes(role)) {
+      return res.status(400).json({ error: 'Peran harus donor_mbg, penerima, atau kurir' });
     }
     if (password.length < 6 || password.length > 128) {
       return res.status(400).json({ error: 'Kata sandi minimal 6, maksimal 128 karakter' });
@@ -57,7 +57,7 @@ router.post('/register', async (req, res, next) => {
 
     const userId = result.lastInsertRowid;
 
-    // Auto-buat profil MBG (SPPG) untuk donor; profil TPS dibuat via POST /api/tps/register
+    // Auto-buat profil MBG (SPPG) untuk donor; profil penerima dibuat via POST /api/penerima/register
     if (role === 'donor_mbg') {
       await db.run(`INSERT INTO profil_mbg (id_user, nama_sppg, alamat, kontak) VALUES (?, ?, ?, ?)`, [
         userId,

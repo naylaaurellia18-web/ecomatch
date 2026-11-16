@@ -1,7 +1,7 @@
 node_modules/
 data/
 backups/
-.env
+.env*
 *.log
 uploads/*
 !uploads/.gitkeep
@@ -9,3 +9,4 @@ uploads/*
 server.pid
 __pycache__/
 .vercel
+

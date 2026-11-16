@@ -24,20 +24,11 @@ export function jenisLabel(j) {
   return JENIS_LABEL[j] || String(j || '').replace(/_/g, ' ');
 }
 
-export const JENIS_TPS = [
-  ['tps_3r', 'TPS 3R'],
-  ['tps_komposter', 'TPS Komposter'],
-  ['tps_maggot', 'TPS Maggot/BSSF'],
-  ['tps_eco_enzyme', 'TPS Eco Enzyme'],
-  ['bank_sampah', 'Bank Sampah'],
-  ['lainnya', 'Lainnya'],
-];
-
-export const JENIS_PENGOLAHAN = [
-  ['komposter', 'Komposter'],
-  ['maggot_bsf', 'Maggot BSF'],
-  ['eco_enzyme', 'Eco Enzyme'],
-  ['bank_sampah', 'Bank Sampah'],
+export const JENIS_PENERIMA = [
+  ['panti_asuhan', 'Panti Asuhan'],
+  ['yayasan', 'Yayasan'],
+  ['rumah_dhuafa', 'Rumah Dhuafa'],
+  ['peternakan', 'Peternakan'],
   ['lainnya', 'Lainnya'],
 ];
 
