@@ -4,19 +4,19 @@ import { bindForms } from '../core/forms.js';
 
 async function donorMatches() {
   const rows = await api('/api/routing');
-  return `${pageHead('Routing Sampah Saya', 'Hasil routing AI untuk sampah makanan yang Anda catat')}
+  return `${pageHead('Routing Sisa Makanan Saya', 'Hasil routing AI untuk sisa makanan yang Anda catat')}
   <div class="section"><div class="card">
     ${
       rows.length === 0
         ? emptyHtml('Belum ada alokasi', 'Tunggu admin menjalankan routing AI.')
         : `<div class="table-wrap" style="border:none">
       <table class="table">
-        <thead><tr><th>Sampah</th><th>Penerima</th><th>Kurir</th><th>Skor</th><th>Status</th></tr></thead>
+        <thead><tr><th>Sisa Makanan</th><th>Penerima</th><th>Kurir</th><th>Skor</th><th>Status</th></tr></thead>
         <tbody>
         ${rows
           .map(
             (m) => `<tr>
-          <td data-label="Sampah"><b>${esc(m.nama_sampah)}</b> ${statusTag(m.kategori || m.jenis_makanan)}<br><span class="muted">${m.berat_kg} kg</span></td>
+          <td data-label="Sisa Makanan"><b>${esc(m.nama_sampah)}</b> ${statusTag(m.kategori || m.jenis_makanan)}<br><span class="muted">${m.berat_kg} kg</span></td>
           <td data-label="Penerima">${esc(m.nama_penerima)}<br><span class="muted">${m.jarak_km} km</span></td>
           <td data-label="Kurir">${esc(m.nama_kurir)}</td>
           <td data-label="Skor">

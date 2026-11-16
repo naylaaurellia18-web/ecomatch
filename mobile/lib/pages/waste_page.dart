@@ -67,7 +67,7 @@ class _WastePageState extends State<WastePage>
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(32),
-          child: Text('Belum ada data sampah.',
+          child: Text('Belum ada data sisa makanan.',
               style: TextStyle(color: Colors.black54)),
         ),
       );

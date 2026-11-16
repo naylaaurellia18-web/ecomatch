@@ -1,5 +1,5 @@
 {
-  "name": "EcoMatch — AI Routing Sampah Makanan MBG",
+  "name": "EcoMatch — AI Routing Sisa Makanan MBG",
   "short_name": "EcoMatch",
   "description": "Penyaluran sisa makanan MBG ke penerima berbasis AI Routing & GIS.",
   "id": "/",
@@ -34,8 +34,8 @@
   ],
   "shortcuts": [
     {
-      "name": "Catat Sampah",
-      "short_name": "Sampah",
+      "name": "Catat Sisa Makanan",
+      "short_name": "Sisa Makanan",
       "url": "/?tab=donor"
     },
     {

@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(
               icon: Icon(Icons.alt_route), label: 'Alokasi'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.delete_outline), label: 'Sampah'),
+              icon: Icon(Icons.delete_outline), label: 'Makanan'),
           BottomNavigationBarItem(
               icon: Icon(Icons.add_a_photo), label: 'Unggah'),
           BottomNavigationBarItem(
@@ -62,7 +62,7 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(
               icon: Icon(Icons.alt_route), label: 'Alokasi'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.delete_outline), label: 'Sampah'),
+              icon: Icon(Icons.delete_outline), label: 'Makanan'),
           BottomNavigationBarItem(
               icon: Icon(Icons.notifications), label: 'Notifikasi'),
         ];

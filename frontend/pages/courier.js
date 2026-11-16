@@ -9,7 +9,7 @@ function photoField(m, kind) {
   const endpoint = isPickup ? 'pickup' : 'deliver';
   return `<form class="stack stack-3" data-action="1" data-endpoint="/api/deliveries/${m.id_alokasi}/${endpoint}" data-multipart="1"
       data-photo-form="${m.id_alokasi}-${kind}" style="margin-top:var(--sp-3)">
-    <label class="label">${isPickup ? 'Foto kondisi sampah' : 'Foto bukti pengantaran'} <span class="hint">(wajib, maks 1MB)</span></label>
+    <label class="label">${isPickup ? 'Foto kondisi sisa makanan' : 'Foto bukti pengantaran'} <span class="hint">(wajib, maks 1MB)</span></label>
     <div class="row row-2 row-wrap" style="align-items:center">
       <input class="input" type="file" name="${name}" accept="image/*" capture="environment" required style="max-width:340px" />
       <button class="btn btn-primary btn-capture" type="submit" style="flex:1;min-width:220px">
@@ -69,7 +69,7 @@ async function courierView() {
   const rows = await api('/api/routing');
   const active = rows.filter((m) => ['dialokasikan', 'dijemput', 'terkirim'].includes(m.status));
 
-  return `${pageHead('Tugas Kurir', 'Ambil foto kondisi sampah, antar ke penerima, dan tandai status pengiriman')}
+  return `${pageHead('Tugas Kurir', 'Ambil foto kondisi sisa makanan, antar ke penerima, dan tandai status pengiriman')}
   ${flowStripHtml(['Terima tugas', 'Foto & jemput', 'Antar & tandai sampai', 'OTP penerima → selesai'])}
   <div class="section"><div class="card">
     <div class="card-head"><div><h2>Tugas aktif</h2></div></div>
@@ -85,13 +85,13 @@ async function courierView() {
         ? emptyHtml('Belum ada riwayat', '')
         : `<div class="table-wrap" style="border:none">
       <table class="table">
-        <thead><tr><th>#</th><th>Sampah</th><th>Penerima</th><th>Skor</th><th>Jarak</th><th>Status</th></tr></thead>
+        <thead><tr><th>#</th><th>Sisa Makanan</th><th>Penerima</th><th>Skor</th><th>Jarak</th><th>Status</th></tr></thead>
         <tbody>
         ${rows
           .map(
             (m) => `<tr>
 <td data-label="#" class="muted">${m.id_alokasi}</td>
-<td data-label="Sampah">${esc(m.nama_sampah)}</td>
+<td data-label="Sisa Makanan">${esc(m.nama_sampah)}</td>
 <td data-label="Penerima">${esc(m.nama_penerima)}</td>
 <td data-label="Skor"><b>${m.skor_persen ?? ''}%</b></td>
 <td data-label="Jarak">${m.jarak_km} km</td>

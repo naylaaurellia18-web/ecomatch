@@ -42,7 +42,7 @@ async function matchesView() {
   const rows = await api('/api/routing');
   return `${pageHead(
     'Routing AI',
-    'Sampah makanan dialokasikan ke penerima &amp; kurir terdekat',
+    'Sisa makanan dialokasikan ke penerima &amp; kurir terdekat',
     `<button class="btn btn-primary" data-post="/api/routing/run">${icon('sparkles', 15)} Jalankan Routing</button>`
   )}
   <div class="section"><div class="card">
@@ -52,16 +52,16 @@ async function matchesView() {
     </div>
     ${
       rows.length === 0
-        ? emptyHtml('Belum ada alokasi', 'Catat sampah makanan & daftarkan penerima dulu, lalu jalankan routing AI.')
+        ? emptyHtml('Belum ada alokasi', 'Catat sisa makanan & daftarkan penerima dulu, lalu jalankan routing AI.')
         : `<div class="table-wrap" style="border:none">
       <table class="table">
-        <thead><tr><th>#</th><th>Sampah → Penerima</th><th>Kurir</th><th>Skor</th><th>Jarak</th><th>Status</th></tr></thead>
+        <thead><tr><th>#</th><th>Sisa Makanan → Penerima</th><th>Kurir</th><th>Skor</th><th>Jarak</th><th>Status</th></tr></thead>
         <tbody>
         ${rows
           .map(
             (m) => `<tr>
           <td data-label="#" class="muted">${m.id_alokasi}</td>
-          <td data-label="Sampah → Penerima"><b>${esc(m.nama_sampah)}</b> (${m.berat_kg} kg) ${statusTag(m.kategori || m.jenis_makanan)}<br>→ ${esc(m.nama_penerima)} ${m.tingkat_pembusukan ? statusTag(m.tingkat_pembusukan) : ''}<br><span class="muted">${esc(m.nama_donor)} → ${esc(m.nama_penerima)}</span></td>
+          <td data-label="Sisa Makanan → Penerima"><b>${esc(m.nama_sampah)}</b> (${m.berat_kg} kg) ${statusTag(m.kategori || m.jenis_makanan)}<br>→ ${esc(m.nama_penerima)} ${m.tingkat_pembusukan ? statusTag(m.tingkat_pembusukan) : ''}<br><span class="muted">${esc(m.nama_donor)} → ${esc(m.nama_penerima)}</span></td>
           <td data-label="Kurir">${esc(m.nama_kurir)}</td>
           <td data-label="Skor">
             <b>${m.skor_persen}%</b>

@@ -62,7 +62,7 @@ router.post('/:id/pickup', upload.single('foto_jemput'), requireRole('kurir', 'a
     if (alo.status !== 'dialokasikan') {
       return res.status(400).json({ error: `Status ${alo.status} tidak bisa dijemput` });
     }
-    if (!req.file) return res.status(400).json({ error: 'Foto kondisi sampah saat dijemput wajib diunggah' });
+    if (!req.file) return res.status(400).json({ error: 'Foto kondisi sisa makanan saat dijemput wajib diunggah' });
     assertImageBuffer(req.file.buffer);
 
     const photoUri = await saveImage(req.file);
@@ -88,7 +88,7 @@ router.post('/:id/pickup', upload.single('foto_jemput'), requireRole('kurir', 'a
     );
     await notify(
       alo.id_donor,
-      'Sampah Dijemput Kurir',
+      'Sisa Makanan Dijemput Kurir',
       `"${alo.nama_sampah}" sedang dalam perjalanan ke ${alo.nama_penerima}.`,
       alo.id_alokasi
     );
@@ -120,7 +120,7 @@ router.post('/:id/deliver', upload.single('foto_antar'), requireRole('kurir', 'a
     await db.run(`UPDATE sampah_makanan SET status = 'terkirim' WHERE id_sampah = ?`, [alo.id_sampah]);
     await notify(
       alo.id_penerima,
-      'Sampah Sampai di Penerima',
+      'Sisa Makanan Sampai di Penerima',
       `"${alo.nama_sampah}" (${alo.berat_kg} kg) telah tiba. Konfirmasi serah terima dengan OTP.`,
       alo.id_alokasi
     );
@@ -178,7 +178,7 @@ router.post('/:id/verify-otp', requireRole('penerima', 'admin'), async (req, res
     );
     await notify(
       alo.id_donor,
-      'Pengalihan Sampah Selesai',
+      'Pengalihan Sisa Makanan Selesai',
       `"${alo.nama_sampah}" telah diterima ${alo.nama_penerima}.`,
       alo.id_alokasi
     );

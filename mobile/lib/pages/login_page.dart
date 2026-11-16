@@ -155,7 +155,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'AI Routing Sampah Makanan MBG ke Penerima',
+                      'AI Routing Sisa Makanan MBG ke Penerima',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13,

@@ -180,7 +180,7 @@ router.delete('/users/:id', async (req, res, next) => {
     }
     const punyaSampah = await db.get('SELECT COUNT(*) AS c FROM sampah_makanan WHERE id_donor = ?', [user.id_user]);
     if (Number(punyaSampah.c || 0) > 0) {
-      return res.status(400).json({ error: 'Pengguna memiliki riwayat sampah — nonaktifkan saja (status ditolak)' });
+      return res.status(400).json({ error: 'Pengguna memiliki riwayat sisa makanan — nonaktifkan saja (status ditolak)' });
     }
 
     // Profil pendampang punya FK ke user — hapus dulu

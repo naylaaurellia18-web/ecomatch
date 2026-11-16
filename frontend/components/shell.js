@@ -15,8 +15,8 @@ export const NAV = {
     ['akun', 'key', 'Ganti Sandi'],
   ],
   donor_mbg: [
-    ['donor', 'upload', 'Catat Sampah'],
-    ['donor-listings', 'list', 'Stok Sampah'],
+    ['donor', 'upload', 'Catat Sisa Makanan'],
+    ['donor-listings', 'list', 'Stok Sisa Makanan'],
     ['donor-matches', 'route', 'Routing Saya'],
     ['donor-points', 'award', 'Poin & Insentif'],
     ['gis', 'map', 'Peta GIS'],
@@ -46,8 +46,8 @@ export const TAB_TITLES = {
   outbox: 'Pesan Terkirim',
   logs: 'Catatan Audit',
   notif: 'Notifikasi',
-  donor: 'Catat Sampah',
-  'donor-listings': 'Stok Sampah',
+  donor: 'Catat Sisa Makanan',
+  'donor-listings': 'Stok Sisa Makanan',
   'donor-matches': 'Routing Saya',
   'donor-points': 'Poin & Insentif',
   recipient: 'Profil Penerima',
@@ -77,7 +77,7 @@ export function shellHtml() {
         <span class="brand-mark" aria-hidden="true">${icon('leaf', 20)}</span>
         <div class="brand-text">
           <div class="brand-name">EcoMatch</div>
-          <div class="brand-tag">AI Routing Sampah Makanan MBG</div>
+          <div class="brand-tag">AI Routing Sisa Makanan MBG</div>
         </div>
       </div>
 

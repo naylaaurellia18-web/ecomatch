@@ -12,8 +12,8 @@ async function pointsView() {
   const klaimRows = m.klaim || [];
   const cert = klaimRows.find((k) => k.jenis_insentif === 'sertifikat');
 
-  return `${pageHead('Poin &amp; Insentif', 'Poin kepatuhan dari kg sampah terverifikasi + klaim insentif (FR-15)')}
-  ${flowStripHtml(['Catat sampah', 'Sampah terverifikasi di penerima', 'Poin bertambah', 'Klaim insentif'])}
+  return `${pageHead('Poin &amp; Insentif', 'Poin kepatuhan dari kg sisa makanan terverifikasi + klaim insentif (FR-15)')}
+  ${flowStripHtml(['Catat sisa makanan', 'Sisa makanan diterima di penerima', 'Poin bertambah', 'Klaim insentif'])}
   ${kpiGrid([
     kpiCard({ label: 'Kg dialihkan', value: m.kg_dialihkan, unit: 'kg', hint: 'status aktif', ic: 'leaf' }),
     kpiCard({ label: 'Kg terverifikasi', value: m.kg_terverifikasi, unit: 'kg', hint: `target klaim ${target} kg`, ic: 'check' }),
@@ -25,7 +25,7 @@ async function pointsView() {
     <div class="card">
       <div class="card-head">
         <div><h2>${icon('award', 16)} Motivasi</h2>
-        <div class="page-sub">Target dibuka setelah ${target} kg sampah terverifikasi</div></div>
+        <div class="page-sub">Target dibuka setelah ${target} kg sisa makanan terverifikasi</div></div>
       </div>
       <p style="margin-bottom:var(--sp-4)">${esc(m.motivasi || '')}</p>
       <div class="meter" style="margin-bottom:var(--sp-4)">

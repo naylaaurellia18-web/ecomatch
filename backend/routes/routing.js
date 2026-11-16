@@ -129,19 +129,19 @@ router.post('/run', requireRole('admin'), async (req, res, next) => {
         const skorPersen = (Number(a.skor_matching) * 100).toFixed(0);
         await notify(
           s?.id_donor,
-          'Sampah Dialokasikan ke Penerima',
+          'Sisa Makanan Dialokasikan ke Penerima',
           `"${s?.nama_sampah}" (${s?.berat_kg} kg) dialokasikan ke ${t?.nama_penerima}. Skor routing ${skorPersen}%, jarak ${a.jarak_km} km.`,
           idAlokasi
         );
         await notify(
           a.id_penerima,
-          'Alokasi Sampah Masuk',
+          'Alokasi Sisa Makanan Masuk',
           `Penerima menerima alokasi "${s?.nama_sampah}" (${s?.berat_kg} kg) dari dapur MBG. Menunggu penjemputan kurir.`,
           idAlokasi
         );
         await notify(
           a.id_kurir,
-          'Tugas Baru: Penjemputan Sampah',
+          'Tugas Baru: Penjemputan Sisa Makanan',
           `Jemput "${s?.nama_sampah}" (${s?.berat_kg} kg), antar ke ${t?.nama_penerima}. Jarak ${a.jarak_km} km.`,
           idAlokasi
         );

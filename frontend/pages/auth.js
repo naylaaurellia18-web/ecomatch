@@ -35,20 +35,20 @@ export function renderAuth() {
       <div class="hero-tag">${icon('leaf', 18)} EcoMatch</div>
       <div class="stack stack-6">
         <div>
-          <div class="eyebrow" style="color:#86efac">AI Routing Sampah Makanan MBG</div>
+          <div class="eyebrow" style="color:#86efac">AI Routing Sisa Makanan MBG</div>
           <h1>Sisa makanan MBG bukan akhir — salurkan ke yang tepat</h1>
           <p style="color:rgba(255,255,255,.85);max-width:46ch">
-            EcoMatch menyalurkan sampah makanan MBG ke penerima terdekat dengan routing AI &amp; peta GIS.
+            EcoMatch menyalurkan sisa makanan MBG ke penerima terdekat dengan routing AI &amp; peta GIS.
           </p>
         </div>
         <ul class="auth-points">
-          <li><span class="tick">${icon('check', 12)}</span> Catat sampah makanan hanya dengan foto</li>
+          <li><span class="tick">${icon('check', 12)}</span> Catat sisa makanan hanya dengan foto</li>
           <li><span class="tick">${icon('check', 12)}</span> Klasifikasi &amp; routing AI otomatis</li>
           <li><span class="tick">${icon('check', 12)}</span> Pantau penjemputan di peta</li>
           <li><span class="tick">${icon('check', 12)}</span> Serah terima terverifikasi via OTP</li>
         </ul>
       </div>
-      <div class="t-sm" style="color:rgba(255,255,255,.7)">Mengalihkan sampah makanan MBG dengan aman dan terlacak</div>
+      <div class="t-sm" style="color:rgba(255,255,255,.7)">Mengalihkan sisa makanan MBG dengan aman dan terlacak</div>
     </section>
 
     <!-- Kolom kanan: kartu form -->
@@ -57,7 +57,7 @@ export function renderAuth() {
         <button class="btn btn-icon" type="button" data-theme-toggle
           style="position:absolute;top:16px;right:16px" title="Ganti tema" aria-label="Ganti tema terang/gelap"></button>
 
-        <div class="eyebrow">AI Routing Sampah Makanan MBG</div>
+        <div class="eyebrow">AI Routing Sisa Makanan MBG</div>
         <h1 style="font-size:28px;margin:6px 0 4px">Masuk ke akun Anda</h1>
         <p class="muted t-sm" id="authSub">Belum punya akun? Daftar gratis — cuma 4 langkah singkat.</p>
 
@@ -115,7 +115,7 @@ export function renderAuth() {
               <label class="role-card">
                 <input type="radio" name="role" value="kurir" />
                 ${icon('truck', 20)}
-                <span><b>Kurir</b><small>Ingin jadi relawan penjemput sampah</small></span>
+                <span><b>Kurir</b><small>Ingin jadi relawan penjemput sisa makanan</small></span>
               </label>
             </div>
           </div>

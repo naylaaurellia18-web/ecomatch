@@ -28,7 +28,7 @@ async function adminDashboard() {
         ${emptyHtml('Web masih kosong — siap diisi dari nol', 'Alur peluncuran: daftarkan donor MBG & penerima, verifikasi pengguna, lalu jalankan routing AI.')}
         <div class="stack stack-3" style="padding:0 var(--sp-5) var(--sp-5)">
           ${[
-            ['1', 'Donor catat sampah makanan', 'Foto, berat kg, jenis, lokasi'],
+            ['1', 'Donor catat sisa makanan', 'Foto, berat kg, jenis, lokasi'],
             ['2', 'Klasifikasi & routing AI', 'Skor multi-kriteria + rute peta'],
     ['3', 'Admin verifikasi pengguna', 'Aktifkan akun donor, penerima, kurir'],
     ['4', 'Kurir jemput, penerima konfirmasi OTP', 'Serah terima terlacak sampai log penerimaan'],
@@ -67,9 +67,9 @@ async function adminDashboard() {
     { center: String(s.users.total), sub: 'pengguna' }
   );
 
-  const sampahCard = tableCard('Sampah &amp; Penerima', '', [
-    ['Sampah tersedia', `${s.sampah.tersedia} / ${s.sampah.total}`],
-    ['Sampah terverifikasi', s.sampah.terverifikasi],
+  const sampahCard = tableCard('Sisa Makanan &amp; Penerima', '', [
+    ['Sisa makanan tersedia', `${s.sampah.tersedia} / ${s.sampah.total}`],
+    ['Sisa makanan terverifikasi', s.sampah.terverifikasi],
     ['Penerima aktif', `${s.penerima.aktif} / ${s.penerima.total}`],
     ['Klasifikasi perlu verifikasi', s.klasifikasi.perlu_verifikasi],
   ]);
@@ -91,7 +91,7 @@ async function adminDashboard() {
             }))
           )}<div class="table-wrap" style="margin-top:var(--sp-4);border:none">
             <table class="table">
-              <thead><tr><th>Kandidat (Sampah/Penerima/Kurir)</th><th>Alokasi dibuat</th><th>Mesin</th><th>Durasi (ms)</th></tr></thead>
+              <thead><tr><th>Kandidat (Sisa Makanan/Penerima/Kurir)</th><th>Alokasi dibuat</th><th>Mesin</th><th>Durasi (ms)</th></tr></thead>
               <tbody>${runs
                 .map(
                   (r) => `<tr>
@@ -110,7 +110,7 @@ async function adminDashboard() {
     'Beranda',
       'Ringkasan operasional penyaluran sisa makanan MBG ke penerima',
     `<button class="btn" data-post="/api/routing/run">${icon('sparkles', 15)} Jalankan Routing AI</button>
-     <button class="btn btn-outline" data-post="/api/admin/clean" data-confirm="Hapus semua data transaksi (sampah, alokasi, log pengolahan, notifikasi)? Akun login tetap ada.">Bersihkan Data</button>`
+     <button class="btn btn-outline" data-post="/api/admin/clean" data-confirm="Hapus semua data transaksi (sisa makanan, alokasi, log pengolahan, notifikasi)? Akun login tetap ada.">Bersihkan Data</button>`
   )}
   ${onboarding}
   ${kpis}

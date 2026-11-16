@@ -130,7 +130,7 @@ class _AlokasiCard extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text('${row['nama_sampah'] ?? 'Sampah'}',
+                          child: Text('${row['nama_sampah'] ?? 'Sisa Makanan'}',
                               style: const TextStyle(
                                   fontWeight: FontWeight.w700, fontSize: 15)),
                         ),

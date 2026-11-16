@@ -40,7 +40,7 @@ function registerForm(galat) {
         <label class="label" for="pRad">Radius layanan (km)</label><input class="input" id="pRad" name="radius_layanan_km" type="number" min="0" max="100" value="15" />
       </div>
       <div class="field" style="margin-top:var(--sp-4)">
-        <span class="label">Kategori sampah yang diterima</span>
+        <span class="label">Kategori sisa makanan yang diterima</span>
         ${jenisDiterimaFormHtml(KATEGORI_DITERIMA)}
       </div>
       ${locationSelectHtml({ label: 'Lokasi penerima', hint: 'Wajib agar penerima muncul di routing & peta' })}
@@ -58,7 +58,7 @@ function profileView(p) {
   const progres = kapasitas > 0 ? Math.min(100, Math.round((terpakai / kapasitas) * 100)) : 0;
 
   return `${pageHead('Profil Penerima', 'Kapasitas, jenis penerima, dan lokasi Anda (FR-03)')}
-  ${flowStripHtml(['Profil & kapasitas', 'Routing AI alokasikan sampah', 'Kurir antar', 'OTP + log penerimaan'])}
+  ${flowStripHtml(['Profil & kapasitas', 'Routing AI alokasikan sisa makanan', 'Kurir antar', 'OTP + log penerimaan'])}
   ${kpiGrid([
     kpiCard({ label: 'Kapasitas harian', value: kapasitas, unit: 'kg/hari', ic: 'package' }),
     kpiCard({ label: 'Terpakai hari ini', value: terpakai, unit: 'kg', hint: `${progres}% dari kapasitas`, ic: 'zap', tone: 'info' }),
@@ -86,7 +86,7 @@ function profileView(p) {
         </div>
       </div>
       <div class="field" style="margin-top:var(--sp-4)">
-        <span class="label">Kategori sampah yang diterima</span>
+        <span class="label">Kategori sisa makanan yang diterima</span>
         ${jenisDiterimaFormHtml(p.jenis_diterima || [])}
       </div>
       <div class="grid grid-2">

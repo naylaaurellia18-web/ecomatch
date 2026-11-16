@@ -34,10 +34,10 @@ router.post('/', async (req, res, next) => {
 
     if (id_sampah != null && id_sampah !== '') {
       if (!(await aksesSampah(req, id_sampah))) {
-        return res.status(403).json({ error: 'Bukan akses Anda atas sampah ini' });
+        return res.status(403).json({ error: 'Bukan akses Anda atas sisa makanan ini' });
       }
       const s = await db.get('SELECT * FROM sampah_makanan WHERE id_sampah = ?', [id_sampah]);
-      if (!s) return res.status(404).json({ error: 'Sampah tidak ditemukan' });
+      if (!s) return res.status(404).json({ error: 'Sisa makanan tidak ditemukan' });
 
       const hasil = await simpanKlasifikasi(s.id_sampah, {
         nama_sampah: s.nama_sampah,
@@ -57,7 +57,7 @@ router.post('/', async (req, res, next) => {
     }
 
     if (!teks && !nama_sampah && !jenis_makanan) {
-      return res.status(400).json({ error: 'Isi teks/keterangan sampah atau id_sampah' });
+      return res.status(400).json({ error: 'Isi teks/keterangan sisa makanan atau id_sampah' });
     }
     const hasil = await classifyWaste({ teks, nama_sampah, jenis_makanan, waktu_produksi, deskripsi });
     res.json(hasil);
@@ -70,7 +70,7 @@ router.post('/', async (req, res, next) => {
 router.get('/sampah/:id', async (req, res, next) => {
   try {
     if (!(await aksesSampah(req, req.params.id))) {
-      return res.status(403).json({ error: 'Bukan akses Anda atas sampah ini' });
+      return res.status(403).json({ error: 'Bukan akses Anda atas sisa makanan ini' });
     }
     const rows = await semuaKlasifikasi(req.params.id);
     res.json(rows);
@@ -91,7 +91,7 @@ router.get('/:id', async (req, res, next) => {
     );
     if (!row) return res.status(404).json({ error: 'Klasifikasi tidak ditemukan' });
     if (!(await aksesSampah(req, row.id_sampah))) {
-      return res.status(403).json({ error: 'Bukan akses Anda atas sampah ini' });
+      return res.status(403).json({ error: 'Bukan akses Anda atas sisa makanan ini' });
     }
     res.json(row);
   } catch (e) {

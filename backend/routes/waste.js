@@ -62,7 +62,7 @@ router.post('/', requireRole('donor_mbg', 'admin'), upload.single('foto'), async
   try {
     const { nama_sampah, jenis_makanan, berat_kg, waktu_produksi, lat, lng, kelayakan } = req.body || {};
     const cleanName = clampStr(nama_sampah, 200);
-    if (!cleanName) return res.status(400).json({ error: 'Nama sampah wajib diisi' });
+    if (!cleanName) return res.status(400).json({ error: 'Nama sisa makanan wajib diisi' });
 
     if (!KELAYAKAN_VALID.includes(kelayakan)) {
       return res.status(400).json({ error: 'Kelayakan wajib diisi: layak atau tidak_layak' });
@@ -85,7 +85,7 @@ router.post('/', requireRole('donor_mbg', 'admin'), upload.single('foto'), async
     const jenis = JENIS_VALID.includes(jenis_makanan) ? jenis_makanan : 'campuran';
 
     // FR-02 (K-11): foto kondisi sampah wajib — cek magic bytes PNG/JPEG/GIF/WebP
-    if (!req.file) return res.status(400).json({ error: 'Foto kondisi sampah wajib diunggah' });
+    if (!req.file) return res.status(400).json({ error: 'Foto kondisi sisa makanan wajib diunggah' });
     assertImageBuffer(req.file.buffer);
 
     const donor = await db.get('SELECT lat, lng FROM user WHERE id_user = ?', [req.user.id]);
@@ -116,7 +116,7 @@ router.post('/', requireRole('donor_mbg', 'admin'), upload.single('foto'), async
       kategori: klasifikasi.kategori,
       tingkat_pembusukan: klasifikasi.tingkat_pembusukan,
     });
-    res.status(201).json({ id_sampah: idSampah, message: 'Sampah makanan dicatat', klasifikasi });
+    res.status(201).json({ id_sampah: idSampah, message: 'Sisa makanan dicatat', klasifikasi });
   } catch (e) {
     next(e);
   }
@@ -160,9 +160,9 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const sampah = await db.get(`${SELECT_LIST} WHERE s.id_sampah = ?`, [req.params.id]);
-    if (!sampah) return res.status(404).json({ error: 'Sampah tidak ditemukan' });
+    if (!sampah) return res.status(404).json({ error: 'Sisa makanan tidak ditemukan' });
     if (!(await aksesSampah(req, sampah))) {
-      return res.status(403).json({ error: 'Bukan akses Anda atas sampah ini' });
+      return res.status(403).json({ error: 'Bukan akses Anda atas sisa makanan ini' });
     }
     res.json(sampah);
   } catch (e) {
@@ -174,7 +174,7 @@ router.get('/:id', async (req, res, next) => {
 router.patch('/:id', async (req, res, next) => {
   try {
     const sampah = await db.get('SELECT * FROM sampah_makanan WHERE id_sampah = ?', [req.params.id]);
-    if (!sampah) return res.status(404).json({ error: 'Sampah tidak ditemukan' });
+    if (!sampah) return res.status(404).json({ error: 'Sisa makanan tidak ditemukan' });
     if (req.user.role !== 'admin' && sampah.id_donor !== req.user.id) {
       return res.status(403).json({ error: 'Bukan milik Anda' });
     }
@@ -187,18 +187,18 @@ router.patch('/:id', async (req, res, next) => {
       }
       await batalkanSampah(sampah);
       await audit(req.user.id, 'CANCEL_WASTE', 'sampah_makanan', sampah.id_sampah, { dari: sampah.status });
-      return res.json({ message: 'Sampah dibatalkan' });
+      return res.json({ message: 'Sisa makanan dibatalkan' });
     }
 
     if (sampah.status !== 'tersedia') {
-      return res.status(400).json({ error: `Sampah berstatus ${sampah.status} dan tidak bisa diedit` });
+      return res.status(400).json({ error: `Sisa makanan berstatus ${sampah.status} dan tidak bisa diedit` });
     }
 
     const fields = [];
     const params = [];
     if (nama_sampah != null) {
       const clean = clampStr(nama_sampah, 200);
-      if (!clean) return res.status(400).json({ error: 'Nama sampah tidak boleh kosong' });
+      if (!clean) return res.status(400).json({ error: 'Nama sisa makanan tidak boleh kosong' });
       fields.push('nama_sampah = ?');
       params.push(clean);
     }
@@ -255,7 +255,7 @@ router.patch('/:id', async (req, res, next) => {
       diubah: fields.map((f) => f.split(' =')[0]),
     });
     const updated = await db.get(`${SELECT_LIST} WHERE s.id_sampah = ?`, [sampah.id_sampah]);
-    res.json({ message: 'Sampah diperbarui', sampah: updated, klasifikasi });
+    res.json({ message: 'Sisa makanan diperbarui', sampah: updated, klasifikasi });
   } catch (e) {
     next(e);
   }
@@ -265,16 +265,16 @@ router.patch('/:id', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
   try {
     const sampah = await db.get('SELECT * FROM sampah_makanan WHERE id_sampah = ?', [req.params.id]);
-    if (!sampah) return res.status(404).json({ error: 'Sampah tidak ditemukan' });
+    if (!sampah) return res.status(404).json({ error: 'Sisa makanan tidak ditemukan' });
     if (req.user.role !== 'admin' && sampah.id_donor !== req.user.id) {
       return res.status(403).json({ error: 'Bukan milik Anda' });
     }
     if (!['tersedia', 'dialokasikan'].includes(sampah.status)) {
-      return res.status(400).json({ error: `Tidak bisa menghapus sampah berstatus ${sampah.status}` });
+      return res.status(400).json({ error: `Tidak bisa menghapus sisa makanan berstatus ${sampah.status}` });
     }
     await batalkanSampah(sampah);
     await audit(req.user.id, 'DELETE_WASTE', 'sampah_makanan', sampah.id_sampah, { soft_delete: true });
-    res.json({ message: 'Sampah dihapus (dibatalkan)' });
+    res.json({ message: 'Sisa makanan dihapus (dibatalkan)' });
   } catch (e) {
     next(e);
   }

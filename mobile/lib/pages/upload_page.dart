@@ -50,7 +50,7 @@ class _UploadPageState extends State<UploadPage>
     if (!_form.currentState!.validate()) return;
     if (_foto == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Foto kondisi sampah wajib dipilih')),
+        const SnackBar(content: Text('Foto kondisi sisa makanan wajib dipilih')),
       );
       return;
     }
@@ -73,7 +73,7 @@ class _UploadPageState extends State<UploadPage>
       await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Sampah dicatat'),
+          title: const Text('Sisa makanan dicatat'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,7 +146,7 @@ class _UploadPageState extends State<UploadPage>
   Future<void> _mintaSaran() async {
     if (_nama.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Isi nama sampah dulu untuk minta saran AI')),
+        const SnackBar(content: Text('Isi nama sisa makanan dulu untuk minta saran AI')),
       );
       return;
     }
@@ -191,7 +191,7 @@ class _UploadPageState extends State<UploadPage>
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text('Unggah Sampah Makanan',
+            Text('Unggah Sisa Makanan',
                 style: Theme.of(context)
                     .textTheme
                     .titleMedium
@@ -244,7 +244,7 @@ class _UploadPageState extends State<UploadPage>
                             Icon(Icons.add_a_photo_outlined,
                                 size: 42, color: kEcoGreen),
                             SizedBox(height: 8),
-                            Text('Ketuk untuk ambil foto sampah',
+                            Text('Ketuk untuk ambil foto makanan',
                                 style: TextStyle(
                                     color: kEcoGreenDark,
                                     fontWeight: FontWeight.w600)),
@@ -262,10 +262,10 @@ class _UploadPageState extends State<UploadPage>
             TextFormField(
               controller: _nama,
               decoration: const InputDecoration(
-                  labelText: 'Nama / isi sampah *',
+                  labelText: 'Nama / isi sisa makanan *',
                   hintText: 'mis. Nasi sisa + sayur bayam'),
               validator: (v) => (v == null || v.trim().isEmpty)
-                  ? 'Nama sampah wajib diisi'
+                  ? 'Nama sisa makanan wajib diisi'
                   : null,
             ),
             const SizedBox(height: 12),

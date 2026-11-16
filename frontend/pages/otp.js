@@ -68,8 +68,8 @@ async function otpView() {
     })
   );
 
-  return `${pageHead('Konfirmasi OTP', 'Masukkan kode 6 digit untuk konfirmasi serah terima sampah makanan')}
-  ${flowStripHtml(['Kurir jemput sampah', 'Kurir antar ke penerima', 'OTP muncul di sini', 'Konfirmasi terima'])}
+  return `${pageHead('Konfirmasi OTP', 'Masukkan kode 6 digit untuk konfirmasi serah terima sisa makanan')}
+  ${flowStripHtml(['Kurir jemput sisa makanan', 'Kurir antar ke penerima', 'OTP muncul di sini', 'Konfirmasi terima'])}
   <div class="section"><div class="card">
     <div class="card-head"><div><h2>Menunggu konfirmasi</h2></div></div>
     <div class="stack stack-4">
@@ -84,12 +84,12 @@ async function otpView() {
         ? emptyHtml('Belum ada kiriman', '')
         : `<div class="table-wrap" style="border:none">
       <table class="table">
-        <thead><tr><th>Sampah</th><th>Donor</th><th>Kurir</th><th>Status</th></tr></thead>
+        <thead><tr><th>Sisa Makanan</th><th>Donor</th><th>Kurir</th><th>Status</th></tr></thead>
         <tbody>
         ${rows
           .map(
             (m) => `<tr>
-<td data-label="Sampah">${esc(m.nama_sampah)} <span class="muted">${m.berat_kg} kg</span></td>
+<td data-label="Sisa Makanan">${esc(m.nama_sampah)} <span class="muted">${m.berat_kg} kg</span></td>
 <td data-label="Donor">${esc(m.nama_donor)}</td>
 <td data-label="Kurir">${esc(m.nama_kurir)}</td>
 <td data-label="Status">${statusTag(m.status)}</td>

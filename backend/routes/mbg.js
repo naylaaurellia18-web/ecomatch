@@ -90,7 +90,7 @@ router.post('/motivation/claim', async (req, res, next) => {
 
     const { kg_terverifikasi } = await statistikDonor(req.user.id);
     if (kg_terverifikasi < 5) {
-      return res.status(400).json({ error: 'Minimal 5 kg sampah terverifikasi untuk klaim insentif' });
+      return res.status(400).json({ error: 'Minimal 5 kg sisa makanan terverifikasi untuk klaim insentif' });
     }
     const perKg = await poinPerKg();
     const nilai = Math.round(kg_terverifikasi * perKg);

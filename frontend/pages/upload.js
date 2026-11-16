@@ -4,7 +4,7 @@ import { bindForms, locationSelectHtml } from '../core/forms.js';
 import { JENIS_SAMPAH, jenisLabel } from '../core/constants.js';
 import { sopHtml, bindSopToggle } from '../components/sop.js';
 
-const STEPS = ['Detail sampah', 'Waktu & lokasi', 'Konfirmasi'];
+const STEPS = ['Detail sisa makanan', 'Waktu & lokasi', 'Konfirmasi'];
 
 function wizardStepper(active) {
   return `<div class="stepper" id="wizStepper">
@@ -16,7 +16,7 @@ function donorForm() {
   const now = new Date(Date.now() - 60000);
   const waktuDefault = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
-  return `${pageHead('Catat Sampah Makanan MBG', 'Catat sisa makanan MBG dari dapur/SPPG untuk disalurkan ke penerima yang tepat')}
+  return `${pageHead('Catat Sisa Makanan MBG', 'Catat sisa makanan MBG dari dapur/SPPG untuk disalurkan ke penerima yang tepat')}
   ${flowStripHtml(['Isi form + foto', 'Cek kelayakan', 'Routing AI ke penerima', 'Kurir jemput & OTP'])}
   <div class="section"><div class="card card-pad-lg">
     <form id="wasteForm" data-action="1" data-endpoint="/api/waste" data-multipart="1" novalidate>
@@ -24,7 +24,7 @@ function donorForm() {
 
       <div class="stack stack-4" data-step-panel="0">
         <div class="field">
-          <label class="label" for="wNama">Nama sampah makanan<span class="req">*</span></label>
+          <label class="label" for="wNama">Nama sisa makanan<span class="req">*</span></label>
           <input class="input" id="wNama" name="nama_sampah" required maxlength="200" placeholder="Sisa nasi kotak sarapan MBG" />
         </div>
         <div class="grid grid-2">
@@ -41,11 +41,11 @@ function donorForm() {
         </div>
 
         <div class="field">
-          <label class="label">Foto kondisi sampah <span class="hint">(wajib, maks 1MB)</span><span class="req">*</span></label>
-          <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Unggah foto sampah">
+          <label class="label">Foto kondisi sisa makanan <span class="hint">(wajib, maks 1MB)</span><span class="req">*</span></label>
+          <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Unggah foto sisa makanan">
             <div id="dzEmpty">${icon('camera', 28)}<div style="margin-top:8px;font-weight:700">Tarik foto ke sini atau klik untuk memilih</div>
             <div class="t-xs muted">Format JPG/PNG, ukuran maksimal 1MB</div></div>
-            <div id="dzPreview" hidden><img class="preview-img" id="dzImg" alt="Pratinjau foto sampah" />
+            <div id="dzPreview" hidden><img class="preview-img" id="dzImg" alt="Pratinjau foto sisa makanan" />
               <div class="t-sm" id="dzName" style="margin-top:8px"></div></div>
           </div>
           <input class="sr-only" id="wFoto" name="foto" type="file" accept="image/*" capture="environment" required />
@@ -88,7 +88,7 @@ function donorForm() {
             <div><span class="muted">Foto:</span> <b id="sumFoto">—</b></div>
           </div>
         </div>
-        <div class="t-sm muted">Sampah akan diklasifikasi otomatis (FR-11) lalu menunggu routing AI (FR-04) — layak ke panti asuhan, tidak layak ke peternakan.</div>
+        <div class="t-sm muted">Sisa makanan akan diklasifikasi otomatis (FR-11) lalu menunggu routing AI (FR-04) — layak ke panti asuhan, tidak layak ke peternakan.</div>
         <div id="sopBox">${sopHtml('basah')}</div>
       </div>
 
@@ -96,7 +96,7 @@ function donorForm() {
         <button class="btn btn-outline" type="button" id="wizBack" hidden>${icon('arrowLeft', 15)} Kembali</button>
         <span class="grow"></span>
         <button class="btn btn-primary" type="button" id="wizNext">Lanjut ${icon('arrowRight', 15)}</button>
-        <button class="btn btn-primary" type="submit" id="wizSubmit" hidden>${icon('upload', 15)} Simpan sampah makanan</button>
+        <button class="btn btn-primary" type="submit" id="wizSubmit" hidden>${icon('upload', 15)} Simpan sisa makanan</button>
       </div>
       <div class="err-msg" id="wizErr" hidden style="margin-top:10px"></div>
     </form>
@@ -251,11 +251,11 @@ function initWizard(root) {
 
 async function donorListings() {
   const rows = await api('/api/waste/mine');
-  return `${pageHead('Stok Sampah Saya', 'Pantau status sampah makanan yang telah Anda catat')}
+  return `${pageHead('Stok Sisa Makanan Saya', 'Pantau status sisa makanan yang telah Anda catat')}
   <div class="section"><div class="card">
     ${
       rows.length === 0
-        ? emptyHtml('Belum ada stok sampah', 'Catat sampah makanan terlebih dahulu.')
+        ? emptyHtml('Belum ada stok sisa makanan', 'Catat sisa makanan terlebih dahulu.')
         : `<div class="table-wrap" style="border:none">
       <table class="table">
         <thead><tr><th>Foto</th><th>Nama</th><th>Jenis</th><th>Berat</th><th>Klasifikasi</th><th>Kelayakan</th><th>Produksi</th><th>Status</th><th style="text-align:right">Aksi</th></tr></thead>

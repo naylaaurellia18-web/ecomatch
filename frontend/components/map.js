@@ -93,7 +93,7 @@ async function loadData() {
 
 export function gisHtml(counts = {}) {
   const { donor = 0, penerima = 0, kurir = 0, rute = 0 } = counts;
-  return `${pageHead('Peta GIS', 'Sebaran donor MBG, penerima, kurir &amp; rute alokasi sampah')}
+  return `${pageHead('Peta GIS', 'Sebaran donor MBG, penerima, kurir &amp; rute alokasi sisa makanan')}
   <div class="section"><div class="map-panel">
     <div class="map-canvas" id="gisMap"></div>
     <input type="checkbox" id="legendToggle" class="legend-toggle-input" />
@@ -104,7 +104,7 @@ export function gisHtml(counts = {}) {
       <span class="legend-item"><span class="dot dot-donor"></span> Donor MBG</span>
       <span class="legend-item"><span class="dot dot-tps"></span> Penerima</span>
       <span class="legend-item"><span class="dot dot-kurir"></span> Kurir</span>
-      <span class="legend-item"><span class="dot dot-sampah"></span> Sampah tersedia</span>
+      <span class="legend-item"><span class="dot dot-sampah"></span> Sisa makanan tersedia</span>
       <span class="legend-item"><span class="dot" style="background:#0277BD;border-radius:2px;height:3px;width:16px"></span> Rute alokasi</span>
     </div>
   </div></div>
