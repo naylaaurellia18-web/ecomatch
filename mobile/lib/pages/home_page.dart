@@ -17,22 +17,30 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _index = 0;
+  int _genAlokasi = 0;
+  int _genMakanan = 0;
 
   List<Widget> get _pages {
     switch (Api.role) {
       case 'donor_mbg':
-        return const [
-          AlokasiPage(),
-          WastePage(),
-          UploadPage(),
-          NotificationsPage(),
+        return [
+          AlokasiPage(key: ValueKey('alokasi-$_genAlokasi')),
+          WastePage(key: ValueKey('makanan-$_genMakanan')),
+          const UploadPage(),
+          const NotificationsPage(),
         ];
       case 'penerima':
-        return const [AlokasiPage(), NotificationsPage()];
       case 'kurir':
-        return const [AlokasiPage(), NotificationsPage()];
+        return [
+          AlokasiPage(key: ValueKey('alokasi-$_genAlokasi')),
+          const NotificationsPage(),
+        ];
       default:
-        return const [AlokasiPage(), WastePage(), NotificationsPage()];
+        return [
+          AlokasiPage(key: ValueKey('alokasi-$_genAlokasi')),
+          WastePage(key: ValueKey('makanan-$_genMakanan')),
+          const NotificationsPage(),
+        ];
     }
   }
 
@@ -190,7 +198,15 @@ class _HomePageState extends State<HomePage> {
       body: IndexedStack(index: _index, children: pages),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index,
-        onTap: (i) => setState(() => _index = i),
+        onTap: (i) {
+          setState(() {
+            if (i != _index) {
+              if (pages[i] is AlokasiPage) _genAlokasi++;
+              if (pages[i] is WastePage) _genMakanan++;
+            }
+            _index = i;
+          });
+        },
         items: items,
       ),
     );
